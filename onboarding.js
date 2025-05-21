@@ -39,8 +39,9 @@ function drawOnboardingView() {
       textSize(16);
       text(q.options[i], width / 2, btnY + btnH / 2);
     }
-  } else {
-    assignInitialCollection();
+  } else if (!collectionAssigned) {
+    assignInitialCollection(); // 👈 exécuté une seule fois
+    collectionAssigned = true;
     mode = "exploration";
   }
 }
@@ -87,4 +88,5 @@ function handleOnboardingClick() {
       return;
     }
   }
+  console.log("Collection assignée :", playerCollection);
 }

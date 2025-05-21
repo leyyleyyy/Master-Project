@@ -24,6 +24,7 @@ let justWonMiniGame = false;
 let trackSelectedForValidation = null;
 let onboardingStep = 0;
 let userAnswers = [];
+let collectionAssigned = false;
 
 const DATA_KEYS = [
   "tempo",
