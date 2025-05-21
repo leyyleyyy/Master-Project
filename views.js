@@ -5,11 +5,52 @@ function drawExplorationView() {
   textSize(18);
   text(`Score : ${playerScore}`, 20, 38);
 
+  let unlockedMaps = getUnlockedMaps();
+
+  // Si aucune map n’est disponible, on affiche un message et on stoppe le rendu
+  if (unlockedMaps.length === 0) {
+    fill(0, 0, 80);
+    textAlign(CENTER);
+    textSize(20);
+    text(
+      "Aucune carte musicale disponible. Gagne des points pour en débloquer !",
+      width / 2,
+      height / 2
+    );
+    return;
+  }
+
+  // Sécurité pour éviter les crashs si l’index est trop élevé
+  if (currentMapIndex >= unlockedMaps.length) {
+    currentMapIndex = unlockedMaps.length - 1;
+  }
+
+  let currentMap = unlockedMaps[currentMapIndex];
+
+  // Flèches de navigation
+  if (unlockedMaps.length > 1) {
+    fill(0, 0, 100);
+    textAlign(CENTER, CENTER);
+    textSize(16);
+    if (currentMapIndex > 0) {
+      text("<", 40, height / 2);
+    }
+    if (currentMapIndex < unlockedMaps.length - 1) {
+      text(">", width - 40, height / 2);
+    }
+
+    text(currentMap.name, width / 2, 40);
+  }
+
   if (justWonMiniGame && remainingSelections > 0) {
     fill(0, 0, 100);
     textSize(16);
     textAlign(CENTER);
-    text("Encore " + remainingSelections + " musique(s) à ajouter", width / 2, 80);
+    text(
+      "Encore " + remainingSelections + " musique(s) à ajouter",
+      width / 2,
+      80
+    );
   }
 
   // Bouton "Ma collection"
@@ -30,17 +71,17 @@ function drawExplorationView() {
   cols = max(cols, 2);
   let cellSize = (width - padding * (cols + 1)) / cols;
 
-  /*
-  for (let i = 0; i < allBlobs.length; i++) {
-    let track = allBlobs[i];
-    let x = track.pos.x + scrollXOffset;
-    let y = track.pos.y + scrollYOffset;
+  // Génére les blobs pour la map active uniquement
+  allBlobs = currentMap.tracks.map((track, i) => {
+    return {
+      ...track,
+      pos: {
+        x: (i % cols) * (cellSize + padding) + padding,
+        y: floor(i / cols) * (cellSize + padding) + 160,
+      },
+    };
+  });
 
-    if (x < -300 || x > width + 300 || y < -300 || y > height + 300) continue;
-
-    drawTrackBlob(track, x, y, cellSize, i);
-  }
-*/
   let visibleCount = getVisibleTracksCount();
   for (let i = 0; i < visibleCount && i < allBlobs.length; i++) {
     let track = allBlobs[i];
@@ -69,7 +110,11 @@ function drawExplorationView() {
     fill(0, 0, 100);
     textAlign(CENTER, CENTER);
     textSize(16);
-    text("Valider ce son", panelX + panelWidth / 2, validerY + btnH / 2);
+    text(
+      "Ajouter ce son à ma collection",
+      panelX + panelWidth / 2,
+      validerY + btnH / 2
+    );
   }
 
   // Feedbacks points

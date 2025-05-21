@@ -25,6 +25,7 @@ let trackSelectedForValidation = null;
 let onboardingStep = 0;
 let userAnswers = [];
 let collectionAssigned = false;
+let currentMapIndex = 0;
 
 const DATA_KEYS = [
   "tempo",
@@ -72,4 +73,14 @@ function getVisibleTracksCount() {
   if (unlocked === 2) return 24;
   if (unlocked === 3) return 28;
   return 30;
+}
+function getUnlockedMaps() {
+  return maps.filter((map) => playerScore >= map.unlockScore);
+}
+
+function goToNextMap() {
+  let unlocked = getUnlockedMaps();
+  if (currentMapIndex < unlocked.length - 1) {
+    currentMapIndex++;
+  }
 }

@@ -42,7 +42,7 @@ function drawOnboardingView() {
   } else if (!collectionAssigned) {
     assignInitialCollection(); // 👈 exécuté une seule fois
     collectionAssigned = true;
-    mode = "exploration";
+    mode = "collection";
   }
 }
 

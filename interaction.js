@@ -112,6 +112,16 @@ function mousePressed() {
   // === EXPLORATION ===
   if (mode === "exploration") {
     // Clic sur "Ma collection"
+    let unlocked = getUnlockedMaps();
+    if (mouseX < 60 && mouseY > height / 2 - 30 && mouseY < height / 2 + 30) {
+      if (currentMapIndex > 0) currentMapIndex--;
+    } else if (
+      mouseX > width - 60 &&
+      mouseY > height / 2 - 30 &&
+      mouseY < height / 2 + 30
+    ) {
+      if (currentMapIndex < unlocked.length - 1) currentMapIndex++;
+    }
     if (mouseX > 150 && mouseX < 290 && mouseY > 20 && mouseY < 55) {
       mode = "collection";
       return;

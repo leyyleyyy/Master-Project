@@ -324,3 +324,16 @@ let tracksData = [
     popularity: 15,
   },
 ];
+let maps = [];
+let chunkSize = 8; // nombre de morceaux par map
+let scoreThreshold = 0;
+
+for (let i = 0; i < tracksData.length; i += chunkSize) {
+  let chunk = tracksData.slice(i, i + chunkSize);
+  maps.push({
+    name: "Map " + (maps.length + 1),
+    unlockScore: scoreThreshold,
+    tracks: chunk,
+  });
+  scoreThreshold += 20; // chaque map est débloquée tous les 20 points
+}
