@@ -12,7 +12,7 @@ let playerScore = 0;
 let playerCollection = [];
 let pointFeedbacks = [];
 
-let mode = "collection"; // "exploration", "collection", "minigame"
+let mode = "onboarding"; // "exploration", "collection", "minigame"
 let currentMiniGameTrack = null;
 let miniGameOptions = [];
 let miniGameAnswer = null;
@@ -22,6 +22,8 @@ let miniGameValidated = false;
 
 let justWonMiniGame = false;
 let trackSelectedForValidation = null;
+let onboardingStep = 0;
+let userAnswers = [];
 
 const DATA_KEYS = [
   "tempo",

@@ -62,7 +62,6 @@ function mousePressed() {
 
     return;
   }
-
   // === COLLECTION ===
   if (mode === "collection") {
     // Retour vers exploration
@@ -110,7 +109,6 @@ function mousePressed() {
 
     return;
   }
-
   // === EXPLORATION ===
   if (mode === "exploration") {
     // Clic sur "Ma collection"
@@ -177,6 +175,10 @@ function mousePressed() {
         return;
       }
     }
+  }
+  if (mode === "onboarding") {
+    handleOnboardingClick();
+    return;
   }
 }
 

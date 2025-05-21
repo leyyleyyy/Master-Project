@@ -49,4 +49,7 @@ function draw() {
   } else if (mode === "minigame") {
     drawMiniGameView();
   }
+  if (mode === "onboarding") {
+    drawOnboardingView();
+  }
 }
