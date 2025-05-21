@@ -111,16 +111,23 @@ function drawExplorationView() {
   cols = max(cols, 2);
   let cellSize = (width - padding * (cols + 1)) / cols;
 
-  // Génére les blobs pour la map active uniquement
-  allBlobs = currentMap.tracks.map((track, i) => {
-    return {
-      ...track,
-      pos: {
-        x: (i % cols) * (cellSize + padding) + padding,
-        y: floor(i / cols) * (cellSize + padding) + 160,
-      },
-    };
-  });
+  // Répartition aléatoire des blobs sur la map
+  // Génère et mémorise la position des blobs pour chaque map, pour qu'ils restent stables
+  if (
+    !currentMap._blobPositions ||
+    currentMap._blobPositions.length !== currentMap.tracks.length
+  ) {
+    let margin = 100;
+    currentMap._blobPositions = currentMap.tracks.map(() => ({
+      x: random(margin, width - margin),
+      y: random(height / 2, height - margin),
+    }));
+  }
+
+  allBlobs = currentMap.tracks.map((track, idx) => ({
+    ...track,
+    pos: { ...currentMap._blobPositions[idx] },
+  }));
 
   let visibleCount = getVisibleTracksCount();
   for (let i = 0; i < visibleCount && i < allBlobs.length; i++) {

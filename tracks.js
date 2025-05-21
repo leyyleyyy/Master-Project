@@ -325,7 +325,7 @@ let tracksData = [
   },
 ];
 let maps = [];
-let chunkSize = 8; // nombre de morceaux par map
+let chunkSize = 20; // nombre de morceaux par map
 let scoreThreshold = 0;
 
 for (let i = 0; i < tracksData.length; i += chunkSize) {
