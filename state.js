@@ -12,7 +12,7 @@ let playerScore = 0;
 let playerCollection = [];
 let pointFeedbacks = [];
 
-let mode = "onboarding"; // "exploration", "collection", "minigame"
+let mode = "exploration"; // "exploration", "collection", "minigame"
 let currentMiniGameTrack = null;
 let miniGameOptions = [];
 let miniGameAnswer = null;

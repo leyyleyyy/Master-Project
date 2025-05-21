@@ -111,6 +111,21 @@ function mousePressed() {
   }
   // === EXPLORATION ===
   if (mode === "exploration") {
+    for (let zone of blobHitZones) {
+      if (
+        zone.type === "mapButton" &&
+        mouseX > zone.x &&
+        mouseX < zone.x + zone.w &&
+        mouseY > zone.y &&
+        mouseY < zone.y + zone.h
+      ) {
+        if (zone.isUnlocked) {
+          currentMapIndex = zone.index;
+        }
+        return;
+      }
+    }
+
     // Clic sur "Ma collection"
     let unlocked = getUnlockedMaps();
     if (mouseX < 60 && mouseY > height / 2 - 30 && mouseY < height / 2 + 30) {

@@ -26,6 +26,46 @@ function drawExplorationView() {
   }
 
   let currentMap = unlockedMaps[currentMapIndex];
+  // Dessiner les boutons de navigation par map
+  textAlign(CENTER, CENTER);
+  textSize(14);
+  let btnW = 100;
+  let btnH = 30;
+  let spacing = 20;
+  let totalW = maps.length * (btnW + spacing) - spacing;
+  let startX = width / 2 - totalW / 2;
+
+  for (let i = 0; i < maps.length; i++) {
+    let x = startX + i * (btnW + spacing);
+    let y = 20;
+    let isUnlocked = playerScore >= maps[i].unlockScore;
+
+    // Fond du bouton
+    if (i === currentMapIndex) {
+      fill(60, 100, 60); // surlignage map active
+    } else if (isUnlocked) {
+      fill(0, 0, 30);
+    } else {
+      fill(0, 0, 10); // grisé pour verrouillé
+    }
+    rect(x, y, btnW, btnH, 6);
+
+    // Texte
+    fill(isUnlocked ? 100 : 50);
+    let label = isUnlocked ? maps[i].name : `🔒 ${maps[i].name}`;
+    text(label, x + btnW / 2, y + btnH / 2);
+
+    // Zone cliquable stockée
+    blobHitZones.push({
+      type: "mapButton",
+      index: i,
+      x: x,
+      y: y,
+      w: btnW,
+      h: btnH,
+      isUnlocked: isUnlocked,
+    });
+  }
 
   // Flèches de navigation
   if (unlockedMaps.length > 1) {
@@ -105,9 +145,9 @@ function drawExplorationView() {
     fill(0, 0, 15);
     rect(panelX, 0, panelWidth, height);
 
-    fill(120, 80, 40);
+    fill(0, 0, 100); // White button
     rect(btnX, validerY, btnW, btnH, 10);
-    fill(0, 0, 100);
+    fill(0, 0, 0); // Black text
     textAlign(CENTER, CENTER);
     textSize(16);
     text(
