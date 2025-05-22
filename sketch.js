@@ -52,4 +52,5 @@ function draw() {
   if (mode === "onboarding") {
     drawOnboardingView();
   }
+  updateAvatarGif(); // avatar évolue dynamiquement
 }

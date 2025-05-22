@@ -12,7 +12,7 @@ let playerScore = 0;
 let playerCollection = [];
 let pointFeedbacks = [];
 
-let mode = "exploration"; // "exploration", "collection", "minigame"
+let mode = "onboarding"; // "exploration", "collection", "minigame"
 let currentMiniGameTrack = null;
 let miniGameOptions = [];
 let miniGameAnswer = null;
@@ -82,5 +82,26 @@ function goToNextMap() {
   let unlocked = getUnlockedMaps();
   if (currentMapIndex < unlocked.length - 1) {
     currentMapIndex++;
+  }
+}
+function getAvatarStage() {
+  let count = playerCollection.length;
+  if (count <= 3) return "avatar_0";
+  if (count <= 6) return "avatar_1";
+  if (count <= 12) return "avatar_0";
+  return "avatar_1";
+}
+
+function updateAvatarGif() {
+  const avatar = document.getElementById("avatar");
+  if (!avatar) return;
+  if (mode === "onboarding") {
+    avatar.style.display = "none";
+    return;
+  }
+  avatar.style.display = "block"; // sinon on l'affiche
+  let stage = getAvatarStage();
+  if (!avatar.src.includes(stage)) {
+    avatar.src = `avatars/${stage}.png`; // ou .gif selon ton format
   }
 }

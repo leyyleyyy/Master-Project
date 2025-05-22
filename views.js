@@ -213,12 +213,13 @@ function drawCollectionView() {
   }
 
   // Bouton retour
-  fill(0, 0, 20);
+  /*fill(0, 0, 20);
   rect(40, height - 60, 100, 35, 8);
   fill(0, 0, 100);
   textAlign(CENTER, CENTER);
   textSize(14);
   text("↩ Retour", 90, height - 42);
+  */
 }
 function drawMiniGameView() {
   fill(0, 0, 100);
