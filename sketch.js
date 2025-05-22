@@ -48,9 +48,23 @@ function draw() {
     drawCollectionView();
   } else if (mode === "minigame") {
     drawMiniGameView();
+  } else if (mode === "avatar") {
+    drawAvatarView();
   }
   if (mode === "onboarding") {
     drawOnboardingView();
   }
   updateAvatarGif(); // avatar évolue dynamiquement
 }
+
+window.addEventListener("DOMContentLoaded", () => {
+  const avatarEl = document.getElementById("avatar");
+
+  if (avatarEl) {
+    avatarEl.addEventListener("click", () => {
+      if (mode !== "onboarding") {
+        mode = "avatar";
+      }
+    });
+  }
+});

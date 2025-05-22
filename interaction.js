@@ -201,9 +201,38 @@ function mousePressed() {
       }
     }
   }
+  // === ONBOARDING ===
   if (mode === "onboarding") {
     handleOnboardingClick();
     return;
+  }
+  // === AVATAR ===
+  if (mode === "avatar") {
+    // Bouton retour
+    if (
+      mouseX > 40 &&
+      mouseX < 140 &&
+      mouseY > height - 60 &&
+      mouseY < height - 25
+    ) {
+      mode = "collection"; // ou "exploration"
+      return;
+    }
+    // Bouton "Continuer"
+    let btnW = 200;
+    let btnH = 40;
+    let btnX = width / 2 - btnW / 2;
+    let btnY = 440 + 10 + 20;
+
+    if (
+      mouseX > btnX &&
+      mouseX < btnX + btnW &&
+      mouseY > btnY &&
+      mouseY < btnY + btnH
+    ) {
+      mode = "collection"; // ou "exploration" selon ce que tu préfères
+      return;
+    }
   }
 }
 

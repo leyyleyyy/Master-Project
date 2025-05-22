@@ -12,7 +12,7 @@ let playerScore = 0;
 let playerCollection = [];
 let pointFeedbacks = [];
 
-let mode = "onboarding"; // "exploration", "collection", "minigame"
+let mode = "avatar"; // "exploration", "collection", "minigame", "avatar"
 let currentMiniGameTrack = null;
 let miniGameOptions = [];
 let miniGameAnswer = null;
@@ -93,15 +93,111 @@ function getAvatarStage() {
 }
 
 function updateAvatarGif() {
-  const avatar = document.getElementById("avatar");
-  if (!avatar) return;
+  let avatar = document.getElementById("avatar");
+  if (!avatar || typeof mode === "undefined") return;
+
   if (mode === "onboarding") {
     avatar.style.display = "none";
     return;
   }
-  avatar.style.display = "block"; // sinon on l'affiche
+
+  avatar.style.display = "block";
+
+  // Position dynamique selon le mode
+  if (mode === "avatar") {
+    avatar.style.position = "absolute";
+    avatar.style.left = width / 2 - 75 + "px";
+    avatar.style.top = "110px";
+    avatar.style.width = "150px";
+  } else {
+    avatar.style.position = "fixed";
+    avatar.style.right = "20px";
+    avatar.style.top = "20px";
+    avatar.style.left = "auto";
+    avatar.style.width = "100px";
+  }
+
+  // Met à jour l’image si nécessaire
   let stage = getAvatarStage();
   if (!avatar.src.includes(stage)) {
-    avatar.src = `avatars/${stage}.png`; // ou .gif selon ton format
+    avatar.src = `avatars/${stage}.gif`;
   }
+}
+
+function getRemainingToNextStage() {
+  let count = playerCollection.length;
+  if (count <= 3) return 4 - count;
+  if (count <= 6) return 7 - count;
+  if (count <= 12) return 13 - count;
+  return 0;
+}
+
+function getCollectionStats() {
+  if (playerCollection.length === 0)
+    return {
+      avgTempo: 0,
+      avgValence: 0,
+      style: "Inconnu",
+    };
+
+  let totalTempo = 0;
+  let totalValence = 0;
+  let acousticnessSum = 0;
+
+  for (let track of playerCollection) {
+    totalTempo += track.tempo;
+    totalValence += track.valence;
+    acousticnessSum += track.acousticness;
+  }
+
+  let avgTempo = totalTempo / playerCollection.length;
+  let avgValence = totalValence / playerCollection.length;
+  let avgAcousticness = acousticnessSum / playerCollection.length;
+
+  let style = "Équilibré";
+  if (avgAcousticness > 0.6) style = "Acoustique 🎻";
+  else if (avgAcousticness < 0.4) style = "Électronique 🎧";
+
+  return {
+    avgTempo,
+    avgValence,
+    style,
+  };
+}
+
+function getDiversityAndUndergroundScore() {
+  if (playerCollection.length === 0)
+    return {
+      diversity: 0,
+      underground: 0,
+    };
+
+  let tempos = new Set();
+  let keys = new Set();
+  let styles = new Set();
+
+  let totalPopularity = 0;
+
+  for (let track of playerCollection) {
+    tempos.add(round(track.tempo / 10)); // groupé par 10 bpm
+    keys.add(track.key);
+    styles.add(
+      track.acousticness > 0.6
+        ? "Acoustique"
+        : track.acousticness < 0.4
+        ? "Électro"
+        : "Mix"
+    );
+    totalPopularity += track.popularity;
+  }
+
+  let diversity =
+    (tempos.size + keys.size + styles.size) / (playerCollection.length + 2); // normalisé
+
+  let underground = 100 - totalPopularity / playerCollection.length; // plus c’est bas, mieux c’est
+
+  return {
+    diversity: constrain(diversity * 100, 0, 100),
+    underground: constrain(underground, 0, 100),
+  };
 }

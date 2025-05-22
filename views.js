@@ -221,6 +221,7 @@ function drawCollectionView() {
   text("↩ Retour", 90, height - 42);
   */
 }
+
 function drawMiniGameView() {
   fill(0, 0, 100);
   textAlign(CENTER);
@@ -285,4 +286,128 @@ function drawMiniGameView() {
       text("Valider la réponse", width / 2, height - 57);
     }
   }
+}
+
+function drawAvatarView() {
+  background(260, 40, 10); // fond coloré (violet foncé)
+
+  // === TITRE ===
+  textAlign(CENTER);
+  fill(0, 0, 100);
+  textSize(28);
+  text("Ton Avatar", width / 2, 60);
+
+  // === Avatar centré ===
+  /*let avatarImg = document.getElementById("avatar");
+  if (avatarImg) {
+    avatarImg.style.left = width / 2 - 75 + "px";
+    avatarImg.style.top = "110px";
+    avatarImg.style.position = "absolute";
+    avatarImg.style.width = "150px";
+    avatarImg.style.display = "block";
+  }
+*/
+  let stage = getAvatarStage();
+  let remaining = getRemainingToNextStage();
+  let stats = getCollectionStats();
+
+  // === Stade actuel ===
+  fill(0, 0, 100);
+  textSize(20);
+  text(`Stade actuel : ${stage.toUpperCase()}`, width / 2, 280);
+
+  fill(0, 0, 80);
+  textSize(16);
+  if (remaining > 0) {
+    text(
+      `🎯 Il te reste ${remaining} morceau(x) pour évoluer !`,
+      width / 2,
+      310
+    );
+  } else {
+    text(`🌟 Ton avatar est au stade final !`, width / 2, 310);
+  }
+
+  // === Astuce ou encouragement ===
+  fill(0, 0, 70);
+  textSize(12);
+  text(
+    "Astuce : explore des sons variés pour faire évoluer ton compagnon 🎶",
+    width / 2,
+    height - 100
+  );
+  let evo = getDiversityAndUndergroundScore();
+
+  drawStatBar(
+    "Out of the confort zone",
+    evo.diversity,
+    width / 2 - 100,
+    400,
+    0,
+    100
+  );
+  drawStatBar(
+    "No more mainstream",
+    evo.underground,
+    width / 2 - 100,
+    440,
+    0,
+    100
+  );
+
+  // Feedback textuel
+  textAlign(CENTER);
+  fill(0, 0, 80);
+  textSize(12);
+  if (evo.underground > 80 && evo.diversity > 70) {
+    text(
+      "🔥 Tu explores hors des sentiers battus, ton avatar est en pleine évolution !",
+      width / 2,
+      height - 130
+    );
+  } else if (evo.underground < 40) {
+    text(
+      "💤 Tu restes encore trop proche du mainstream... essaie des sons moins connus !",
+      width / 2,
+      height - 130
+    );
+  } else {
+    text("🌱 Continue d'explorer, tu progresses !", width / 2, height - 130);
+  }
+  // === Bouton "Continuer" ===
+  let btnW = 200;
+  let btnH = 40;
+  let btnX = width / 2 - btnW / 2;
+  // Place le bouton juste sous la dernière barre de progression (y = 440 + 10 + 20)
+  let btnY = 440 + 10 + 20;
+
+  fill(0, 0, 20);
+  rect(btnX, btnY, btnW, btnH, 10);
+  fill(0, 0, 100);
+  textAlign(CENTER, CENTER);
+  textSize(16);
+  text("Continuer l’exploration", btnX + btnW / 2, btnY + btnH / 2);
+
+  // === Bouton retour ===
+  fill(0, 0, 20);
+  rect(40, height - 60, 100, 35, 8);
+  fill(0, 0, 100);
+  textAlign(CENTER, CENTER);
+  textSize(14);
+  text("↩ Retour", 90, height - 42);
+}
+function drawStatBar(label, value, x, y, min, max) {
+  let barW = 200;
+  let pct = map(value, min, max, 0, barW);
+
+  fill(0, 0, 80);
+  textSize(14);
+  textAlign(LEFT);
+  text(`${label} : ${nf(value, 1, 1)}`, x, y - 8);
+
+  fill(0, 0, 30);
+  rect(x, y, barW, 10, 5);
+
+  fill(200, 80, 100); // couleur dynamique
+  rect(x, y, pct, 10, 5);
 }
