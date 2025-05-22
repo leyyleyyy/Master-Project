@@ -183,43 +183,75 @@ function drawExplorationView() {
 }
 
 function drawCollectionView() {
+  background(0, 0, 11);
+
+  // === TITRE + DESCRIPTION ===
   fill(0, 0, 100);
   textAlign(LEFT);
-  textSize(20);
+  textSize(24);
   text("Ma Collection", 40, 40);
 
-  // ✅ Affiche le score ici aussi
-  textSize(16);
-  text(`Score : ${playerScore}`, 40, 70);
-  fill(0, 0, 80);
   textSize(14);
-  text("Clique sur un son de ta collection pour jouer avec.", 40, 100);
+  fill(0, 0, 80);
+  text(
+    "Voici les morceaux que tu as découverts. Clique sur un son pour jouer avec !",
+    40,
+    70
+  );
 
+  // === SCORE ===
+  fill(0, 0, 100);
+  textSize(14);
+  text(`Score total : ${playerScore}`, 40, 100);
+
+  // === LISTE DES MORCEAUX ===
   let spacing = 200;
+  let newTrackCount = min(3, playerCollection.length); // nombre de récents à mettre en avant
   collectionHitZones = [];
 
   for (let i = 0; i < playerCollection.length; i++) {
     let track = playerCollection[i];
-    let x = 150 + (i % 4) * spacing;
-    let y = 120 + floor(i / 4) * spacing;
+
+    let x, y;
+    if (i < newTrackCount) {
+      // Morceaux récents en haut
+      x = 150 + i * spacing;
+      y = 160;
+    } else {
+      // Le reste en grille
+      let row = floor((i - newTrackCount) / 4);
+      let col = (i - newTrackCount) % 4;
+      x = 150 + col * spacing;
+      y = 260 + row * spacing;
+    }
 
     drawTrackBlob(track, x, y, 120, i);
     collectionHitZones.push({ x, y, r: 60, track });
 
+    // Titre du morceau
     fill(0, 0, 100);
     textAlign(CENTER);
     textSize(12);
     text(track.title, x, y + 70);
   }
 
-  // Bouton retour
-  /*fill(0, 0, 20);
-  rect(40, height - 60, 100, 35, 8);
+  // === Bouton Carte ===
+  let btnW = 100;
+  let btnH = 30;
+  let space = 20;
+  let totalW = maps.length * (btnW + space) - space;
+  let startX = width / 2 - totalW / 2;
+
+  // Position alignée sur la map
+  let mapBtnX = startX + currentMapIndex * (btnW + space);
+  let mapBtnY = 20;
+
+  fill(0, 0, 20); // même couleur que le bouton actif
+  rect(mapBtnX, mapBtnY, btnW, btnH, 6);
   fill(0, 0, 100);
   textAlign(CENTER, CENTER);
   textSize(14);
-  text("↩ Retour", 90, height - 42);
-  */
+  text("Maps", mapBtnX + btnW / 2, mapBtnY + btnH / 2);
 }
 
 function drawMiniGameView() {

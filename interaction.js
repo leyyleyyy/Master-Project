@@ -65,11 +65,20 @@ function mousePressed() {
   // === COLLECTION ===
   if (mode === "collection") {
     // Retour vers exploration
+    // Clic sur bouton "Carte" en haut (même endroit que les boutons Map)
+    let btnW = 100;
+    let btnH = 30;
+    let spacing = 20;
+    let totalW = maps.length * (btnW + spacing) - spacing;
+    let startX = width / 2 - totalW / 2;
+    let mapBtnX = startX + currentMapIndex * (btnW + spacing);
+    let mapBtnY = 20;
+
     if (
-      mouseX > 40 &&
-      mouseX < 140 &&
-      mouseY > height - 60 &&
-      mouseY < height - 25
+      mouseX > mapBtnX &&
+      mouseX < mapBtnX + btnW &&
+      mouseY > mapBtnY &&
+      mouseY < mapBtnY + btnH
     ) {
       mode = "exploration";
       return;
