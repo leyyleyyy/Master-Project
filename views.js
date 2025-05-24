@@ -185,83 +185,131 @@ function drawExplorationView() {
 function drawCollectionView() {
   background(0, 0, 11);
 
-  // === TITRE + DESCRIPTION ===
+  // === TITRE & INTRO ===
   fill(0, 0, 100);
-  textAlign(LEFT);
-  textSize(24);
-  text("Ma Collection", 40, 40);
+  textAlign(CENTER);
+  textSize(28);
+  text("Ma Collection", width / 2, 50);
 
   textSize(14);
   fill(0, 0, 80);
   text(
-    "Voici les morceaux que tu as découverts. Clique sur un son pour jouer avec !",
-    40,
-    70
+    "Tu peux rejouer les sons découverts ou en débloquer de nouveaux !",
+    width / 2,
+    80
   );
 
   // === SCORE ===
   fill(0, 0, 100);
   textSize(14);
-  text(`Score total : ${playerScore}`, 40, 100);
+  textAlign(CENTER);
+  text(`Score total : ${playerScore}`, width / 2, 110);
 
-  // === LISTE DES MORCEAUX ===
-  let spacing = 200;
-  let newTrackCount = min(3, playerCollection.length); // nombre de récents à mettre en avant
-  collectionHitZones = [];
+  // === ESPACE POUR LES FILTRES ===
+  // le HTML/CSS les gère, donc ici on laisse juste de la place visuelle
+  let filtersOffset = 70;
 
-  for (let i = 0; i < playerCollection.length; i++) {
-    let track = playerCollection[i];
+  // === FILTRAGE ===
+  let filteredCollection = playerCollection.filter((track) => {
+    let genreOK =
+      activeFilters.genre === "All" ||
+      (track.genre && track.genre.includes(activeFilters.genre));
+    let energyOK = true;
+    let danceOK = true;
 
-    let x, y;
-    if (i < newTrackCount) {
-      // Morceaux récents en haut
-      x = 150 + i * spacing;
-      y = 160;
-    } else {
-      // Le reste en grille
-      let row = floor((i - newTrackCount) / 4);
-      let col = (i - newTrackCount) % 4;
-      x = 150 + col * spacing;
-      y = 260 + row * spacing;
+    if (activeFilters.energy) {
+      let e = track.energy;
+      if (activeFilters.energy === "low") energyOK = e < 0.15;
+      if (activeFilters.energy === "mid") energyOK = e >= 0.15 && e <= 0.23;
+      if (activeFilters.energy === "high") energyOK = e > 0.23;
     }
 
-    drawTrackBlob(track, x, y, 120, i);
-    collectionHitZones.push({ x, y, r: 60, track });
+    if (activeFilters.dance) {
+      let d = track.danceability;
+      if (activeFilters.dance === "low") danceOK = d < 1.4;
+      if (activeFilters.dance === "mid") danceOK = d >= 1.4 && d <= 1.8;
+      if (activeFilters.dance === "high") danceOK = d > 1.8;
+    }
 
-    // Titre du morceau
-    fill(0, 0, 100);
+    return genreOK && energyOK && danceOK;
+  });
+
+  collectionHitZones = [];
+
+  if (filteredCollection.length === 0) {
+    fill(0, 0, 70);
     textAlign(CENTER);
-    textSize(12);
-    text(track.title, x, y + 70);
+    textSize(16);
+    text(
+      "Aucun morceau ne correspond à ces filtres pour l’instant.",
+      width / 2,
+      height / 2
+    );
+  } else {
+    // === GRILLE CENTRÉE ET RESPIRANTE ===
+    let cols = floor((width - 80) / 180);
+    cols = max(cols, 2);
+    let cellSize = min(140, (width - 80) / cols - 20);
+    let spacing = cellSize + 40;
+    let startY = 180 + filtersOffset;
+
+    for (let i = 0; i < filteredCollection.length; i++) {
+      let track = filteredCollection[i];
+      let row = floor(i / cols);
+      let col = i % cols;
+      let totalWidth = (cols - 1) * spacing;
+      let x = width / 2 - totalWidth / 2 + col * spacing;
+      let y = startY + row * spacing;
+
+      drawTrackBlob(track, x, y, cellSize, i);
+      collectionHitZones.push({ x, y, r: cellSize / 2, track });
+
+      fill(0, 0, 100);
+      textAlign(CENTER);
+      textSize(12);
+      text(track.title, x, y + cellSize / 2 + 16);
+    }
   }
 
-  // === Bouton Carte ===
+  // === BOUTON MAP CENTRÉ EN BAS ===
   let btnW = 100;
   let btnH = 30;
-  let space = 20;
-  let totalW = maps.length * (btnW + space) - space;
-  let startX = width / 2 - totalW / 2;
+  let mapBtnX = width / 2 - btnW / 2;
+  let mapBtnY = height - 60;
 
-  // Position alignée sur la map
-  let mapBtnX = startX + currentMapIndex * (btnW + space);
-  let mapBtnY = 20;
-
-  fill(0, 0, 20); // même couleur que le bouton actif
+  fill(0, 0, 20);
   rect(mapBtnX, mapBtnY, btnW, btnH, 6);
   fill(0, 0, 100);
   textAlign(CENTER, CENTER);
   textSize(14);
-  text("Maps", mapBtnX + btnW / 2, mapBtnY + btnH / 2);
+  text("🗺️ Maps", mapBtnX + btnW / 2, mapBtnY + btnH / 2);
 }
 
 function drawMiniGameView() {
+  background(0, 0, 11);
   fill(0, 0, 100);
   textAlign(CENTER);
   textSize(20);
   text(`Mini-jeu 🎮`, width / 2, 50);
 
+  let question = "";
+  let unit = "";
+
+  if (currentMiniGameType === "tempo") {
+    question = "Quel est le tempo de cette musique ?";
+    unit = " BPM";
+  } else if (currentMiniGameType === "valence") {
+    question = "Quel est le mood général de cette musique ?";
+    unit = "";
+  } else if (currentMiniGameType === "genre") {
+    question = "Quel est le genre de cette musique ?";
+    unit = "";
+  }
+
   textSize(16);
-  text(`Quel est le tempo de cette musique ?`, width / 2, 100);
+  fill(0, 0, 100);
+  text(question, width / 2, 100);
+
   fill(0, 0, 80);
   textSize(14);
   text("Écoute et choisis la bonne réponse.", width / 2, 80);
@@ -277,26 +325,10 @@ function drawMiniGameView() {
     rect(btnX, btnY, btnW, btnH, 8);
     fill(0, 0, 100);
     textSize(14);
-    text(`${option} BPM`, width / 2, btnY + btnH / 2);
+    text(`${option}${unit}`, width / 2, btnY + btnH / 2);
   }
 
-  // Feedback
-  if (miniGameFeedback) {
-    fill(0, 0, 20);
-    rect(width / 2 - 100, height - 80, 200, 45, 10);
-    fill(0, 0, 100);
-    textAlign(CENTER, CENTER);
-    textSize(16);
-    text("Valider la réponse", width / 2, height - 57);
-  }
-
-  // Bouton retour
-  fill(0, 0, 20);
-  rect(40, height - 60, 100, 35, 8);
-  fill(0, 0, 100);
-  textAlign(CENTER, CENTER);
-  textSize(14);
-  text("↩ Retour", 90, height - 42);
+  // === Feedback ===
   if (miniGameFeedback) {
     fill(
       miniGameFeedback === "correct" ? color(120, 80, 100) : color(0, 80, 100)
@@ -308,16 +340,21 @@ function drawMiniGameView() {
       height - 120
     );
 
-    // Bouton "Valider la réponse"
-    if (miniGameFeedback) {
-      fill(0, 0, 20);
-      rect(width / 2 - 100, height - 80, 200, 45, 10);
-      fill(0, 0, 100);
-      textAlign(CENTER, CENTER);
-      textSize(16);
-      text("Valider la réponse", width / 2, height - 57);
-    }
+    fill(0, 0, 20);
+    rect(width / 2 - 100, height - 80, 200, 45, 10);
+    fill(0, 0, 100);
+    textAlign(CENTER, CENTER);
+    textSize(16);
+    text("Valider la réponse", width / 2, height - 57);
   }
+
+  // === Bouton retour ===
+  fill(0, 0, 20);
+  rect(40, height - 60, 100, 35, 8);
+  fill(0, 0, 100);
+  textAlign(CENTER, CENTER);
+  textSize(14);
+  text("↩ Retour", 90, height - 42);
 }
 
 /*
@@ -426,59 +463,77 @@ function drawAvatarView() {
 }
 */
 function drawAvatarView() {
-  background(260, 40, 10); // fond violet foncé
+  background(260, 40, 10);
 
   let genreAvgs = getGenreAverages();
   let genreStats = getGenreStats();
   let genreUnlocked = genreStats.map((g) => g.name);
   let genreNames = Object.keys(genreAvgs);
 
-  // === Titre ===
-  textAlign(CENTER);
-  fill(0, 0, 100);
-  textSize(28);
-  text("Genres explorés", width / 2, 60);
+  // === Avatar centré haut
+  let avatarY = 120;
+  let avatarImg = document.getElementById("avatar");
+  if (avatarImg) {
+    avatarImg.style.left = width / 2 - 75 + "px";
+    avatarImg.style.top = avatarY - 75 + "px";
+    avatarImg.style.width = "150px";
+    avatarImg.style.position = "absolute";
+    avatarImg.style.display = "block";
+  }
 
-  // === Description ===
-  textSize(14);
-  fill(0, 0, 80);
-  text(
-    "Découvre un morceau de chaque style pour débloquer tous les genres !",
-    width / 2,
-    95
-  );
+  // === Génération aléatoire des positions des genres (fixe une fois)
+  if (
+    !window._genreBlobPositions ||
+    window._genreBlobPositions.length !== genreNames.length
+  ) {
+    window._genreBlobPositions = [];
 
-  let cols = 5;
-  let spacing = 140;
-  let xOffset = width / 2 - ((cols - 1) * spacing) / 2;
-  let yStart = 150;
+    if (
+      !window._genreBlobPositions ||
+      window._genreBlobPositions.length !== genreNames.length
+    ) {
+      window._genreBlobPositions = [];
 
+      for (let i = 0; i < genreNames.length; i++) {
+        let cx, cy;
+        let tries = 0;
+        let overlap = false;
+        let distanceFromCenter = 0;
+        let distanceFromAvatar = 0;
+
+        do {
+          cx = random(100, width - 100);
+          cy = random(160, height - 140);
+
+          distanceFromCenter = dist(cx, cy, width / 2, height / 2);
+          distanceFromAvatar = dist(cx, cy, width / 2, 120);
+          overlap = window._genreBlobPositions.some(
+            (pos) => dist(pos.x, pos.y, cx, cy) < 110
+          );
+          tries++;
+        } while (
+          (distanceFromCenter < 130 || distanceFromAvatar < 130 || overlap) &&
+          tries < 100
+        );
+
+        window._genreBlobPositions.push({ x: cx, y: cy });
+      }
+    }
+  }
+
+  // === Affichage des blobs de genre
   for (let i = 0; i < genreNames.length; i++) {
     let name = genreNames[i];
     let visual = genreAvgs[name];
     let isUnlocked = genreUnlocked.includes(name);
-
-    let cx = xOffset + (i % cols) * spacing;
-    let cy = yStart + floor(i / cols) * spacing;
-
-    let fakeTrack = {
-      title: name,
-      ...visual,
-    };
+    let pos = window._genreBlobPositions[i];
+    let fakeTrack = { title: name, ...visual };
 
     push();
     if (isUnlocked) {
-      drawTrackBlob(fakeTrack, cx, cy, 90, i);
+      drawTrackBlob(fakeTrack, pos.x, pos.y, 80, i);
     } else {
-      // Dessine le blob en blanc, sans animation
-      drawTrackBlob(
-        fakeTrack,
-        cx,
-        cy,
-        90,
-        i,
-        true // argument "fixedWhiteMode"
-      );
+      drawTrackBlob(fakeTrack, pos.x, pos.y, 80, i, true); // blanc immobile
     }
     pop();
 
@@ -486,22 +541,11 @@ function drawAvatarView() {
       fill(0, 0, 100);
       textAlign(CENTER);
       textSize(12);
-      text(name, cx, cy + 60);
+      text(name, pos.x, pos.y + 50);
     }
   }
 
-  // === Progression
-  let unlockedCount = genreUnlocked.length;
-  let totalCount = genreNames.length;
-  fill(0, 0, 100);
-  textSize(14);
-  text(
-    `Genres débloqués : ${unlockedCount} / ${totalCount}`,
-    width / 2,
-    height - 40
-  );
-
-  // === Retour
+  // === Bouton retour
   fill(0, 0, 20);
   rect(40, height - 60, 100, 35, 8);
   fill(0, 0, 100);

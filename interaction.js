@@ -217,6 +217,21 @@ function mousePressed() {
   }
   // === AVATAR ===
   if (mode === "avatar") {
+    if (dist(mouseX, mouseY, width / 2, height / 2) < 40) {
+      mode = "minigame";
+      return;
+    }
+
+    // Retour
+    if (
+      mouseX > 40 &&
+      mouseX < 140 &&
+      mouseY > height - 60 &&
+      mouseY < height - 25
+    ) {
+      mode = "collection";
+      return;
+    }
     // Bouton retour
     if (
       mouseX > 40 &&
