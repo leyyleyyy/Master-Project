@@ -39,7 +39,7 @@ let tracksData = [
     camelot: "8A",
     audio: "sounds/despecha.mp3",
     popularity: 75,
-    genre: "Pop",
+    genre: "Latin pop",
   },
   {
     title: "Malemolência",
@@ -81,7 +81,7 @@ let tracksData = [
     camelot: "9A",
     audio: "sounds/ligne_17.mp3",
     popularity: 3,
-    genre: "New wave",
+    genre: "Hyperpop français",
   },
   {
     title: "Tribunal",
@@ -123,6 +123,7 @@ let tracksData = [
     camelot: "7B",
     audio: "sounds/a_en_mourir.mp3",
     popularity: 5,
+    genre: "Hyperpop français",
   },
   {
     title: "Transistor",
@@ -136,6 +137,7 @@ let tracksData = [
     camelot: "9A",
     audio: "sounds/transistor.mp3",
     popularity: 1,
+    genre: "New wave",
   },
   {
     title: "Tus Besos",
@@ -177,6 +179,7 @@ let tracksData = [
     camelot: "8B",
     audio: "sounds/coti_et_canettes.mp3",
     popularity: 24,
+    genre: "Hyperpop français",
   },
   {
     title: "Infina",
@@ -218,6 +221,7 @@ let tracksData = [
     camelot: "1B",
     audio: "sounds/si_simple.mp3",
     popularity: 4,
+    genre: "New wave",
   },
   {
     title: "STAY",
@@ -248,7 +252,8 @@ let tracksData = [
     genre: "Rock/Metal",
   },
   {
-    title: "Divergency - Mask",
+    title: "Mask",
+    artist: "Divergency",
     tempo: 103.36,
     energy: 0.245,
     danceability: 1.11,
@@ -258,7 +263,7 @@ let tracksData = [
     camelot: "5A",
     audio: "sounds/mask.mp3",
     popularity: 0,
-    genre: "Rock/Metal",
+    genre: "Metal balear",
   },
   {
     title: "BACKTOBACK (Freestyle)",
@@ -300,7 +305,7 @@ let tracksData = [
     camelot: "9A",
     audio: "sounds/bleu_acoustique.mp3",
     popularity: 2,
-    genre: "Indie",
+    genre: "Social media pop",
   },
   {
     title: "Ratchet Paradise",
@@ -314,7 +319,7 @@ let tracksData = [
     camelot: "4A",
     audio: "sounds/ratchet_paradise.mp3",
     popularity: 24,
-    genre: "Hip-Hop/Rap",
+    genre: "Rap français",
   },
   {
     title: "ROOF",
@@ -328,7 +333,7 @@ let tracksData = [
     camelot: "11A",
     audio: "sounds/roof.mp3",
     popularity: 0,
-    genre: "Alternativ pop",
+    genre: "Drill français",
   },
   {
     title: "Bloody Salvation",
@@ -356,7 +361,7 @@ let tracksData = [
     camelot: "10A",
     audio: "sounds/sideline.mp3",
     popularity: 0,
-    genre: "Indie",
+    genre: "Slowed and reverb",
   },
   {
     title: "So Long",
@@ -370,7 +375,7 @@ let tracksData = [
     camelot: "10A",
     audio: "sounds/so_long.mp3",
     popularity: 15,
-    genre: "Soul",
+    genre: "Indie",
   },
 ];
 let maps = [];

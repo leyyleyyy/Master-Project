@@ -36,7 +36,6 @@ const DATA_KEYS = [
   "acousticness",
   "popularity",
 ];
-
 function cleanTrack(track) {
   return {
     title: track.title,
@@ -49,9 +48,80 @@ function cleanTrack(track) {
     popularity: track.popularity,
     camelot: track.camelot,
     audio: track.audio,
+    genre: track.genre,
   };
 }
+const GENRE_CLUSTERS = {
+  "Hip-Hop": ["Hip-Hop", "Rap français", "Rap arab", "Drill français"],
+  Pop: ["Pop", "Urban pop", "Latin pop", "Social media pop"],
+  Électro: ["House mélodique", "New wave", "Electronica"],
+  "Rock/Metal": ["Rock/Metal", "Metal", "Metal balear"],
+  Indé: ["Indie", "Alternativ pop", "Folk"],
+  Latin: ["Música popular brasileira", "Raggaeton"],
+  Classique: ["Classique"],
+  Hyperpop: ["Hyperpop français"],
+  Autres: ["Slowed and reverb"],
+};
 
+function getGenreCluster(genre) {
+  for (let cluster in GENRE_CLUSTERS) {
+    if (GENRE_CLUSTERS[cluster].includes(genre)) {
+      return cluster;
+    }
+  }
+  return "Inconnu";
+}
+function getGenreClusterPoints(track) {
+  let cluster = getGenreCluster(track.genre);
+  let genreStats = playerCollection.map((t) => getGenreCluster(t.genre));
+  let clusterCount = genreStats.filter((c) => c === cluster).length;
+
+  if (clusterCount === 0) return 10;
+  if (clusterCount === 1) return 6;
+  if (clusterCount === 2) return 3;
+  if (clusterCount === 3) return 1;
+  return -2;
+}
+
+function getGenreAverages() {
+  const genreGroups = {};
+
+  tracksData.forEach((track) => {
+    let g = track.genre;
+    if (!genreGroups[g]) genreGroups[g] = [];
+    genreGroups[g].push(track);
+  });
+
+  const genreAverages = {};
+  for (let genre in genreGroups) {
+    let tracks = genreGroups[genre];
+    let avg = {
+      tempo: 0,
+      energy: 0,
+      danceability: 0,
+      key: 0,
+      valence: 0,
+      acousticness: 0,
+      count: tracks.length,
+    };
+    tracks.forEach((t) => {
+      avg.tempo += t.tempo;
+      avg.energy += t.energy;
+      avg.danceability += t.danceability;
+      avg.key += t.key;
+      avg.valence += t.valence;
+      avg.acousticness += t.acousticness;
+    });
+    for (let k in avg) {
+      if (k !== "count") avg[k] /= tracks.length;
+    }
+    genreAverages[genre] = avg;
+  }
+
+  return genreAverages;
+}
+
+/*
 function getPointsForTrack(track) {
   let pop = track.popularity;
   if (pop <= 3) return 10;
@@ -65,6 +135,7 @@ function getPointsForTrack(track) {
   if (pop <= 80) return -6;
   return -8;
 }
+*/
 
 function getVisibleTracksCount() {
   const unlocked = playerCollection.length;
@@ -200,4 +271,24 @@ function getDiversityAndUndergroundScore() {
     diversity: constrain(diversity * 100, 0, 100),
     underground: constrain(underground, 0, 100),
   };
+}
+
+function getGenreStats() {
+  let genreCount = {};
+  for (let track of playerCollection) {
+    let genre = track.genre || "Inconnu";
+    if (!genreCount[genre]) {
+      genreCount[genre] = 0;
+    }
+    genreCount[genre]++;
+  }
+
+  let genres = Object.entries(genreCount).map(([name, count]) => ({
+    name,
+    count,
+  }));
+
+  // Trier du genre le plus présent au moins
+  genres.sort((a, b) => b.count - a.count);
+  return genres;
 }

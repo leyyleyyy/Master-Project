@@ -167,7 +167,7 @@ function mousePressed() {
         mouseY > validerY &&
         mouseY < validerY + btnH
       ) {
-        let points = getPointsForTrack(selectedPendingTrack);
+        let points = getGenreClusterPoints(selectedPendingTrack);
         playerScore += points;
 
         pointFeedbacks.push({

@@ -320,6 +320,7 @@ function drawMiniGameView() {
   }
 }
 
+/*
 function drawAvatarView() {
   background(260, 40, 10); // fond coloré (violet foncé)
 
@@ -329,16 +330,6 @@ function drawAvatarView() {
   textSize(28);
   text("Ton Avatar", width / 2, 60);
 
-  // === Avatar centré ===
-  /*let avatarImg = document.getElementById("avatar");
-  if (avatarImg) {
-    avatarImg.style.left = width / 2 - 75 + "px";
-    avatarImg.style.top = "110px";
-    avatarImg.style.position = "absolute";
-    avatarImg.style.width = "150px";
-    avatarImg.style.display = "block";
-  }
-*/
   let stage = getAvatarStage();
   let remaining = getRemainingToNextStage();
   let stats = getCollectionStats();
@@ -369,20 +360,25 @@ function drawAvatarView() {
     height - 100
   );
   let evo = getDiversityAndUndergroundScore();
+  let genreStats = getGenreStats();
+  textAlign(CENTER);
+  textSize(16);
+  fill(0, 0, 90);
+  text("Genres explorés :", width / 2, 350);
+
+  textSize(14);
+  fill(0, 0, 70);
+  let genresToShow = genreStats.slice(0, 6); // max 6 genres
+  for (let i = 0; i < genresToShow.length; i++) {
+    let g = genresToShow[i];
+    text(`${g.name} (${g.count})`, width / 2, 510 + i * 20);
+  }
 
   drawStatBar(
     "Out of the confort zone",
     evo.diversity,
     width / 2 - 100,
     400,
-    0,
-    100
-  );
-  drawStatBar(
-    "No more mainstream",
-    evo.underground,
-    width / 2 - 100,
-    440,
     0,
     100
   );
@@ -428,6 +424,92 @@ function drawAvatarView() {
   textSize(14);
   text("↩ Retour", 90, height - 42);
 }
+*/
+function drawAvatarView() {
+  background(260, 40, 10); // fond violet foncé
+
+  let genreAvgs = getGenreAverages();
+  let genreStats = getGenreStats();
+  let genreUnlocked = genreStats.map((g) => g.name);
+  let genreNames = Object.keys(genreAvgs);
+
+  // === Titre ===
+  textAlign(CENTER);
+  fill(0, 0, 100);
+  textSize(28);
+  text("Genres explorés", width / 2, 60);
+
+  // === Description ===
+  textSize(14);
+  fill(0, 0, 80);
+  text(
+    "Découvre un morceau de chaque style pour débloquer tous les genres !",
+    width / 2,
+    95
+  );
+
+  let cols = 5;
+  let spacing = 140;
+  let xOffset = width / 2 - ((cols - 1) * spacing) / 2;
+  let yStart = 150;
+
+  for (let i = 0; i < genreNames.length; i++) {
+    let name = genreNames[i];
+    let visual = genreAvgs[name];
+    let isUnlocked = genreUnlocked.includes(name);
+
+    let cx = xOffset + (i % cols) * spacing;
+    let cy = yStart + floor(i / cols) * spacing;
+
+    let fakeTrack = {
+      title: name,
+      ...visual,
+    };
+
+    push();
+    if (isUnlocked) {
+      drawTrackBlob(fakeTrack, cx, cy, 90, i);
+    } else {
+      // Dessine le blob en blanc, sans animation
+      drawTrackBlob(
+        fakeTrack,
+        cx,
+        cy,
+        90,
+        i,
+        true // argument "fixedWhiteMode"
+      );
+    }
+    pop();
+
+    if (isUnlocked) {
+      fill(0, 0, 100);
+      textAlign(CENTER);
+      textSize(12);
+      text(name, cx, cy + 60);
+    }
+  }
+
+  // === Progression
+  let unlockedCount = genreUnlocked.length;
+  let totalCount = genreNames.length;
+  fill(0, 0, 100);
+  textSize(14);
+  text(
+    `Genres débloqués : ${unlockedCount} / ${totalCount}`,
+    width / 2,
+    height - 40
+  );
+
+  // === Retour
+  fill(0, 0, 20);
+  rect(40, height - 60, 100, 35, 8);
+  fill(0, 0, 100);
+  textAlign(CENTER, CENTER);
+  textSize(14);
+  text("↩ Retour", 90, height - 42);
+}
+
 function drawStatBar(label, value, x, y, min, max) {
   let barW = 200;
   let pct = map(value, min, max, 0, barW);
