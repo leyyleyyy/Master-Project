@@ -220,3 +220,48 @@ canvas {
 .menu-btn:hover {
   background-color: rgba(255, 255, 255, 0.25);
 }
+
+.post-win-panel {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  padding: 40px 30px;
+  text-align: center;
+  max-width: 90%;
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.15);
+  color: white;
+  z-index: 15;
+}
+
+.post-win-title {
+  font-size: 20px;
+  font-weight: bold;
+  margin-bottom: 10px;
+  font-family: 'Manrope', sans-serif;
+}
+
+.post-win-text {
+  font-size: 16px;
+  margin-bottom: 20px;
+  font-family: 'Manrope', sans-serif;
+}
+
+.post-win-btn {
+  padding: 14px 28px;
+  font-size: 16px;
+  border-radius: 12px;
+  border: none;
+  background-color: white;
+  color: black;
+  font-family: 'Manrope', sans-serif;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.post-win-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 10px rgba(255,255,255,0.4);
+}

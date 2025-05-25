@@ -21,9 +21,10 @@ function setup() {
   textFont("sans-serif");
   noiseSeed(83);
 
+  /*
   playerCollection = [cleanTrack(tracksData[0])];
   localStorage.setItem("btm_collection", JSON.stringify(playerCollection));
-
+*/
   DATA_KEYS.forEach((key) => {
     minMax[key] = {
       min: min(tracksData.map((d) => d[key])),
@@ -66,67 +67,82 @@ function draw() {
   updateAvatarGif(); // avatar évolue dynamiquement
   let avatarEl = document.getElementById("avatar");
 
-  if (mode === "avatar") {
-    avatarEl.style.display = "block";
-  } else {
-    avatarEl.style.display = "none";
+  if (avatarEl) {
+    if (mode === "avatar") {
+      avatarEl.style.display = "block";
+    } else {
+      avatarEl.style.display = "none";
+    }
   }
 
   let shuffleEl = document.getElementById("shuffleBtn");
-  if (mode === "avatar") {
-    shuffleEl.style.display = "block";
-    shuffleEl.style.left = width / 2 - 40 + "px";
-    shuffleEl.style.top = height / 2 - 40 + "px";
-  } else {
-    shuffleEl.style.display = "none";
+  if (shuffleEl) {
+    if (mode === "avatar") {
+      shuffleEl.style.display = "block";
+      shuffleEl.style.left = width / 2 - 40 + "px";
+      shuffleEl.style.top = height / 2 - 40 + "px";
+    } else {
+      shuffleEl.style.display = "none";
+    }
   }
 
   let avatarTitleGroup = document.getElementById("avatarTitleGroup");
-  if (mode === "avatar") {
-    avatarTitleGroup.style.display = "block";
-  } else {
-    avatarTitleGroup.style.display = "none";
+  if (avatarTitleGroup) {
+    if (mode === "avatar") {
+      avatarTitleGroup.style.display = "block";
+    } else {
+      avatarTitleGroup.style.display = "none";
+    }
   }
 
   // ✅ Barre de progression
+
   let progressGroup = document.getElementById("genreProgress");
-  if (mode === "avatar") {
-    progressGroup.style.display = "block";
+  if (progressGroup) {
+    if (mode === "avatar") {
+      progressGroup.style.display = "block";
 
-    let genreStats = typeof getGenreStats === "function" ? getGenreStats() : [];
-    let genreAverages =
-      typeof getGenreAverages === "function" ? getGenreAverages() : {};
+      let genreStats =
+        typeof getGenreStats === "function" ? getGenreStats() : [];
+      let genreAverages =
+        typeof getGenreAverages === "function" ? getGenreAverages() : {};
 
-    let unlockedGenres = genreStats.length;
-    let totalGenres = Object.keys(genreAverages).length;
+      let unlockedGenres = genreStats.length;
+      let totalGenres = Object.keys(genreAverages).length;
 
-    let percent = (unlockedGenres / totalGenres) * 100;
+      let percent = (unlockedGenres / totalGenres) * 100;
 
-    document.getElementById("progressBar").style.width = percent + "%";
-    document.getElementById(
-      "progressText"
-    ).textContent = `${unlockedGenres} / ${totalGenres} genres débloqués`;
-  } else {
-    progressGroup.style.display = "none";
+      document.getElementById("progressBar").style.width = percent + "%";
+      document.getElementById(
+        "progressText"
+      ).textContent = `${unlockedGenres} / ${totalGenres} genres débloqués`;
+    } else {
+      progressGroup.style.display = "none";
+    }
   }
 
   let shuffleTooltip = document.getElementById("shuffleTooltip");
-
-  if (mode === "avatar") {
-    shuffleTooltip.style.display = "block";
-    shuffleTooltip.style.left = width / 2 + "px";
-    shuffleTooltip.style.top = height / 2 + 70 + "px";
-    shuffleTooltip.style.opacity = "1";
-  } else {
-    shuffleTooltip.style.display = "none";
-    shuffleTooltip.style.opacity = "0";
+  if (shuffleTooltip) {
+    if (mode === "avatar") {
+      shuffleTooltip.style.display = "block";
+      shuffleTooltip.style.left = width / 2 + "px";
+      shuffleTooltip.style.top = height / 2 + 70 + "px";
+      shuffleTooltip.style.opacity = "1";
+    } else {
+      shuffleTooltip.style.display = "none";
+      shuffleTooltip.style.opacity = "0";
+    }
   }
 
   let collectionFiltersEl = document.getElementById("collectionFilters");
-  if (mode === "collection") {
-    collectionFiltersEl.style.display = "flex";
-  } else {
-    collectionFiltersEl.style.display = "none";
+  playerCollection = [cleanTrack(tracksData[0])];
+  localStorage.setItem("btm_collection", JSON.stringify(playerCollection));
+  if (collectionFiltersEl) {
+    if (mode === "collection") {
+      collectionFiltersEl.style.display = "flex";
+    } else {
+      collectionFiltersEl.style.display = "none";
+    }
   }
   if (mode !== previousMode) {
     if (mode === "minigame") {

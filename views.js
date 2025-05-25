@@ -140,6 +140,39 @@ function drawExplorationView() {
     drawTrackBlob(track, x, y, cellSize, i);
   }
 
+  if (showPostMiniGameMessage) {
+    push();
+    textAlign(CENTER, CENTER);
+    textSize(18);
+
+    // panneau
+    fill(0, 0, 20);
+    rect(width / 2 - 200, height / 2 - 100, 400, 180, 20);
+
+    fill(0, 0, 100);
+    text("🎉 Bravo ! Tu as gagné.", width / 2, height / 2 - 40);
+    text(
+      "👉 Choisis maintenant une musique sur la carte pour l’ajouter 🎶",
+      width / 2,
+      height / 2 - 10
+    );
+
+    // bouton
+    let btnW = 180;
+    let btnH = 45;
+    let btnX = width / 2 - btnW / 2;
+    let btnY = height / 2 + 30;
+
+    fill(0, 0, 100);
+    rect(btnX, btnY, btnW, btnH, 10);
+    fill(0, 0, 0);
+    textSize(16);
+    text("Continuer", width / 2, btnY + btnH / 2);
+    pop();
+
+    return;
+  }
+
   if (selectedPendingTrack) {
     let panelWidth = 280;
     let panelX = width - panelWidth;
@@ -287,28 +320,24 @@ function drawCollectionView() {
 
 function drawMiniGameView() {
   background(0, 0, 11);
+
+  // Sécurité : rien à afficher si options absentes
+  if (!miniGameOptions || miniGameOptions.length === 0 || !miniGameLabel) {
+    fill(0, 0, 80);
+    textAlign(CENTER);
+    textSize(16);
+    text("Chargement du mini-jeu...", width / 2, height / 2);
+    return;
+  }
+
   fill(0, 0, 100);
   textAlign(CENTER);
   textSize(20);
   text(`Mini-jeu 🎮`, width / 2, 50);
 
-  let question = "";
-  let unit = "";
-
-  if (currentMiniGameType === "tempo") {
-    question = "Quel est le tempo de cette musique ?";
-    unit = " BPM";
-  } else if (currentMiniGameType === "valence") {
-    question = "Quel est le mood général de cette musique ?";
-    unit = "";
-  } else if (currentMiniGameType === "genre") {
-    question = "Quel est le genre de cette musique ?";
-    unit = "";
-  }
-
-  textSize(16);
   fill(0, 0, 100);
-  text(question, width / 2, 100);
+  textSize(16);
+  text(miniGameLabel || "Question ?", width / 2, 100);
 
   fill(0, 0, 80);
   textSize(14);
@@ -325,10 +354,9 @@ function drawMiniGameView() {
     rect(btnX, btnY, btnW, btnH, 8);
     fill(0, 0, 100);
     textSize(14);
-    text(`${option}${unit}`, width / 2, btnY + btnH / 2);
+    text(`${option}${miniGameUnit || ""}`, width / 2, btnY + btnH / 2);
   }
 
-  // === Feedback ===
   if (miniGameFeedback) {
     fill(
       miniGameFeedback === "correct" ? color(120, 80, 100) : color(0, 80, 100)
@@ -348,120 +376,13 @@ function drawMiniGameView() {
     text("Valider la réponse", width / 2, height - 57);
   }
 
-  // === Bouton retour ===
   fill(0, 0, 20);
   rect(40, height - 60, 100, 35, 8);
   fill(0, 0, 100);
-  textAlign(CENTER, CENTER);
   textSize(14);
   text("↩ Retour", 90, height - 42);
 }
 
-/*
-function drawAvatarView() {
-  background(260, 40, 10); // fond coloré (violet foncé)
-
-  // === TITRE ===
-  textAlign(CENTER);
-  fill(0, 0, 100);
-  textSize(28);
-  text("Ton Avatar", width / 2, 60);
-
-  let stage = getAvatarStage();
-  let remaining = getRemainingToNextStage();
-  let stats = getCollectionStats();
-
-  // === Stade actuel ===
-  fill(0, 0, 100);
-  textSize(20);
-  text(`Stade actuel : ${stage.toUpperCase()}`, width / 2, 280);
-
-  fill(0, 0, 80);
-  textSize(16);
-  if (remaining > 0) {
-    text(
-      `🎯 Il te reste ${remaining} morceau(x) pour évoluer !`,
-      width / 2,
-      310
-    );
-  } else {
-    text(`🌟 Ton avatar est au stade final !`, width / 2, 310);
-  }
-
-  // === Astuce ou encouragement ===
-  fill(0, 0, 70);
-  textSize(12);
-  text(
-    "Astuce : explore des sons variés pour faire évoluer ton compagnon 🎶",
-    width / 2,
-    height - 100
-  );
-  let evo = getDiversityAndUndergroundScore();
-  let genreStats = getGenreStats();
-  textAlign(CENTER);
-  textSize(16);
-  fill(0, 0, 90);
-  text("Genres explorés :", width / 2, 350);
-
-  textSize(14);
-  fill(0, 0, 70);
-  let genresToShow = genreStats.slice(0, 6); // max 6 genres
-  for (let i = 0; i < genresToShow.length; i++) {
-    let g = genresToShow[i];
-    text(`${g.name} (${g.count})`, width / 2, 510 + i * 20);
-  }
-
-  drawStatBar(
-    "Out of the confort zone",
-    evo.diversity,
-    width / 2 - 100,
-    400,
-    0,
-    100
-  );
-
-  // Feedback textuel
-  textAlign(CENTER);
-  fill(0, 0, 80);
-  textSize(12);
-  if (evo.underground > 80 && evo.diversity > 70) {
-    text(
-      "🔥 Tu explores hors des sentiers battus, ton avatar est en pleine évolution !",
-      width / 2,
-      height - 130
-    );
-  } else if (evo.underground < 40) {
-    text(
-      "💤 Tu restes encore trop proche du mainstream... essaie des sons moins connus !",
-      width / 2,
-      height - 130
-    );
-  } else {
-    text("🌱 Continue d'explorer, tu progresses !", width / 2, height - 130);
-  }
-  // === Bouton "Continuer" ===
-  let btnW = 200;
-  let btnH = 40;
-  let btnX = width / 2 - btnW / 2;
-  // Place le bouton juste sous la dernière barre de progression (y = 440 + 10 + 20)
-  let btnY = 440 + 10 + 20;
-
-  fill(0, 0, 20);
-  rect(btnX, btnY, btnW, btnH, 10);
-  fill(0, 0, 100);
-  textAlign(CENTER, CENTER);
-  textSize(16);
-  text("Continuer l’exploration", btnX + btnW / 2, btnY + btnH / 2);
-
-  // === Bouton retour ===
-  fill(0, 0, 20);
-  rect(40, height - 60, 100, 35, 8);
-  fill(0, 0, 100);
-  textAlign(CENTER, CENTER);
-  textSize(14);
-  text("↩ Retour", 90, height - 42);
-}
-*/
 function drawAvatarView() {
   background(260, 40, 10);
 
@@ -544,14 +465,6 @@ function drawAvatarView() {
       text(name, pos.x, pos.y + 50);
     }
   }
-
-  // === Bouton retour
-  fill(0, 0, 20);
-  rect(40, height - 60, 100, 35, 8);
-  fill(0, 0, 100);
-  textAlign(CENTER, CENTER);
-  textSize(14);
-  text("↩ Retour", 90, height - 42);
 }
 
 function drawStatBar(label, value, x, y, min, max) {

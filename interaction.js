@@ -38,6 +38,7 @@ function mousePressed() {
     }
 
     // Clique sur "Valider la réponse"
+    // Clique sur "Valider la réponse"
     if (
       miniGameFeedback &&
       mouseX > width / 2 - 100 &&
@@ -47,8 +48,9 @@ function mousePressed() {
     ) {
       if (miniGameFeedback === "correct") {
         mode = "exploration"; // débloque l'accès à la map
+        showPostMiniGameMessage = true; // 👈 AJOUT ICI
       } else {
-        mode = "collection"; // retourne à la collection pour rejouer
+        mode = "collection";
       }
 
       // Reset état du jeu
@@ -120,6 +122,26 @@ function mousePressed() {
   }
   // === EXPLORATION ===
   if (mode === "exploration") {
+    if (showPostMiniGameMessage) {
+      let btnW = 180;
+      let btnH = 40;
+      let btnX = width / 2 - btnW / 2;
+      let btnY = height / 2 + 40;
+
+      if (
+        mouseX > btnX &&
+        mouseX < btnX + btnW &&
+        mouseY > btnY &&
+        mouseY < btnY + btnH
+      ) {
+        showPostMiniGameMessage = false;
+        return;
+      }
+
+      // empêche de cliquer sur les blobs tant que le message est actif
+      return;
+    }
+
     for (let zone of blobHitZones) {
       if (
         zone.type === "mapButton" &&

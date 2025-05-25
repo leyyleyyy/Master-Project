@@ -12,7 +12,7 @@ let playerScore = 0;
 let playerCollection = [];
 let pointFeedbacks = [];
 
-let mode = "collection"; // "exploration", "collection", "minigame", "avatar"
+let mode = "avatar"; // "exploration", "collection", "minigame", "avatar"
 let currentMiniGameTrack = null;
 let miniGameOptions = [];
 let miniGameAnswer = null;
@@ -27,6 +27,7 @@ let userAnswers = [];
 let collectionAssigned = false;
 let currentMapIndex = 0;
 let currentMiniGameType = "tempo"; // par défaut
+let showPostMiniGameMessage = false;
 
 const DATA_KEYS = [
   "tempo",
@@ -298,30 +299,4 @@ function pickRandomTrackFromCollection() {
   if (playerCollection.length === 0) return null;
   let index = floor(random(playerCollection.length));
   return playerCollection[index];
-}
-
-function generateMiniGame(track) {
-  if (!track) return;
-
-  if (currentMiniGameType === "tempo") {
-    miniGameAnswer = round(track.tempo);
-    let options = new Set([miniGameAnswer]);
-    while (options.size < 3) {
-      options.add(round(track.tempo + random(-20, 20)));
-    }
-    miniGameOptions = shuffle([...options]);
-  } else if (currentMiniGameType === "valence") {
-    miniGameAnswer = track.valence > 50 ? "joyeux" : "triste";
-    miniGameOptions = shuffle(["joyeux", "triste", "neutre"]);
-  } else if (currentMiniGameType === "genre") {
-    miniGameAnswer = track.genre;
-    let genres = [...new Set(playerCollection.map((t) => t.genre))];
-    genres = genres.filter((g) => g !== track.genre);
-    shuffle(genres);
-    let wrong = genres.slice(0, 2);
-    miniGameOptions = shuffle([track.genre, ...wrong]);
-  }
-
-  selectedOption = null;
-  miniGameFeedback = "";
 }

@@ -81,7 +81,14 @@
 */
 function drawTrackBlob(track, cx, cy, maxSize, index, fixedWhiteMode = false) {
   let { tempo, energy, danceability, key, valence } = track;
+  let isSelected = selectedTrack && selectedTrack.title === track.title;
 
+  if (isSelected) {
+    drawingContext.shadowBlur = 30;
+    drawingContext.shadowColor = color(270, 30, 100, 60);
+  } else {
+    drawingContext.shadowBlur = 0;
+  }
   let numBlobs = int(map(energy, minMax.energy.min, minMax.energy.max, 1, 3));
   let deformation = map(
     danceability,
@@ -157,5 +164,5 @@ function drawTrackBlob(track, cx, cy, maxSize, index, fixedWhiteMode = false) {
     }
   }
 
-  blobHitZones.push({ x: cx, y: cy, r: maxSize / 2, track });
+  blobHitZones.push({ x: cx, y: cy, r: maxSize / 2, track, type: "blob" });
 }
