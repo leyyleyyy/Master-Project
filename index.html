@@ -10,6 +10,14 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/addons/p5.sound.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/essentia.js@<version>/dist/essentia-wasm.web.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/essentia.js@<version>/dist/essentia.js-*.js"></script>
+    <script>
+        function hidePostWinPanel() {
+            const panel = document.getElementById("postWinContainer");
+            if (panel) panel.remove();
+            window.showPostMiniGameMessage = false; // permet de reprendre l'exploration
+        }
+    </script>
+
     <script src="tracks.js" defer></script>
     <script src="state.js" defer></script>
     <script src="visuals.js" defer></script>
@@ -45,11 +53,12 @@
         <p id="progressText">0 / 0 genres débloqués</p>
     </div>
 
+
     <div id="container">
         <!-- MENU BURGER -->
         <div id="burgerMenuToggle">☰</div>
         <div id="burgerMenu">
-            <button class="menu-btn" data-mode="avatar">Avatar</button>
+            <button class="menu-btn" data-mode="avatar">Genre map</button>
             <button class="menu-btn" data-mode="collection">Collection</button>
             <button class="menu-btn" data-mode="minigame">Mini-jeu</button>
         </div>

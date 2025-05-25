@@ -12,7 +12,7 @@ let playerScore = 0;
 let playerCollection = [];
 let pointFeedbacks = [];
 
-let mode = "avatar"; // "exploration", "collection", "minigame", "avatar"
+let mode = "evolution"; // "exploration", "collection", "minigame", "avatar"
 let currentMiniGameTrack = null;
 let miniGameOptions = [];
 let miniGameAnswer = null;
@@ -28,6 +28,16 @@ let collectionAssigned = false;
 let currentMapIndex = 0;
 let currentMiniGameType = "tempo"; // par défaut
 let showPostMiniGameMessage = false;
+let postWinDiv = null;
+window.showPostMiniGameMessage = showPostMiniGameMessage; // pour l’exposer au script
+
+let evolutionTrack = null;
+let evolutionPoints = 0;
+
+// Variables du mini-jeu
+let miniGameLabel = "";
+let selectedOption = null;
+let miniGameUnit = "";
 
 const DATA_KEYS = [
   "tempo",
@@ -177,7 +187,7 @@ function updateAvatarGif() {
   avatar.style.display = "block";
 
   // Position dynamique selon le mode
-  if (mode === "avatar") {
+  if (mode === "collection") {
     avatar.style.position = "absolute";
     avatar.style.left = width / 2 - 75 + "px";
     avatar.style.top = "110px";
@@ -299,4 +309,26 @@ function pickRandomTrackFromCollection() {
   if (playerCollection.length === 0) return null;
   let index = floor(random(playerCollection.length));
   return playerCollection[index];
+}
+
+function getMostCommonCluster(collection) {
+  const clusterCounts = {};
+
+  for (let track of collection) {
+    if (!track || !track.genre) continue; // ✅ Sécurisation
+
+    let clusterFound = null;
+    for (let cluster in GENRE_CLUSTERS) {
+      if (GENRE_CLUSTERS[cluster].includes(track.genre)) {
+        clusterFound = cluster;
+        break;
+      }
+    }
+
+    if (!clusterFound) continue;
+    clusterCounts[clusterFound] = (clusterCounts[clusterFound] || 0) + 1;
+  }
+
+  const sorted = Object.entries(clusterCounts).sort((a, b) => b[1] - a[1]);
+  return sorted.length > 0 ? sorted[0][0] : null;
 }

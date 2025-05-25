@@ -5,11 +5,13 @@ let activeFilters = {
 };
 
 let previousMode = null;
+let morphingGif;
 
 function preload() {
   tracksData.forEach((track) => {
     audioPlayers[track.title] = loadSound(track.audio);
   });
+  morphingGif = loadImage("avatars/morphing.gif");
 }
 
 function setup() {
@@ -21,10 +23,16 @@ function setup() {
   textFont("sans-serif");
   noiseSeed(83);
 
-  /*
-  playerCollection = [cleanTrack(tracksData[0])];
-  localStorage.setItem("btm_collection", JSON.stringify(playerCollection));
-*/
+  //playerCollection = [cleanTrack(tracksData[0])];
+  //localStorage.setItem("btm_collection", JSON.stringify(playerCollection));
+  let stored = localStorage.getItem("btm_collection");
+  if (stored) {
+    playerCollection = JSON.parse(stored);
+  } else {
+    playerCollection = [cleanTrack(tracksData[0])]; // ou [] si tu veux vide au départ
+    localStorage.setItem("btm_collection", JSON.stringify(playerCollection));
+  }
+
   DATA_KEYS.forEach((key) => {
     minMax[key] = {
       min: min(tracksData.map((d) => d[key])),
@@ -59,6 +67,8 @@ function draw() {
     drawMiniGameView();
   } else if (mode === "avatar") {
     drawAvatarView();
+  } else if (mode === "evolution") {
+    drawEvolutionView();
   }
   if (mode === "onboarding") {
     drawOnboardingView();
@@ -135,8 +145,8 @@ function draw() {
   }
 
   let collectionFiltersEl = document.getElementById("collectionFilters");
-  playerCollection = [cleanTrack(tracksData[0])];
-  localStorage.setItem("btm_collection", JSON.stringify(playerCollection));
+  //playerCollection = [cleanTrack(tracksData[0])];
+  //localStorage.setItem("btm_collection", JSON.stringify(playerCollection));
   if (collectionFiltersEl) {
     if (mode === "collection") {
       collectionFiltersEl.style.display = "flex";

@@ -1,4 +1,25 @@
 function mousePressed() {
+  // === EVOLUTION ===
+
+  if (mode === "evolution") {
+    let btnW = 200;
+    let btnH = 50;
+    let btnX = width / 2 - btnW / 2;
+    let btnY = height - 100;
+
+    if (
+      mouseX > btnX &&
+      mouseX < btnX + btnW &&
+      mouseY > btnY &&
+      mouseY < btnY + btnH
+    ) {
+      mode = "avatar"; // ou "exploration", selon ton flow préféré
+      evolutionTrack = null;
+      evolutionPoints = 0;
+      return;
+    }
+  }
+
   // === MINI-JEU ===
   if (mode === "minigame") {
     // Retour vers collection
@@ -38,7 +59,6 @@ function mousePressed() {
     }
 
     // Clique sur "Valider la réponse"
-    // Clique sur "Valider la réponse"
     if (
       miniGameFeedback &&
       mouseX > width / 2 - 100 &&
@@ -48,9 +68,8 @@ function mousePressed() {
     ) {
       if (miniGameFeedback === "correct") {
         mode = "exploration"; // débloque l'accès à la map
-        showPostMiniGameMessage = true; // 👈 AJOUT ICI
       } else {
-        mode = "collection";
+        mode = "collection"; // retourne à la collection pour rejouer
       }
 
       // Reset état du jeu
@@ -122,26 +141,6 @@ function mousePressed() {
   }
   // === EXPLORATION ===
   if (mode === "exploration") {
-    if (showPostMiniGameMessage) {
-      let btnW = 180;
-      let btnH = 40;
-      let btnX = width / 2 - btnW / 2;
-      let btnY = height / 2 + 40;
-
-      if (
-        mouseX > btnX &&
-        mouseX < btnX + btnW &&
-        mouseY > btnY &&
-        mouseY < btnY + btnH
-      ) {
-        showPostMiniGameMessage = false;
-        return;
-      }
-
-      // empêche de cliquer sur les blobs tant que le message est actif
-      return;
-    }
-
     for (let zone of blobHitZones) {
       if (
         zone.type === "mapButton" &&
@@ -207,9 +206,12 @@ function mousePressed() {
           JSON.stringify(playerCollection)
         );
 
+        updateAvatarGif(); // fait évoluer l'avatar
+        evolutionTrack = cleaned; // on stocke ce qui vient d’être ajouté
+        evolutionPoints = points; // on stocke les points
+        mode = "evolution"; // on passe à la nouvelle vue
         selectedPendingTrack = null;
         selectedTrack = null;
-        mode = "collection"; // retour à collection
         return;
       }
     }

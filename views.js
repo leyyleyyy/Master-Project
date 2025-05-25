@@ -140,39 +140,6 @@ function drawExplorationView() {
     drawTrackBlob(track, x, y, cellSize, i);
   }
 
-  if (showPostMiniGameMessage) {
-    push();
-    textAlign(CENTER, CENTER);
-    textSize(18);
-
-    // panneau
-    fill(0, 0, 20);
-    rect(width / 2 - 200, height / 2 - 100, 400, 180, 20);
-
-    fill(0, 0, 100);
-    text("🎉 Bravo ! Tu as gagné.", width / 2, height / 2 - 40);
-    text(
-      "👉 Choisis maintenant une musique sur la carte pour l’ajouter 🎶",
-      width / 2,
-      height / 2 - 10
-    );
-
-    // bouton
-    let btnW = 180;
-    let btnH = 45;
-    let btnX = width / 2 - btnW / 2;
-    let btnY = height / 2 + 30;
-
-    fill(0, 0, 100);
-    rect(btnX, btnY, btnW, btnH, 10);
-    fill(0, 0, 0);
-    textSize(16);
-    text("Continuer", width / 2, btnY + btnH / 2);
-    pop();
-
-    return;
-  }
-
   if (selectedPendingTrack) {
     let panelWidth = 280;
     let panelX = width - panelWidth;
@@ -481,4 +448,81 @@ function drawStatBar(label, value, x, y, min, max) {
 
   fill(200, 80, 100); // couleur dynamique
   rect(x, y, pct, 10, 5);
+}
+
+function drawEvolutionView() {
+  if (!evolutionTrack) {
+    background(0, 0, 11);
+    fill(0, 0, 100);
+    textAlign(CENTER, CENTER);
+    textSize(20);
+    text("Erreur : aucune musique en évolution", width / 2, height / 2);
+    return;
+  }
+
+  background(0, 0, 11);
+  textAlign(CENTER, CENTER);
+  fill(0, 0, 100);
+
+  // === Avatar morphing GIF ===
+  imageMode(CENTER);
+  image(morphingGif, width / 2, height / 2 - 130, 200, 200); // préchargé dans preload()
+
+  // === Points gagnés/perdus ===
+  textSize(24);
+  fill(evolutionPoints >= 0 ? color(120, 100, 100) : color(0, 100, 100));
+  text(
+    `${evolutionPoints >= 0 ? "+" : ""}${evolutionPoints} points ${
+      evolutionPoints >= 0 ? "🎉" : "😞"
+    }`,
+    width / 2,
+    height / 2 + 10
+  );
+
+  // === Musique ajoutée ===
+  fill(0, 0, 80);
+  textSize(16);
+  text(
+    `Tu as ajouté : ${evolutionTrack?.title || "—"}`,
+    width / 2,
+    height / 2 + 40
+  );
+
+  // === Genre débloqué ===
+  if (evolutionTrack?.genre) {
+    fill(0, 0, 100);
+    textSize(16);
+    text(
+      `🎧 Tu as débloqué le genre : ${evolutionTrack.genre}`,
+      width / 2,
+      height / 2 + 70
+    );
+  }
+
+  // === Analyse de style dominant ===
+  let dominantCluster = getMostCommonCluster(playerCollection);
+  let currentCluster = getMostCommonCluster([evolutionTrack]);
+  let comment = "";
+
+  if (dominantCluster === currentCluster) {
+    comment = "👀 Tu restes dans ta zone de confort...";
+  } else {
+    comment = "🌍 Tu explores de nouveaux horizons, nice !";
+  }
+
+  fill(0, 0, 80);
+  textSize(14);
+  text(comment, width / 2, height / 2 + 100);
+
+  // === Bouton continuer ===
+  let btnW = 200;
+  let btnH = 50;
+  let btnX = width / 2 - btnW / 2;
+  let btnY = height - 100;
+
+  fill(0, 0, 100);
+  rect(btnX, btnY, btnW, btnH, 12);
+  fill(0, 0, 0);
+  textSize(18);
+  text("Continuer", width / 2, btnY + btnH / 2);
 }
