@@ -202,64 +202,6 @@ function draw() {
   }
 }
 
-/*
-window.addEventListener("DOMContentLoaded", () => {
-  const avatarEl = document.getElementById("avatar");
-  // Toggle burger menu
-  document.getElementById("burgerMenuToggle").addEventListener("click", () => {
-    const menu = document.getElementById("burgerMenu");
-    menu.style.display = menu.style.display === "flex" ? "none" : "flex";
-  });
-
-  // Navigation
-  document.querySelectorAll(".menu-btn").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      mode = btn.dataset.mode;
-
-      // Referme le menu automatiquement
-      document.getElementById("burgerMenu").style.display = "none";
-    });
-  });
-
-  if (avatarEl) {
-    avatarEl.addEventListener("click", () => {
-      if (mode !== "onboarding") {
-        mode = "avatar";
-      }
-    });
-  }
-
-  document.getElementById("shuffleBtn").addEventListener("click", () => {
-    if (mode === "avatar") {
-      mode = "collection";
-
-      // 👇 effet visuel au clic
-      let btn = document.getElementById("shuffleBtn");
-      btn.style.boxShadow = "0 0 20px rgba(255,255,255,0.8)";
-      btn.style.transform = "scale(1.15)";
-      setTimeout(() => {
-        btn.style.boxShadow = "";
-        btn.style.transform = "scale(1)";
-      }, 200);
-    }
-  });
-
-  document.querySelectorAll(".filter-btn").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      if (btn.dataset.genre) {
-        activeFilters.genre = btn.dataset.genre;
-      }
-      if (btn.dataset.energy) {
-        activeFilters.energy = btn.dataset.energy;
-      }
-      if (btn.dataset.dance) {
-        activeFilters.dance = btn.dataset.dance;
-      }
-    });
-  });
-});
-
-*/
 window.addEventListener("DOMContentLoaded", () => {
   const avatarEl = document.getElementById("avatar");
   const shuffleBtn = document.getElementById("shuffleBtn");
@@ -279,7 +221,14 @@ window.addEventListener("DOMContentLoaded", () => {
   document.querySelectorAll(".menu-btn").forEach((btn) => {
     function handleMenuClick(e) {
       e.preventDefault();
-      mode = btn.dataset.mode;
+      const selectedMode = e.currentTarget.dataset.mode;
+
+      if (selectedMode === "minigame") {
+        launchMiniGameFromCollection();
+      } else {
+        mode = selectedMode;
+      }
+
       burgerMenu.style.display = "none";
     }
     btn.addEventListener("click", handleMenuClick);
@@ -297,17 +246,39 @@ window.addEventListener("DOMContentLoaded", () => {
   }
 
   // === Shuffle (vers collection)
+  /*
   function handleShuffle(e) {
     e.preventDefault();
-    if (mode === "avatar") {
+
+    if (mode !== "minigame") {
+      currentMiniGameTrack = pickRandomTrackFromCollection();
+      currentMiniGameType = random(["tempo", "genre"]);
       mode = "minigame";
-      shuffleBtn.style.boxShadow = "0 0 20px rgba(255,255,255,0.8)";
-      shuffleBtn.style.transform = "scale(1.15)";
-      setTimeout(() => {
-        shuffleBtn.style.boxShadow = "";
-        shuffleBtn.style.transform = "scale(1)";
-      }, 200);
+      miniGameOptions = []; // pour forcer la régénération dans drawMiniGameView
     }
+
+    // animations visuelles du bouton
+    shuffleBtn.style.boxShadow = "0 0 20px rgba(255,255,255,0.8)";
+    shuffleBtn.style.transform = "scale(1.15)";
+    setTimeout(() => {
+      shuffleBtn.style.boxShadow = "";
+      shuffleBtn.style.transform = "scale(1)";
+    }, 200);
+  }
+  if (shuffleBtn) {
+    shuffleBtn.addEventListener("click", handleShuffle);
+    shuffleBtn.addEventListener("touchstart", handleShuffle);
+  }*/
+  function handleShuffle(e) {
+    e.preventDefault();
+    launchMiniGameFromCollection();
+
+    shuffleBtn.style.boxShadow = "0 0 20px rgba(255,255,255,0.8)";
+    shuffleBtn.style.transform = "scale(1.15)";
+    setTimeout(() => {
+      shuffleBtn.style.boxShadow = "";
+      shuffleBtn.style.transform = "scale(1)";
+    }, 200);
   }
   if (shuffleBtn) {
     shuffleBtn.addEventListener("click", handleShuffle);

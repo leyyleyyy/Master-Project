@@ -14,7 +14,7 @@ let playerCollection = [];
 let pointFeedbacks = [];
 let miniGameAudioPlayed = false;
 
-let mode = "onboarding"; // "exploration", "collection", "minigame", "avatar"
+let mode = "evolution"; // "exploration", "collection", "minigame", "avatar"
 let currentMiniGameTrack = null;
 let miniGameOptions = [];
 let miniGameAnswer = null;
@@ -405,43 +405,9 @@ function playCurrentTrack() {
   }
 }
 
-/*
-function assignFixedPositions(tracks) {
-  const cols = isMobile ? 2 : 4;
-  const spacingX = width / (cols + 1);
-  const spacingY = isMobile ? 320 : 220;
-  let startX = spacingX;
-  let startY = 160;
-
-  for (let i = 0; i < tracks.length; i++) {
-    let col = i % cols;
-    let row = Math.floor(i / cols);
-    tracks[i].pos = {
-      x: startX + col * spacingX,
-      y: startY + row * spacingY,
-    };
-  }
-}
-*/
 const scrollRangeX = 3000;
 const scrollRangeY = 3000;
-/*
-function assignScatteredPositions(tracks) {
-  const padding = 100;
-  const blobSize = isMobile ? 220 : 90;
 
-  const minX = -scrollRangeX / 2 + padding;
-  const maxX = scrollRangeX / 2 - padding;
-  const minY = -scrollRangeY / 2 + padding;
-  const maxY = scrollRangeY / 2 - padding;
-
-  for (let i = 0; i < tracks.length; i++) {
-    const x = random(minX, maxX);
-    const y = random(minY, maxY);
-    tracks[i].pos = { x, y };
-  }
-}
-*/
 function assignScatteredPositions(tracks) {
   const blobSize = isMobile ? 220 : 90;
   const spacing = blobSize * 1.4;

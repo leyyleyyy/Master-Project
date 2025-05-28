@@ -48,3 +48,9 @@ function generateMiniGame(track) {
   selectedOption = null;
   miniGameFeedback = "";
 }
+function launchMiniGameFromCollection() {
+  currentMiniGameTrack = pickRandomTrackFromCollection();
+  currentMiniGameType = random(["tempo", "genre"]);
+  miniGameOptions = []; // Pour forcer la génération
+  mode = "minigame";
+}
