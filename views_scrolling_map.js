@@ -743,6 +743,7 @@ function drawAvatarView() {
 }
 */
 
+/*
 function drawAvatarView() {
   background(260, 40, 10);
 
@@ -788,16 +789,107 @@ function drawAvatarView() {
     let name = genreNames[i];
     let visual = genreAvgs[name];
     let pos = window._genreBlobPositions[i];
-    let fakeTrack = { title: name, genre: name, ...visual };
+    let isUnlocked =
+      genreUnlocked.includes(name) ||
+      genreUnlocked.includes(name.toLowerCase());
+    let fakeTrack = {
+      title: name,
+      genre: name,
+      ...visual,
+    };
+
     let screenMin = min(windowWidth, windowHeight);
     let blobSize = isMobile ? min(screenMin * 0.45, 240) : 80;
 
-    drawTrackBlob(fakeTrack, pos.x, pos.y, blobSize, i);
+    push();
+    if (!isUnlocked) {
+      // Appliquer un filtre gris si le genre est verrouillé
+      tint(0, 0, 70); // gris pâle
+    }
 
-    fill(0, 0, 100);
-    textAlign(CENTER);
-    textSize(isMobile ? 22 : 14);
-    text(name, pos.x, pos.y + blobSize / 2 + 24);
+    drawTrackBlob(fakeTrack, pos.x, pos.y, blobSize, i);
+    pop();
+
+    if (isUnlocked) {
+      fill(0, 0, 100);
+      textAlign(CENTER);
+      textSize(isMobile ? 22 : 14);
+      text(name, pos.x, pos.y + blobSize / 2 + 24);
+    }
+  }
+
+  pop();
+}
+*/
+function drawAvatarView() {
+  background(260, 40, 10);
+
+  fill(0, 0, 100);
+  textAlign(CENTER);
+  textSize(isMobile ? 36 : 26);
+  text("The Digging Map", width / 2, 80);
+
+  fill(0, 0, 80);
+  textSize(isMobile ? 22 : 18);
+  text("Navigate styles. Discover gems.", width / 2, 140);
+
+  let genreAvgs = getGenreAverages();
+  let genreStats = getGenreStats();
+  let genreUnlocked = genreStats.map((g) => g.name);
+  let genreNames = Object.keys(genreAvgs);
+
+  if (
+    !window._genreBlobPositions ||
+    window._genreBlobPositions.length !== genreNames.length
+  ) {
+    window._genreBlobPositions = genreNames.map((genre) =>
+      getPositionForGenre(genre)
+    );
+
+    const firstUnlocked = genreUnlocked[0];
+    if (firstUnlocked) {
+      const index = genreNames.indexOf(firstUnlocked);
+      const focusPos = window._genreBlobPositions[index];
+      if (focusPos) {
+        scrollXOffset = width / 2 - focusPos.x;
+        scrollYOffset = height / 2 - focusPos.y;
+      }
+    }
+  }
+
+  push();
+  translate(scrollXOffset, scrollYOffset);
+
+  for (let i = 0; i < genreNames.length; i++) {
+    let name = genreNames[i];
+    let visual = genreAvgs[name];
+    let pos = window._genreBlobPositions[i];
+    let isUnlocked =
+      genreUnlocked.includes(name) ||
+      genreUnlocked.includes(name.toLowerCase());
+
+    let blobVisual = { ...visual };
+
+    // 🎨 Si non débloqué : désature et assombrit
+
+    let fakeTrack = {
+      title: name,
+      genre: name,
+      ...blobVisual,
+    };
+
+    let screenMin = min(windowWidth, windowHeight);
+    let blobSize = isMobile ? min(screenMin * 0.45, 240) : 80;
+
+    //drawTrackBlob(fakeTrack, pos.x, pos.y, blobSize, i);
+    drawTrackBlob(fakeTrack, pos.x, pos.y, blobSize, i, false, isUnlocked);
+
+    if (isUnlocked) {
+      fill(0, 0, 100);
+      textAlign(CENTER);
+      textSize(isMobile ? 22 : 14);
+      text(name, pos.x, pos.y + blobSize / 2 + 24);
+    }
   }
 
   pop();

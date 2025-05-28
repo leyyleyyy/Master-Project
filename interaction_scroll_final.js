@@ -49,7 +49,6 @@ function mousePressed() {
 
   // === MINI-JEU ===
   if (mode === "minigame") {
-    // === Bouton retour
     if (
       mouseX > 40 &&
       mouseX < 140 &&
@@ -65,7 +64,6 @@ function mousePressed() {
       return;
     }
 
-    // === Sélection d'une réponse
     let btnW = isMobile ? width * 0.85 : min(400, width * 0.5);
     let btnH = isMobile ? 65 : 50;
     let spacing = isMobile ? 25 : 20;
@@ -83,7 +81,6 @@ function mousePressed() {
       }
     }
 
-    // === Clic sur bouton "Valider"
     if (selectedOption) {
       let valBtnW = isMobile ? 240 : 200;
       let valBtnH = isMobile ? 55 : 45;
@@ -96,9 +93,7 @@ function mousePressed() {
         mouseY > valY &&
         mouseY < valY + valBtnH
       ) {
-        // 🔁 TOUJOURS aller vers exploration
         mode = "exploration";
-
         currentMiniGameTrack = null;
         miniGameOptions = [];
         miniGameAnswer = null;
@@ -113,7 +108,6 @@ function mousePressed() {
 
   // === COLLECTION ===
   if (mode === "collection") {
-    // Bouton carte (même alignement que les maps)
     let btnW = 100;
     let btnH = 30;
     let spacing = 20;
@@ -132,7 +126,6 @@ function mousePressed() {
       return;
     }
 
-    // Clic sur une musique (utilise isInsideClickableZone)
     for (let zone of blobHitZones) {
       if (isInsideClickableZone(zone, mouseX, mouseY)) {
         selectedTrack = zone.track;
@@ -146,6 +139,12 @@ function mousePressed() {
           currentAudio = newAudio;
         }
 
+        // MINI-JEU COLLECTION
+        currentMiniGameTrack = selectedTrack;
+        const gameTypes = ["tempo", "valence", "genre"];
+        currentMiniGameType = random(gameTypes);
+        generateMiniGame(currentMiniGameTrack);
+
         mode = "minigame";
         return;
       }
@@ -156,7 +155,6 @@ function mousePressed() {
 
   // === EXPLORATION ===
   if (mode === "exploration") {
-    // Blobs (mapButton et blob circulaire)
     for (let zone of blobHitZones) {
       if (isInsideClickableZone(zone, mouseX, mouseY)) {
         if (zone.type === "mapButton") {
@@ -176,7 +174,7 @@ function mousePressed() {
         return;
       }
     }
-    /// Valider son sélectionné
+
     let valBtnW = isMobile ? 240 : 200;
     let valBtnH = isMobile ? 55 : 45;
     let valBtnX = width / 2 - valBtnW / 2;
@@ -207,7 +205,6 @@ function mousePressed() {
       return;
     }
 
-    // Navigation flèches
     let unlocked = getUnlockedMaps();
     if (mouseX < 60 && mouseY > height / 2 - 30 && mouseY < height / 2 + 30) {
       if (currentMapIndex > 0) currentMapIndex--;
@@ -219,7 +216,6 @@ function mousePressed() {
       if (currentMapIndex < unlocked.length - 1) currentMapIndex++;
     }
 
-    // Ma collection
     if (mouseX > 150 && mouseX < 290 && mouseY > 20 && mouseY < 55) {
       mode = "collection";
       return;
@@ -236,13 +232,17 @@ function mousePressed() {
 
   // === AVATAR ===
   if (mode === "avatar") {
-    // Clique central
     if (dist(mouseX, mouseY, width / 2, height / 2) < 40) {
+      // MINI-JEU AVATAR
+      currentMiniGameTrack = pickRandomTrackFromCollection();
+      const gameTypes = ["tempo", "genre"];
+      currentMiniGameType = random(gameTypes);
+      generateMiniGame(currentMiniGameTrack);
+
       mode = "minigame";
       return;
     }
-
-    // Bouton retour
+    /*
     if (
       mouseX > 40 &&
       mouseX < 140 &&
@@ -253,7 +253,6 @@ function mousePressed() {
       return;
     }
 
-    // Bouton "Continuer"
     let btnW = 200;
     let btnH = 40;
     let btnX = width / 2 - btnW / 2;
@@ -267,7 +266,7 @@ function mousePressed() {
     ) {
       mode = "collection";
       return;
-    }
+    }*/
   }
 }
 

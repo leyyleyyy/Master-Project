@@ -9,14 +9,14 @@ let morphingGif;
 
 function preload() {
   // Charge les sons uniquement si autorisé (évite crash Safari)
-  /* tracksData.forEach((track) => {
+  tracksData.forEach((track) => {
     try {
       audioPlayers[track.title] = loadSound(track.audio);
     } catch (e) {
       console.warn("Erreur de preload audio :", track.title, e);
     }
   });
-*/
+
   // Image morphing préchargée
   morphingGif = loadImage("avatars/morphing.gif");
 }
@@ -33,7 +33,7 @@ function setup() {
   noiseSeed(83);
 
   // Sécurité localStorage
-  /* try {
+  try {
     let stored = localStorage.getItem("btm_collection");
     if (stored) {
       playerCollection = JSON.parse(stored);
@@ -44,7 +44,7 @@ function setup() {
   } catch (e) {
     playerCollection = [cleanTrack(tracksData[0])];
   }
-*/
+
   // Min/max init
   DATA_KEYS.forEach((key) => {
     minMax[key] = {
@@ -102,13 +102,20 @@ function draw() {
 
   let shuffleEl = document.getElementById("shuffleBtn");
   if (shuffleEl) {
-    if (mode === "avatar") {
+    /*if (mode === "avatar") {
       shuffleEl.style.display = "block";
       shuffleEl.style.left = width / 2 - 100 + "px";
       shuffleEl.style.top = height / 2 - 280 + "px"; // ⬅️ bas de l'écran
     } else {
       shuffleEl.style.display = "none";
+    }*/
+
+    shuffleEl.style.display = mode === "avatar" ? "block" : "none";
+    if (mode === "avatar") {
+      shuffleEl.style.left = width / 2 - 100 + "px";
+      shuffleEl.style.top = height / 2 - 280 + "px";
     }
+
     /*
     if (mode === "avatar") {
       shuffleEl.style.display = "block";
@@ -173,6 +180,22 @@ function draw() {
       const gameTypes = ["tempo", "valence", "genre"];
       currentMiniGameType = random(gameTypes);
       generateMiniGame(currentMiniGameTrack);
+    }
+
+    // 👇 Ajoute ce bloc pour activer shuffle uniquement en mode "avatar"
+    let shuffleEl = document.getElementById("shuffleBtn");
+    if (shuffleEl) {
+      if (mode === "avatar") {
+        shuffleEl.onclick = () => {
+          currentMiniGameTrack = pickRandomTrackFromCollection();
+          const gameTypes = ["tempo", "valence", "genre"];
+          currentMiniGameType = random(gameTypes);
+          generateMiniGame(currentMiniGameTrack);
+          mode = "minigame";
+        };
+      } else {
+        shuffleEl.onclick = null;
+      }
     }
 
     previousMode = mode;
@@ -277,7 +300,7 @@ window.addEventListener("DOMContentLoaded", () => {
   function handleShuffle(e) {
     e.preventDefault();
     if (mode === "avatar") {
-      mode = "collection";
+      mode = "minigame";
       shuffleBtn.style.boxShadow = "0 0 20px rgba(255,255,255,0.8)";
       shuffleBtn.style.transform = "scale(1.15)";
       setTimeout(() => {
@@ -290,16 +313,4 @@ window.addEventListener("DOMContentLoaded", () => {
     shuffleBtn.addEventListener("click", handleShuffle);
     shuffleBtn.addEventListener("touchstart", handleShuffle);
   }
-
-  // === Filtres (genre, énergie, danse)
-  document.querySelectorAll(".filter-btn").forEach((btn) => {
-    function handleFilterClick(e) {
-      e.preventDefault();
-      if (btn.dataset.genre) activeFilters.genre = btn.dataset.genre;
-      if (btn.dataset.energy) activeFilters.energy = btn.dataset.energy;
-      if (btn.dataset.dance) activeFilters.dance = btn.dataset.dance;
-    }
-    btn.addEventListener("click", handleFilterClick);
-    btn.addEventListener("touchstart", handleFilterClick);
-  });
 });

@@ -167,17 +167,23 @@ function drawTrackBlob(track, cx, cy, maxSize, index, fixedWhiteMode = false) {
 
   blobHitZones.push({ x: cx, y: cy, r: maxSize / 2, track, type: "blob" });
 }*/
-function drawTrackBlob(track, cx, cy, maxSize, index, fixedWhiteMode = false) {
+function drawTrackBlob(
+  track,
+  cx,
+  cy,
+  maxSize,
+  index,
+  fixedWhiteMode = false,
+  isUnlocked = true
+) {
   let { tempo, energy, danceability, key, valence } = track;
   let isSelected = selectedTrack && selectedTrack.title === track.title;
 
-  // === OMBRE SI SÉLECTIONNÉ
   drawingContext.shadowBlur = isSelected ? 30 : 0;
   drawingContext.shadowColor = isSelected
     ? color(270, 30, 100, 60)
     : color(0, 0, 0, 0);
 
-  // === VARIATIONS MOBILES
   let baseMultiplier = isMobile ? 1.2 : 1;
   let baseSize =
     map(key, minMax.key.min, minMax.key.max, 0.4, 1.2) *
@@ -200,24 +206,20 @@ function drawTrackBlob(track, cx, cy, maxSize, index, fixedWhiteMode = false) {
   let freqY = map(key, minMax.key.min, minMax.key.max, 0.1, 1.5);
 
   // === COULEURS
-  let hue = 0,
-    color1,
-    color2;
-  if (fixedWhiteMode) {
-    color1 = color(0, 0, 100);
-    color2 = color(0, 0, 100);
-  } else {
-    let tempoNorm = map(tempo, minMax.tempo.min, minMax.tempo.max, 0, 1);
-    let valenceNorm = map(
-      valence,
-      minMax.valence.min,
-      minMax.valence.max,
-      0,
-      1
-    );
-    hue = (tempoNorm * 280 + valenceNorm * 80) % 360;
+  let tempoNorm = map(tempo, minMax.tempo.min, minMax.tempo.max, 0, 1);
+  let valenceNorm = map(valence, minMax.valence.min, minMax.valence.max, 0, 1);
+  let hue = (tempoNorm * 280 + valenceNorm * 80) % 360;
+
+  let color1, color2;
+
+  if (isUnlocked) {
     color1 = color((hue + 20) % 360, 100, 100);
     color2 = color((hue + 180) % 360, 100, 100);
+  } else {
+    // Convertir les couleurs en gris avec une variation légère
+    let baseGray = map(valence, minMax.valence.min, minMax.valence.max, 30, 80);
+    color1 = color(0, 0, baseGray);
+    color2 = color(0, 0, baseGray + 10);
   }
 
   for (let b = 0; b < numBlobs; b++) {
