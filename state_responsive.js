@@ -1,3 +1,4 @@
+let isMobile = false;
 let minMax = {};
 let t = 0;
 let blobHitZones = [];
@@ -11,8 +12,9 @@ let allBlobs = [];
 let playerScore = 0;
 let playerCollection = [];
 let pointFeedbacks = [];
+let miniGameAudioPlayed = false;
 
-let mode = "evolution"; // "exploration", "collection", "minigame", "avatar"
+let mode = "exploration"; // "exploration", "collection", "minigame", "avatar"
 let currentMiniGameTrack = null;
 let miniGameOptions = [];
 let miniGameAnswer = null;
@@ -38,6 +40,8 @@ let evolutionPoints = 0;
 let miniGameLabel = "";
 let selectedOption = null;
 let miniGameUnit = "";
+let isDragging = false;
+let lastTouch = null;
 
 const DATA_KEYS = [
   "tempo",
@@ -48,6 +52,7 @@ const DATA_KEYS = [
   "acousticness",
   "popularity",
 ];
+
 function cleanTrack(track) {
   return {
     title: track.title,
@@ -83,6 +88,40 @@ function getGenreCluster(genre) {
   }
   return "Inconnu";
 }
+
+const CLUSTER_POSITIONS = {
+  "Hip-Hop": { x: -300, y: 50 },
+  Pop: { x: 100, y: 60 },
+  Électro: { x: 300, y: -100 },
+  "Rock/Metal": { x: 0, y: -250 },
+  Indé: { x: -200, y: -180 },
+  Latin: { x: -100, y: 220 },
+  Classique: { x: 200, y: 250 },
+  Hyperpop: { x: 350, y: 180 },
+  Autres: { x: 0, y: 300 },
+};
+
+function getPositionForGenre(genre) {
+  const clusterName = getClusterNameForGenre(genre);
+  const base = CLUSTER_POSITIONS[clusterName] || { x: 0, y: 0 };
+
+  const scaleFactor = isMobile ? min(windowWidth, windowHeight) / 320 : 1;
+
+  return {
+    x: base.x * scaleFactor + random(-60, 60),
+    y: base.y * scaleFactor + random(-60, 60),
+  };
+}
+
+function getClusterNameForGenre(genre) {
+  for (let clusterName in GENRE_CLUSTERS) {
+    if (GENRE_CLUSTERS[clusterName].includes(genre)) {
+      return clusterName;
+    }
+  }
+  return "Autres";
+}
+
 function getGenreClusterPoints(track) {
   let cluster = getGenreCluster(track.genre);
   let genreStats = playerCollection.map((t) => getGenreCluster(t.genre));
@@ -189,9 +228,13 @@ function updateAvatarGif() {
   // Position dynamique selon le mode
   if (mode === "collection") {
     avatar.style.position = "absolute";
-    avatar.style.left = width / 2 - 75 + "px";
+    //avatar.style.left = width / 2 - 75 + "px";
+    let canvasW = window.innerWidth;
+    avatar.style.left = canvasW / 2 - 75 + "px";
     avatar.style.top = "110px";
     avatar.style.width = "150px";
+    //avatar.style.top = "110px";
+    //avatar.style.width = "150px";
   } else {
     avatar.style.position = "fixed";
     avatar.style.right = "20px";
@@ -331,4 +374,98 @@ function getMostCommonCluster(collection) {
 
   const sorted = Object.entries(clusterCounts).sort((a, b) => b[1] - a[1]);
   return sorted.length > 0 ? sorted[0][0] : null;
+}
+
+function playCurrentTrack() {
+  if (!currentMiniGameTrack) return;
+
+  const audio = audioPlayers[currentMiniGameTrack.title];
+  if (!audio) {
+    console.log("🚫 Aucun audio trouvé pour :", currentMiniGameTrack.title);
+    return;
+  }
+
+  console.log("🎵 trying to play:", currentMiniGameTrack.title);
+  console.log("🔍 audio loaded =", audio.isLoaded());
+
+  if (audio.isLoaded()) {
+    if (currentAudio && currentAudio.isPlaying()) {
+      currentAudio.stop();
+    }
+    audio.play();
+    currentAudio = audio;
+    console.log("▶️ Lecture :", currentMiniGameTrack.title);
+  } else {
+    console.log("⚠️ Audio non prêt pour :", currentMiniGameTrack.title);
+  }
+  if (!miniGameAudioPlayed) {
+    audio.play();
+    currentAudio = audio;
+    miniGameAudioPlayed = true;
+  }
+}
+
+/*
+function assignFixedPositions(tracks) {
+  const cols = isMobile ? 2 : 4;
+  const spacingX = width / (cols + 1);
+  const spacingY = isMobile ? 320 : 220;
+  let startX = spacingX;
+  let startY = 160;
+
+  for (let i = 0; i < tracks.length; i++) {
+    let col = i % cols;
+    let row = Math.floor(i / cols);
+    tracks[i].pos = {
+      x: startX + col * spacingX,
+      y: startY + row * spacingY,
+    };
+  }
+}
+*/
+const scrollRangeX = 3000;
+const scrollRangeY = 3000;
+/*
+function assignScatteredPositions(tracks) {
+  const padding = 100;
+  const blobSize = isMobile ? 220 : 90;
+
+  const minX = -scrollRangeX / 2 + padding;
+  const maxX = scrollRangeX / 2 - padding;
+  const minY = -scrollRangeY / 2 + padding;
+  const maxY = scrollRangeY / 2 - padding;
+
+  for (let i = 0; i < tracks.length; i++) {
+    const x = random(minX, maxX);
+    const y = random(minY, maxY);
+    tracks[i].pos = { x, y };
+  }
+}
+*/
+function assignScatteredPositions(tracks) {
+  const blobSize = isMobile ? 220 : 90;
+  const spacing = blobSize * 1.4;
+  const padding = 150;
+
+  const cols = floor(scrollRangeX / spacing);
+  const rows = floor(scrollRangeY / spacing);
+
+  let positions = [];
+
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      let x = -scrollRangeX / 2 + c * spacing + padding;
+      let y = -scrollRangeY / 2 + r * spacing + padding;
+
+      // Décalage pour casser la grille parfaite
+      if (r % 2 === 0) x += spacing / 2;
+      positions.push({ x, y });
+    }
+  }
+
+  shuffle(positions, true); // P5.js shuffle to randomize layout
+
+  for (let i = 0; i < tracks.length; i++) {
+    tracks[i].pos = positions[i % positions.length];
+  }
 }

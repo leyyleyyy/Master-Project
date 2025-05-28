@@ -5,7 +5,6 @@
     <meta charset="UTF-8" />
     <title>Map Music</title>
     <link rel="icon" href="data:,">
-    <link rel="stylesheet" href="style.css" />
     <script src="https://cdn.jsdelivr.net/npm/p5@1.4.0/lib/p5.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/addons/p5.sound.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/essentia.js@<version>/dist/essentia-wasm.web.js"></script>
@@ -19,13 +18,15 @@
     </script>
 
     <script src="tracks.js" defer></script>
-    <script src="state.js" defer></script>
+    <script src="state_responsive.js" defer></script>
     <script src="visuals.js" defer></script>
     <script src="minigames.js" defer></script>
-    <script src="views.js" defer></script>
-    <script src="interaction.js" defer></script>
+    <script src="views_scrolling_map.js" defer></script>
+    <script src="interaction_scroll_final.js" defer></script>
     <script src="onboarding.js" defer></script>
     <script src="sketch.js" defer></script>
+    <link rel="stylesheet" href="style.css" />
+
 </head>
 
 <style>
@@ -46,6 +47,7 @@
 </style>
 
 <body>
+
     <div id="genreProgress">
         <div id="progressBarContainer">
             <div id="progressBar"></div>
@@ -71,12 +73,6 @@
       linear-gradient(145deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0)),
       url('assets/shuffle.png');"></div>
         <div id="shuffleTooltip">Jouer pour découvrir un nouveau genre</div>
-
-        <!-- TITRE AVATAR -->
-        <div id="avatarTitleGroup">
-            <h1 id="avatarTitle">Map de genres</h1>
-            <p id="avatarSubtitle">Chaque genre découvert façonne ton avatar. Débloque-les tous !</p>
-        </div>
 
         <!-- FILTRES COLLECTION 
         <div id="collectionFilters">

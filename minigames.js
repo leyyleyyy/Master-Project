@@ -13,15 +13,6 @@ const miniGames = {
     },
   },
 
-  valence: {
-    label: "Quel est le mood général de cette musique ?",
-    generate: (track) => ({
-      answer: track.valence > 50 ? "joyeux" : "triste",
-      options: shuffle(["joyeux", "triste", "neutre"]),
-      displayUnit: "",
-    }),
-  },
-
   genre: {
     label: "Quel est le genre de cette musique ?",
     generate: (track) => {

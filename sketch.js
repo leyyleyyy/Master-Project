@@ -8,31 +8,44 @@ let previousMode = null;
 let morphingGif;
 
 function preload() {
-  tracksData.forEach((track) => {
-    audioPlayers[track.title] = loadSound(track.audio);
+  // Charge les sons uniquement si autorisé (évite crash Safari)
+  /* tracksData.forEach((track) => {
+    try {
+      audioPlayers[track.title] = loadSound(track.audio);
+    } catch (e) {
+      console.warn("Erreur de preload audio :", track.title, e);
+    }
   });
+*/
+  // Image morphing préchargée
   morphingGif = loadImage("avatars/morphing.gif");
 }
 
 function setup() {
-  createCanvas(windowWidth, windowHeight);
+  createCanvas(windowWidth, windowHeight, P2D); // jamais plus grand que l'écran
+  isMobile = /Mobi|Android/i.test(navigator.userAgent) || windowWidth < 768;
+  console.log("📱 isMobile =", isMobile);
+
   colorMode(HSB, 360, 100, 100, 100);
   noStroke();
   textAlign(CENTER);
-  textSize(10);
   textFont("sans-serif");
   noiseSeed(83);
 
-  //playerCollection = [cleanTrack(tracksData[0])];
-  //localStorage.setItem("btm_collection", JSON.stringify(playerCollection));
-  let stored = localStorage.getItem("btm_collection");
-  if (stored) {
-    playerCollection = JSON.parse(stored);
-  } else {
-    playerCollection = [cleanTrack(tracksData[0])]; // ou [] si tu veux vide au départ
-    localStorage.setItem("btm_collection", JSON.stringify(playerCollection));
+  // Sécurité localStorage
+  /* try {
+    let stored = localStorage.getItem("btm_collection");
+    if (stored) {
+      playerCollection = JSON.parse(stored);
+    } else {
+      playerCollection = [cleanTrack(tracksData[0])];
+      localStorage.setItem("btm_collection", JSON.stringify(playerCollection));
+    }
+  } catch (e) {
+    playerCollection = [cleanTrack(tracksData[0])];
   }
-
+*/
+  // Min/max init
   DATA_KEYS.forEach((key) => {
     minMax[key] = {
       min: min(tracksData.map((d) => d[key])),
@@ -40,6 +53,7 @@ function setup() {
     };
   });
 
+  // Génération blobs initiaux (pour exploration)
   for (let i = 0; i < 10; i++) {
     tracksData.forEach((track) => {
       allBlobs.push({
@@ -48,8 +62,9 @@ function setup() {
       });
     });
   }
+
   if (miniGameFeedback === "correct") {
-    mode = "exploration"; // retour à la map
+    mode = "exploration";
     selectedPendingTrack = null;
     selectedTrack = null;
   }
@@ -78,7 +93,7 @@ function draw() {
   let avatarEl = document.getElementById("avatar");
 
   if (avatarEl) {
-    if (mode === "avatar") {
+    if (mode === "collection") {
       avatarEl.style.display = "block";
     } else {
       avatarEl.style.display = "none";
@@ -89,16 +104,24 @@ function draw() {
   if (shuffleEl) {
     if (mode === "avatar") {
       shuffleEl.style.display = "block";
+      shuffleEl.style.left = width / 2 - 100 + "px";
+      shuffleEl.style.top = height / 2 - 280 + "px"; // ⬅️ bas de l'écran
+    } else {
+      shuffleEl.style.display = "none";
+    }
+    /*
+    if (mode === "avatar") {
+      shuffleEl.style.display = "block";
       shuffleEl.style.left = width / 2 - 40 + "px";
       shuffleEl.style.top = height / 2 - 40 + "px";
     } else {
       shuffleEl.style.display = "none";
-    }
+    }*/
   }
 
   let avatarTitleGroup = document.getElementById("avatarTitleGroup");
   if (avatarTitleGroup) {
-    if (mode === "avatar") {
+    if (mode === "collection") {
       avatarTitleGroup.style.display = "block";
     } else {
       avatarTitleGroup.style.display = "none";
@@ -136,7 +159,7 @@ function draw() {
     if (mode === "avatar") {
       shuffleTooltip.style.display = "block";
       shuffleTooltip.style.left = width / 2 + "px";
-      shuffleTooltip.style.top = height / 2 + 70 + "px";
+      shuffleTooltip.style.top = height / 2 + "px";
       shuffleTooltip.style.opacity = "1";
     } else {
       shuffleTooltip.style.display = "none";
@@ -144,16 +167,6 @@ function draw() {
     }
   }
 
-  let collectionFiltersEl = document.getElementById("collectionFilters");
-  //playerCollection = [cleanTrack(tracksData[0])];
-  //localStorage.setItem("btm_collection", JSON.stringify(playerCollection));
-  if (collectionFiltersEl) {
-    if (mode === "collection") {
-      collectionFiltersEl.style.display = "flex";
-    } else {
-      collectionFiltersEl.style.display = "none";
-    }
-  }
   if (mode !== previousMode) {
     if (mode === "minigame") {
       currentMiniGameTrack = pickRandomTrackFromCollection();
@@ -166,6 +179,7 @@ function draw() {
   }
 }
 
+/*
 window.addEventListener("DOMContentLoaded", () => {
   const avatarEl = document.getElementById("avatar");
   // Toggle burger menu
@@ -219,5 +233,73 @@ window.addEventListener("DOMContentLoaded", () => {
         activeFilters.dance = btn.dataset.dance;
       }
     });
+  });
+});
+
+*/
+window.addEventListener("DOMContentLoaded", () => {
+  const avatarEl = document.getElementById("avatar");
+  const shuffleBtn = document.getElementById("shuffleBtn");
+  const burgerToggle = document.getElementById("burgerMenuToggle");
+  const burgerMenu = document.getElementById("burgerMenu");
+
+  // === Gestion du bouton burger ===
+  function toggleBurgerMenu(e) {
+    e.preventDefault();
+    burgerMenu.style.display =
+      burgerMenu.style.display === "flex" ? "none" : "flex";
+  }
+  burgerToggle.addEventListener("click", toggleBurgerMenu);
+  burgerToggle.addEventListener("touchstart", toggleBurgerMenu);
+
+  // === Navigation via boutons de menu ===
+  document.querySelectorAll(".menu-btn").forEach((btn) => {
+    function handleMenuClick(e) {
+      e.preventDefault();
+      mode = btn.dataset.mode;
+      burgerMenu.style.display = "none";
+    }
+    btn.addEventListener("click", handleMenuClick);
+    btn.addEventListener("touchstart", handleMenuClick);
+  });
+
+  // === Avatar cliquable
+  if (avatarEl) {
+    function goToAvatar(e) {
+      e.preventDefault();
+      if (mode !== "onboarding") mode = "avatar";
+    }
+    avatarEl.addEventListener("click", goToAvatar);
+    avatarEl.addEventListener("touchstart", goToAvatar);
+  }
+
+  // === Shuffle (vers collection)
+  function handleShuffle(e) {
+    e.preventDefault();
+    if (mode === "avatar") {
+      mode = "collection";
+      shuffleBtn.style.boxShadow = "0 0 20px rgba(255,255,255,0.8)";
+      shuffleBtn.style.transform = "scale(1.15)";
+      setTimeout(() => {
+        shuffleBtn.style.boxShadow = "";
+        shuffleBtn.style.transform = "scale(1)";
+      }, 200);
+    }
+  }
+  if (shuffleBtn) {
+    shuffleBtn.addEventListener("click", handleShuffle);
+    shuffleBtn.addEventListener("touchstart", handleShuffle);
+  }
+
+  // === Filtres (genre, énergie, danse)
+  document.querySelectorAll(".filter-btn").forEach((btn) => {
+    function handleFilterClick(e) {
+      e.preventDefault();
+      if (btn.dataset.genre) activeFilters.genre = btn.dataset.genre;
+      if (btn.dataset.energy) activeFilters.energy = btn.dataset.energy;
+      if (btn.dataset.dance) activeFilters.dance = btn.dataset.dance;
+    }
+    btn.addEventListener("click", handleFilterClick);
+    btn.addEventListener("touchstart", handleFilterClick);
   });
 });

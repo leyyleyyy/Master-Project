@@ -34,17 +34,18 @@ canvas {
 }
 
 #shuffleBtn {
+  bottom: 20px;
   position: absolute;
   z-index: 10;
-  width: 80px;
-  height: 80px;
+  width: 250px;
+  height: 250px;
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center;
   border-radius: 50%;
   cursor: pointer;
   display: none;
-   background-image: url('./shuffle_icon_white.png');
+  background-image: url('./shuffle_icon_white.png');
 }
 
 #avatar {
@@ -118,13 +119,14 @@ canvas {
   left: 50%;
   transform: translate(-50%, 0px); /* plus proche */
   font-family: 'Manrope', sans-serif;
-  font-size: 14px;
+  font-size: 16px;
   color: white;         /* blanc pur */
   padding: 0;           /* aucun fond, aucune bordure */
   opacity: 0;
   transition: opacity 0.2s ease;
   pointer-events: none;
   z-index: 9;
+  bottom: 20px;
 }
 
 #collectionFilters {
