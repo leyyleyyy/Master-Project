@@ -1,3 +1,11 @@
+@font-face {
+  font-family: 'Banana';
+  src: url('fonts/bananasp.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+
 .button-icon {
   width: 80px;
   height: 80px;
@@ -19,6 +27,70 @@
 .button-icon:hover {
   transform: scale(1.08);
   box-shadow: 0 0 12px rgba(255, 255, 255, 0.4);
+}
+#pageTitleContainer {
+  position: absolute;
+  top: 100px; /* Ajuste en fonction de ton design */
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+  z-index: 15;
+  width: 100%;
+  pointer-events: none;
+}
+
+#pageTitle {
+  font-family: 'Banana', sans-serif;
+  font-size: 80px; /* 💥 plus grand que p5.js */
+  color: white;
+  margin: 0;
+  display: none; /* visible uniquement en mode actif */
+}
+
+#pageSubtitle {
+  font-family: 'Manrope', sans-serif;
+  font-size: 18px;
+  color: #ccc;
+  margin-top: 10px;
+  display: none;
+}
+
+/* === BOUTONS GÉNÉRIQUES RESPONSIVE === */
+button,
+.menu-btn,
+.filter-btn,
+.rect-button {
+  font-size: 16px;
+  padding: 14px 20px;
+  min-height: 48px;
+  min-width: 160px;
+  background-color: rgba(255, 255, 255, 0.1);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-family: 'Manrope', sans-serif;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.2s ease;
+}
+
+button:hover,
+.menu-btn:hover,
+.filter-btn:hover,
+.rect-button:hover {
+  background-color: rgba(255, 255, 255, 0.25);
+  transform: scale(1.03);
+  box-shadow: 0 0 6px rgba(255, 255, 255, 0.3);
+}
+.validate-btn {
+  background-color: white;
+  color: black;
+  font-weight: bold;
+}
+
+.validate-btn:disabled {
+  opacity: 0.4;
+  pointer-events: none;
 }
 
 
@@ -91,7 +163,7 @@ canvas {
 
 #progressBarContainer {
   width: 100%;
-  height: 12px;
+  height: 20px;
   background-color: rgba(255, 255, 255, 0.15);
   border-radius: 6px;
   overflow: hidden;
@@ -108,7 +180,7 @@ canvas {
 
 #progressText {
   font-family: 'Manrope', sans-serif;
-  font-size: 14px;
+  font-size: 24px;
   color: white;
   margin: 0;
 }
@@ -119,7 +191,7 @@ canvas {
   left: 50%;
   transform: translate(-50%, 0px); /* plus proche */
   font-family: 'Manrope', sans-serif;
-  font-size: 16px;
+  font-size: 32px;
   color: white;         /* blanc pur */
   padding: 0;           /* aucun fond, aucune bordure */
   opacity: 0;
@@ -127,101 +199,63 @@ canvas {
   pointer-events: none;
   z-index: 9;
   bottom: 20px;
-}
-
-#collectionFilters {
-  position: absolute;
-  top: 140px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 10;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  background: none;
-  padding: 10px 0;
   text-align: center;
-}
-
-.filter-group {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  justify-content: center;
-  align-items: center;
-}
-
-.filter-label {
-  color: white;
-  font-size: 14px;
-  margin-right: 6px;
-  font-family: 'Manrope', sans-serif;
-}
-
-.filter-btn {
-  background-color: rgba(255,255,255,0.1);
-  color: white;
-  border: none;
-  padding: 5px 10px;
-  border-radius: 12px;
-  font-size: 13px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  font-family: 'Manrope', sans-serif;
-}
-
-.filter-btn:hover {
-  background-color: rgba(255,255,255,0.25);
 }
 
 #burgerMenuToggle {
   position: absolute;
-  top: 20px;
-  right: 20px;
-  font-size: 26px;
+  top: 24px;
+  right: 24px;
+  font-size: 80px; /* 💥 Très lisible pour le pouce */
   color: white;
   cursor: pointer;
-  z-index: 20;
-  background-color: rgba(255, 255, 255, 0.1);
-  padding: 6px 10px;
-  border-radius: 8px;
-  transition: background 0.2s ease;
+  z-index: 30;
+  background-color: rgba(255, 255, 255, 0.08);
+  padding: 14px 18px;
+  border-radius: 14px;
+  transition: background 0.25s ease, transform 0.25s ease;
+  box-shadow: 0 0 10px rgba(255,255,255,0.1);
 }
 
 #burgerMenuToggle:hover {
-  background-color: rgba(255, 255, 255, 0.3);
+  background-color: rgba(255, 255, 255, 0.2);
+  transform: scale(1.05);
 }
 
 #burgerMenu {
   position: absolute;
-  top: 60px;
-  right: 20px;
+  top: 110px; /* 💡 plus bas pour éviter le chevauchement */
+  right: 24px;
   display: none;
   flex-direction: column;
-  gap: 10px;
-  z-index: 20;
-  background-color: rgba(0, 0, 0, 0.8);
-  padding: 12px;
-  border-radius: 10px;
+  gap: 12px;
+  z-index: 25;
+  background-color: rgba(0, 0, 0, 0.9);
+  padding: 18px 16px;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+  backdrop-filter: blur(6px); /* 💅 flou élégant si supporté */
 }
 
 .menu-btn {
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: rgba(255, 255, 255, 0.08);
   color: white;
   border: none;
-  border-radius: 8px;
-  padding: 6px 12px;
-  font-size: 14px;
+  border-radius: 10px;
+  padding: 12px 16px;
+  font-size: 16px;
   font-family: 'Manrope', sans-serif;
   cursor: pointer;
   text-align: left;
-  transition: background 0.2s ease;
-  min-width: 120px;
+  transition: background 0.2s ease, transform 0.2s ease;
+  min-width: 140px;
 }
 
 .menu-btn:hover {
-  background-color: rgba(255, 255, 255, 0.25);
+  background-color: rgba(255, 255, 255, 0.2);
+  transform: translateX(2px);
 }
+
 
 .post-win-panel {
   position: absolute;
@@ -267,3 +301,17 @@ canvas {
   transform: scale(1.05);
   box-shadow: 0 0 10px rgba(255,255,255,0.4);
 }
+
+/* Positionne le gros avatar au centre */
+.avatar-collection {
+  position: absolute !important;
+  top: 160px !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  width: 700px !important;  /* 💥 taille plus grande */
+  height: 700px !important; /* 💥 à ajouter aussi */
+   object-fit: contain; 
+  z-index: 999;
+}
+
+

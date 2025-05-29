@@ -2,6 +2,7 @@
 <html lang="fr">
 
 <head>
+
     <meta charset="UTF-8" />
     <title>Map Music</title>
     <link rel="icon" href="data:,">
@@ -22,30 +23,13 @@
     <script src="evolution.js" defer></script>
     <script src="visuals.js" defer></script>
     <script src="minigames.js" defer></script>
-    <script src="views_scrolling_map.js" defer></script>
+    <script src="views.js" defer></script>
     <script src="interaction_scroll_final.js" defer></script>
     <script src="onboarding.js" defer></script>
     <script src="sketch.js" defer></script>
     <link rel="stylesheet" href="style.css" />
 
 </head>
-
-<style>
-    body {
-        margin: 0;
-        overflow-y: scroll;
-        overscroll-behavior: contain;
-    }
-
-    canvas {
-        display: block;
-    }
-
-    /* MASQUE LES FILTRES PAR DÉFAUT */
-    #collectionFilters {
-        display: none;
-    }
-</style>
 
 <body>
 
@@ -74,31 +58,12 @@
       linear-gradient(145deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0)),
       url('assets/shuffle.png');"></div>
         <div id="shuffleTooltip">Jouer pour découvrir un nouveau genre</div>
+        <div id="pageTitleContainer">
+            <h1 id="pageTitle">Ma Collection</h1>
+            <p id="pageSubtitle">Tu peux rejouer les sons ou en débloquer !</p>
+        </div>
 
-        <!-- FILTRES COLLECTION 
-        <div id="collectionFilters">
-            <div class="filter-group">
-                <span class="filter-label">Genre :</span>
-                <button class="filter-btn" data-genre="All">Tous</button>
-                <button class="filter-btn" data-genre="Pop">Pop</button>
-                <button class="filter-btn" data-genre="Hip-Hop">Hip-Hop</button>
-                <button class="filter-btn" data-genre="Classique">Classique</button>
-            </div>
 
-            <div class="filter-group">
-                <span class="filter-label">Énergie :</span>
-                <button class="filter-btn" data-energy="low">Calme</button>
-                <button class="filter-btn" data-energy="mid">Modérée</button>
-                <button class="filter-btn" data-energy="high">Énergique</button>
-            </div>
-
-            <div class="filter-group">
-                <span class="filter-label">Danceabilité :</span>
-                <button class="filter-btn" data-dance="low">Rigide</button>
-                <button class="filter-btn" data-dance="mid">Groove</button>
-                <button class="filter-btn" data-dance="high">Dansante</button>
-            </div>
-        </div>-->
     </div>
 </body>
 

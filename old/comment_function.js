@@ -856,3 +856,110 @@ window.addEventListener("DOMContentLoaded", () => {
 });
 
 */
+/*
+function drawMiniGameView() {
+  background(0, 0, 11);
+  textAlign(CENTER);
+  fill(0, 0, 100);
+
+  // === RESPONSIVE VARS
+  let topOffset = isMobile ? 40 : 60;
+  let btnW = isMobile ? width * 0.85 : min(400, width * 0.5);
+  let btnH = isMobile ? 65 : 50;
+  let spacing = isMobile ? 25 : 20;
+  let radius = isMobile ? 20 : 12;
+  let titleSize = isMobile ? 34 : 28;
+  let questionSize = isMobile ? 22 : 18;
+  let labelSize = isMobile ? 16 : 14;
+
+  // === TITRE
+  textSize(titleSize);
+  text("🎮 MINI-JEU", width / 2, topOffset);
+
+  // === QUESTION
+  let questionY = topOffset + 40;
+  fill(0, 0, 80);
+  textSize(questionSize);
+  text(miniGameLabel || "Quel est le tempo ?", width / 2, questionY);
+
+  fill(0, 0, 60);
+  textSize(labelSize);
+  text("Écoute la musique et choisis :", width / 2, questionY + 30);
+
+  // === BLOB CENTRAL
+  let blobCenterY = height * 0.35;
+  if (currentMiniGameTrack) {
+    push();
+    translate(width / 2, blobCenterY);
+    drawTrackBlob(currentMiniGameTrack, 0, 0, isMobile ? 160 : 100, 0);
+    pop();
+  }
+
+  //VISUAL MATCH
+  if (currentMiniGameType === "visual_match") {
+    for (let blob of miniGameBlobs) {
+      push();
+      translate(blob.x, blob.y);
+      drawTrackBlob(blob.track, 0, 0, blob.r, 0);
+      pop();
+    }
+  }
+  // === RÉPONSES
+  let startY = blobCenterY + (isMobile ? 160 : 120);
+  for (let i = 0; i < miniGameOptions.length; i++) {
+    let option = miniGameOptions[i];
+    let x = width / 2 - btnW / 2;
+    let y = startY + i * (btnH + spacing);
+    let isSelected = selectedOption === option;
+
+    fill(0, 0, isSelected ? 85 : 20);
+    rect(x, y, btnW, btnH, radius);
+
+    fill(0, 0, 100);
+    textSize(isMobile ? 20 : 16);
+    text(option + (miniGameUnit || ""), width / 2, y + btnH / 2 + 6);
+  }
+
+  // === BOUTON VALIDER TOUJOURS VISIBLE après sélection
+  if (selectedOption) {
+    let valBtnW = isMobile ? 240 : 200;
+    let valBtnH = isMobile ? 55 : 45;
+    let valX = width / 2 - valBtnW / 2;
+    let valY = height - valBtnH - 20;
+
+    fill(0, 0, 100);
+    rect(valX, valY, valBtnW, valBtnH, radius);
+    fill(0, 0, 0);
+    textSize(isMobile ? 18 : 14);
+    textAlign(CENTER, CENTER);
+    text("Valider", width / 2, valY + valBtnH / 2);
+  }
+
+  // === FEEDBACK
+  if (miniGameFeedback) {
+    fill(
+      miniGameFeedback === "correct" ? color(120, 80, 100) : color(0, 80, 100)
+    );
+    textSize(isMobile ? 20 : 16);
+    text(
+      miniGameFeedback === "correct"
+        ? "✔️ Bonne réponse !"
+        : "❌ Mauvaise réponse",
+      width / 2,
+      height - 130
+    );
+  }
+
+  // === BOUTON RETOUR
+  let backX = 20;
+  let backY = height - 55;
+  let backW = 100;
+  let backH = 35;
+
+  fill(0, 0, 20);
+  rect(backX, backY, backW, backH, 8);
+  fill(0, 0, 100);
+  textSize(13);
+  text("↩ Retour", backX + backW / 2, backY + backH / 2 + 5);
+}
+*/

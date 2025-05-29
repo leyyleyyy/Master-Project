@@ -13,39 +13,6 @@ let onboardingQuestions = [
   },
 ];
 
-function drawOnboardingView() {
-  background(0, 0, 11);
-  fill(0, 0, 100);
-  textAlign(CENTER);
-  textSize(24);
-  text("Bienvenue !", width / 2, 60);
-
-  if (onboardingStep < onboardingQuestions.length) {
-    let q = onboardingQuestions[onboardingStep];
-
-    textSize(20);
-    text(q.question, width / 2, 120);
-
-    for (let i = 0; i < q.options.length; i++) {
-      let btnW = 300;
-      let btnH = 50;
-      let btnX = width / 2 - btnW / 2;
-      let btnY = 200 + i * 70;
-
-      fill(0, 0, 20);
-      rect(btnX, btnY, btnW, btnH, 10);
-
-      fill(0, 0, 100);
-      textSize(16);
-      text(q.options[i], width / 2, btnY + btnH / 2);
-    }
-  } else if (!collectionAssigned) {
-    assignInitialCollection(); // 👈 exécuté une seule fois
-    collectionAssigned = true;
-    mode = "avatar";
-  }
-}
-
 function assignInitialCollection() {
   let selected = tracksData.filter((track) => {
     let acousticPref = userAnswers[1];

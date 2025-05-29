@@ -25,7 +25,7 @@ function isInsideClickableZone(zone, mx, my) {
 
   return false;
 }
-
+/*
 function mousePressed() {
   // === EVOLUTION ===
   if (mode === "evolution") {
@@ -46,133 +46,6 @@ function mousePressed() {
       return;
     }
   }
-
-  // === MINI-JEU ===
-  /*
-  if (mode === "minigame") {
-    // Bouton retour
-    if (
-      mouseX > 40 &&
-      mouseX < 140 &&
-      mouseY > height - 60 &&
-      mouseY < height - 25
-    ) {
-      mode = "collection";
-      currentMiniGameTrack = null;
-      miniGameOptions = [];
-      miniGameAnswer = null;
-      miniGameFeedback = "";
-      selectedOption = null;
-      return;
-    }
-
-    // === visual_match spécifique ===
-    if (
-      currentMiniGameType === "visual_match" &&
-      miniGameOptions.length === 2
-    ) {
-      for (let i = 0; i < 2; i++) {
-        let blobX = width / 2 + (i === 0 ? -120 : 120);
-        let blobY = height * 0.4;
-        let blobR = isMobile ? 80 : 60;
-        let btnW = 130;
-        let btnH = 40;
-        let btnX = blobX - btnW / 2;
-        let btnY = blobY + blobR + 10;
-
-        // Clic sur le blob (jouer la musique)
-        if (dist(mouseX, mouseY, blobX, blobY) < blobR) {
-          let track = miniGameOptions[i];
-          if (currentAudio && currentAudio.isPlaying()) currentAudio.stop();
-          let newAudio = audioPlayers[track.title];
-          if (newAudio && newAudio.isLoaded()) {
-            newAudio.play();
-            currentAudio = newAudio;
-          }
-        }
-
-        // Clic sur le bouton sous le blob = réponse
-        if (
-          mouseX > btnX &&
-          mouseX < btnX + btnW &&
-          mouseY > btnY &&
-          mouseY < btnY + btnH
-        ) {
-          selectedOption = i;
-          miniGameFeedback =
-            miniGameOptions[i].title === miniGameAnswer ? "correct" : "wrong";
-        }
-      }
-
-      // Validation finale
-      if (selectedOption !== null) {
-        let valBtnW = isMobile ? 240 : 200;
-        let valBtnH = isMobile ? 55 : 45;
-        let valX = width / 2 - valBtnW / 2;
-        let valY = height - valBtnH - 20;
-
-        if (
-          mouseX > valX &&
-          mouseX < valX + valBtnW &&
-          mouseY > valY &&
-          mouseY < valY + valBtnH
-        ) {
-          mode = "exploration";
-          currentMiniGameTrack = null;
-          miniGameOptions = [];
-          miniGameAnswer = null;
-          miniGameFeedback = "";
-          selectedOption = null;
-          return;
-        }
-      }
-
-      return;
-    }
-
-    // === autres types classiques
-    let btnW = isMobile ? width * 0.85 : min(400, width * 0.5);
-    let btnH = isMobile ? 65 : 50;
-    let spacing = isMobile ? 25 : 20;
-    let startY = height * 0.35 + (isMobile ? 160 : 120);
-
-    for (let i = 0; i < miniGameOptions.length; i++) {
-      let x = width / 2 - btnW / 2;
-      let y = startY + i * (btnH + spacing);
-
-      if (mouseX > x && mouseX < x + btnW && mouseY > y && mouseY < y + btnH) {
-        selectedOption = miniGameOptions[i];
-        miniGameFeedback =
-          selectedOption === miniGameAnswer ? "correct" : "wrong";
-        return;
-      }
-    }
-
-    if (selectedOption) {
-      let valBtnW = isMobile ? 240 : 200;
-      let valBtnH = isMobile ? 55 : 45;
-      let valX = width / 2 - valBtnW / 2;
-      let valY = height - valBtnH - 20;
-
-      if (
-        mouseX > valX &&
-        mouseX < valX + valBtnW &&
-        mouseY > valY &&
-        mouseY < valY + valBtnH
-      ) {
-        mode = "exploration";
-        currentMiniGameTrack = null;
-        miniGameOptions = [];
-        miniGameAnswer = null;
-        miniGameFeedback = "";
-        selectedOption = null;
-        return;
-      }
-    }
-
-    return;
-  }
-*/
   // === MINI-JEU ===
   if (mode === "minigame") {
     // Bouton retour
@@ -335,8 +208,8 @@ function mousePressed() {
 
         // MINI-JEU COLLECTION
         currentMiniGameTrack = selectedTrack;
-        //const gameTypes = ["tempo", "valence", "genre", "visual_match"];
-        const gameTypes = ["visual_match"];
+        const gameTypes = ["tempo", "valence", "genre", "visual_match"];
+        // const gameTypes = ["visual_match"];
         currentMiniGameType = random(gameTypes);
         generateMiniGame(currentMiniGameTrack);
 
@@ -437,21 +310,41 @@ function mousePressed() {
       mode = "minigame";
       return;
     }
-    /*
-    if (
-      mouseX > 40 &&
-      mouseX < 140 &&
-      mouseY > height - 60 &&
-      mouseY < height - 25
-    ) {
-      mode = "collection";
-      return;
+  }
+}
+*/
+function mousePressed() {
+  // === GAME SELECTOR / AFTER GAME ===
+  if (mode === "gameSelector") {
+    for (let zone of blobHitZones) {
+      if (isInsideClickableZone(zone, mouseX, mouseY)) {
+        currentMiniGameType = zone.miniGameType;
+        currentMiniGameTrack = pickRandomTrackFromCollection();
+        generateMiniGame(currentMiniGameTrack);
+        mode = "minigame";
+        return;
+      }
     }
+  }
+  if (mode === "postMiniGameWin") {
+    for (let zone of blobHitZones) {
+      if (
+        zone.type === "continueExploration" &&
+        isInsideClickableZone(zone, mouseX, mouseY)
+      ) {
+        mode = "exploration";
+        justWonMiniGame = false;
+        return;
+      }
+    }
+  }
 
+  // === EVOLUTION ===
+  if (mode === "evolution") {
     let btnW = 200;
-    let btnH = 40;
+    let btnH = 50;
     let btnX = width / 2 - btnW / 2;
-    let btnY = 470;
+    let btnY = height - (isMobile ? 100 : 100); // inchangé ici
 
     if (
       mouseX > btnX &&
@@ -459,9 +352,289 @@ function mousePressed() {
       mouseY > btnY &&
       mouseY < btnY + btnH
     ) {
+      mode = "avatar";
+      evolutionTrack = null;
+      evolutionPoints = 0;
+      return;
+    }
+  }
+
+  // === MINI-JEU ===
+  if (mode === "minigame") {
+    // Bouton retour
+    if (
+      mouseX > 40 &&
+      mouseX < 140 &&
+      mouseY > height - 60 &&
+      mouseY < height - 25
+    ) {
+      mode = "collection";
+      currentMiniGameTrack = null;
+      miniGameOptions = [];
+      miniGameAnswer = null;
+      miniGameFeedback = "";
+      selectedOption = null;
+      return;
+    }
+
+    // === visual_match spécifique ===
+    if (
+      currentMiniGameType === "visual_match" &&
+      miniGameOptions.length === 2
+    ) {
+      for (let i = 0; i < 2; i++) {
+        let blobX = width / 2 + (i === 0 ? -120 : 120);
+        let blobY = height * 0.4;
+        let blobR = isMobile ? 80 : 60;
+        let btnW = 130;
+        let btnH = 40;
+        let btnX = blobX - btnW / 2;
+        let btnY = blobY + blobR + 10;
+
+        if (dist(mouseX, mouseY, blobX, blobY) < blobR) {
+          let track = miniGameOptions[i];
+          if (currentAudio && currentAudio.isPlaying()) currentAudio.stop();
+          let newAudio = audioPlayers[track.title];
+          if (newAudio && newAudio.isLoaded()) {
+            newAudio.play();
+            currentAudio = newAudio;
+          }
+        }
+
+        if (
+          mouseX > btnX &&
+          mouseX < btnX + btnW &&
+          mouseY > btnY &&
+          mouseY < btnY + btnH
+        ) {
+          selectedOption = i;
+          miniGameFeedback =
+            miniGameOptions[i].title === miniGameAnswer ? "correct" : "wrong";
+        }
+      }
+
+      if (selectedOption !== null && miniGameFeedback === "correct") {
+        let valBtnW = isMobile ? 240 : 200;
+        let valBtnH = isMobile ? 55 : 45;
+        let valX = width / 2 - valBtnW / 2;
+        let valY = height - valBtnH - (isMobile ? 80 : 20); // ✅ corrigé ici
+
+        if (
+          mouseX > valX &&
+          mouseX < valX + valBtnW &&
+          mouseY > valY &&
+          mouseY < valY + valBtnH
+        ) {
+          mode = "postMiniGameWin";
+          justWonMiniGame = true;
+
+          currentMiniGameTrack = null;
+          miniGameOptions = [];
+          miniGameAnswer = null;
+          miniGameFeedback = "";
+          selectedOption = null;
+          return;
+        }
+      }
+
+      return;
+    }
+
+    // === autres types classiques
+    let btnW = isMobile ? width * 0.85 : min(400, width * 0.5);
+    let btnH = isMobile ? 65 : 50;
+    let spacing = isMobile ? 25 : 20;
+    let startY = height * 0.35 + (isMobile ? 160 : 120);
+
+    for (let i = 0; i < miniGameOptions.length; i++) {
+      let x = width / 2 - btnW / 2;
+      let y = startY + i * (btnH + spacing);
+
+      if (mouseX > x && mouseX < x + btnW && mouseY > y && mouseY < y + btnH) {
+        selectedOption = miniGameOptions[i];
+        miniGameFeedback =
+          selectedOption === miniGameAnswer ? "correct" : "wrong";
+        return;
+      }
+    }
+
+    if (selectedOption && miniGameFeedback === "correct") {
+      let valBtnW = isMobile ? 240 : 200;
+      let valBtnH = isMobile ? 55 : 45;
+      let valX = width / 2 - valBtnW / 2;
+      let valY = height - valBtnH - (isMobile ? 80 : 20); // ✅ corrigé ici
+
+      if (
+        mouseX > valX &&
+        mouseX < valX + valBtnW &&
+        mouseY > valY &&
+        mouseY < valY + valBtnH
+      ) {
+        //mode = "exploration";
+        mode = "postMiniGameWin";
+        justWonMiniGame = true;
+
+        currentMiniGameTrack = null;
+        miniGameOptions = [];
+        miniGameAnswer = null;
+        miniGameFeedback = "";
+        selectedOption = null;
+        return;
+      }
+    }
+    if (miniGameFeedback === "wrong") {
+      currentLives--;
+      console.log("💔 Mauvaise réponse, vies restantes :", currentLives);
+    }
+
+    return;
+  }
+  if (currentLives <= 0) {
+    alert("😢 Tu as perdu ! Réessaie plus tard."); // ou remplace par une vue personnalisée
+    mode = "collection";
+    currentMiniGameTrack = null;
+    miniGameOptions = [];
+    miniGameAnswer = null;
+    miniGameFeedback = "";
+    selectedOption = null;
+    currentLives = maxLives; // reset pour la prochaine fois
+    return;
+  }
+
+  // === COLLECTION ===
+  if (mode === "collection") {
+    let btnW = 100;
+    let btnH = 30;
+    let spacing = 20;
+    let totalW = maps.length * (btnW + spacing) - spacing;
+    let startX = width / 2 - totalW / 2;
+    let mapBtnX = startX + currentMapIndex * (btnW + spacing);
+    let mapBtnY = 20;
+
+    if (
+      mouseX > mapBtnX &&
+      mouseX < mapBtnX + btnW &&
+      mouseY > mapBtnY &&
+      mouseY < mapBtnY + btnH
+    ) {
+      mode = "exploration";
+      return;
+    }
+
+    for (let zone of blobHitZones) {
+      if (isInsideClickableZone(zone, mouseX, mouseY)) {
+        selectedTrack = zone.track;
+        selectedPendingTrack = zone.track;
+
+        if (currentAudio && currentAudio.isPlaying()) currentAudio.stop();
+
+        let newAudio = audioPlayers[selectedTrack.title];
+        if (newAudio && newAudio.isLoaded()) {
+          newAudio.play();
+          currentAudio = newAudio;
+        }
+
+        currentMiniGameTrack = selectedTrack;
+        const gameTypes = ["visual_match"];
+        currentMiniGameType = random(gameTypes);
+        generateMiniGame(currentMiniGameTrack);
+
+        mode = "minigame";
+        return;
+      }
+    }
+
+    return;
+  }
+
+  // === EXPLORATION ===
+  if (mode === "exploration") {
+    for (let zone of blobHitZones) {
+      if (isInsideClickableZone(zone, mouseX, mouseY)) {
+        if (zone.type === "mapButton") {
+          if (zone.isUnlocked) currentMapIndex = zone.index;
+        } else {
+          selectedTrack = zone.track;
+          selectedPendingTrack = zone.track;
+
+          if (currentAudio && currentAudio.isPlaying()) currentAudio.stop();
+
+          let newAudio = audioPlayers[selectedTrack.title];
+          if (newAudio && newAudio.isLoaded()) {
+            newAudio.play();
+            currentAudio = newAudio;
+          }
+        }
+        return;
+      }
+    }
+
+    let valBtnW = isMobile ? 240 : 200;
+    let valBtnH = isMobile ? 55 : 45;
+    let valBtnX = width / 2 - valBtnW / 2;
+    let valBtnY = height - valBtnH - (isMobile ? 80 : 20); // ✅ corrigé ici aussi
+
+    if (
+      selectedPendingTrack &&
+      mouseX > valBtnX &&
+      mouseX < valBtnX + valBtnW &&
+      mouseY > valBtnY &&
+      mouseY < valBtnY + valBtnH
+    ) {
+      let points = getGenreClusterPoints(selectedPendingTrack);
+      playerScore += points;
+
+      pointFeedbacks.push({ points, x: 100, y: 30, alpha: 255, size: 36 });
+
+      let cleaned = cleanTrack(selectedPendingTrack);
+      playerCollection.push(cleaned);
+      localStorage.setItem("btm_collection", JSON.stringify(playerCollection));
+
+      updateAvatarGif();
+      evolutionTrack = cleaned;
+      evolutionPoints = points;
+      selectedPendingTrack = null;
+      selectedTrack = null;
+      mode = "evolution";
+      return;
+    }
+
+    let unlocked = getUnlockedMaps();
+    if (mouseX < 60 && mouseY > height / 2 - 30 && mouseY < height / 2 + 30) {
+      if (currentMapIndex > 0) currentMapIndex--;
+    } else if (
+      mouseX > width - 60 &&
+      mouseY > height / 2 - 30 &&
+      mouseY < height / 2 + 30
+    ) {
+      if (currentMapIndex < unlocked.length - 1) currentMapIndex++;
+    }
+
+    if (mouseX > 150 && mouseX < 290 && mouseY > 20 && mouseY < 55) {
       mode = "collection";
       return;
-    }*/
+    }
+
+    return;
+  }
+
+  // === ONBOARDING ===
+  if (mode === "onboarding") {
+    handleOnboardingClick();
+    return;
+  }
+
+  // === AVATAR ===
+  if (mode === "avatar") {
+    if (dist(mouseX, mouseY, width / 2, height / 2) < 40) {
+      currentMiniGameTrack = pickRandomTrackFromCollection();
+      const gameTypes = ["tempo", "genre"];
+      currentMiniGameType = random(gameTypes);
+      generateMiniGame(currentMiniGameTrack);
+
+      mode = "minigame";
+      return;
+    }
   }
 }
 
@@ -503,17 +676,6 @@ function touchStarted() {
   // Simule le clic souris
   mousePressed();
 
-  return false;
-}
-
-function touchMoved() {
-  if (isDragging && lastTouch) {
-    let dx = mouseX - lastTouch.x;
-    let dy = mouseY - lastTouch.y;
-    scrollXOffset += dx;
-    scrollYOffset += dy;
-    lastTouch.set(mouseX, mouseY);
-  }
   return false;
 }
 

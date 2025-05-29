@@ -6,25 +6,27 @@ let activeFilters = {
 
 let previousMode = null;
 let morphingGif;
-
+let bananaFont;
 function preload() {
   // Charge les sons uniquement si autorisé (évite crash Safari)
-  tracksData.forEach((track) => {
+  /* tracksData.forEach((track) => {
     try {
       audioPlayers[track.title] = loadSound(track.audio);
     } catch (e) {
       console.warn("Erreur de preload audio :", track.title, e);
     }
-  });
+  });*/
 
   // Image morphing préchargée
   morphingGif = loadImage("avatars/morphing.gif");
+  bananaFont = loadFont("fonts/bananasp.ttf");
 }
 
 function setup() {
   createCanvas(windowWidth, windowHeight, P2D); // jamais plus grand que l'écran
   isMobile = /Mobi|Android/i.test(navigator.userAgent) || windowWidth < 768;
   console.log("📱 isMobile =", isMobile);
+  textFont(bananaFont);
 
   colorMode(HSB, 360, 100, 100, 100);
   noStroke();
@@ -33,7 +35,7 @@ function setup() {
   noiseSeed(83);
 
   // Sécurité localStorage
-  try {
+  /*try {
     let stored = localStorage.getItem("btm_collection");
     if (stored) {
       playerCollection = JSON.parse(stored);
@@ -43,7 +45,7 @@ function setup() {
     }
   } catch (e) {
     playerCollection = [cleanTrack(tracksData[0])];
-  }
+  }*/
 
   // Min/max init
   DATA_KEYS.forEach((key) => {
@@ -69,6 +71,36 @@ function setup() {
     selectedTrack = null;
   }
 }
+function updatePageTitle() {
+  const title = document.getElementById("pageTitle");
+  const subtitle = document.getElementById("pageSubtitle");
+  if (!title || !subtitle) return;
+
+  if (mode === "collection") {
+    title.innerText = "Ma Collection";
+    subtitle.innerText = "Tu peux rejouer les sons ou en débloquer !";
+    title.style.display = "block";
+    subtitle.style.display = "block";
+  } else if (mode === "avatar") {
+    title.innerText = "The Digging Map";
+    subtitle.innerText = "Navigate styles. Discover gems.";
+    title.style.display = "block";
+    subtitle.style.display = "none";
+  } else if (mode === "minigame") {
+    title.innerText = "Mini-jeu";
+    subtitle.innerText = "Ecoute la musique et répond à la question !";
+    title.style.display = "block";
+    subtitle.style.display = "none";
+  } else if (mode === "gameSelector") {
+    title.innerText = "Mini-jeu";
+    subtitle.innerText = "Choisis ton jeu !";
+    title.style.display = "block";
+    subtitle.style.display = "none";
+  } else {
+    title.style.display = "none";
+    subtitle.style.display = "none";
+  }
+}
 
 function draw() {
   background(0, 0, 11);
@@ -84,9 +116,12 @@ function draw() {
     drawAvatarView();
   } else if (mode === "evolution") {
     drawEvolutionView();
-  }
-  if (mode === "onboarding") {
+  } else if (mode === "onboarding") {
     drawOnboardingView();
+  } else if (mode === "gameSelector") {
+    drawGameSelectorView();
+  } else if (mode === "postMiniGameWin") {
+    drawPostMiniGameWinView();
   }
 
   updateAvatarGif(); // avatar évolue dynamiquement
@@ -176,17 +211,18 @@ function draw() {
   if (mode !== previousMode) {
     if (mode === "minigame") {
       currentMiniGameTrack = pickRandomTrackFromCollection();
-      //const gameTypes = ["tempo", "genre", "visual_match"];
-      const gameTypes = ["visual_match"];
+      const gameTypes = ["tempo", "genre", "visual_match"];
+      //const gameTypes = ["visual_match"];
       currentMiniGameType = random(gameTypes);
       generateMiniGame(currentMiniGameTrack);
     }
     previousMode = mode;
   }
+  updatePageTitle();
 }
 
 window.addEventListener("DOMContentLoaded", () => {
-  const avatarEl = document.getElementById("avatar");
+  //const avatarEl = document.getElementById("avatar");
   const shuffleBtn = document.getElementById("shuffleBtn");
   const burgerToggle = document.getElementById("burgerMenuToggle");
   const burgerMenu = document.getElementById("burgerMenu");
@@ -219,28 +255,19 @@ window.addEventListener("DOMContentLoaded", () => {
   });
 
   // === Avatar cliquable
-  if (avatarEl) {
+  /*if (avatarEl) {
     function goToAvatar(e) {
       e.preventDefault();
       if (mode !== "onboarding") mode = "avatar";
     }
     avatarEl.addEventListener("click", goToAvatar);
     avatarEl.addEventListener("touchstart", goToAvatar);
-  }
+  }*/
 
-  // === Shuffle (vers collection)
-  /*
-  function handleShuffle(e) {
+  /* function handleShuffle(e) {
     e.preventDefault();
+    launchMiniGameFromCollection();
 
-    if (mode !== "minigame") {
-      currentMiniGameTrack = pickRandomTrackFromCollection();
-      currentMiniGameType = random(["tempo", "genre"]);
-      mode = "minigame";
-      miniGameOptions = []; // pour forcer la régénération dans drawMiniGameView
-    }
-
-    // animations visuelles du bouton
     shuffleBtn.style.boxShadow = "0 0 20px rgba(255,255,255,0.8)";
     shuffleBtn.style.transform = "scale(1.15)";
     setTimeout(() => {
@@ -254,7 +281,7 @@ window.addEventListener("DOMContentLoaded", () => {
   }*/
   function handleShuffle(e) {
     e.preventDefault();
-    launchMiniGameFromCollection();
+    mode = "gameSelector";
 
     shuffleBtn.style.boxShadow = "0 0 20px rgba(255,255,255,0.8)";
     shuffleBtn.style.transform = "scale(1.15)";
@@ -263,6 +290,7 @@ window.addEventListener("DOMContentLoaded", () => {
       shuffleBtn.style.transform = "scale(1)";
     }, 200);
   }
+
   if (shuffleBtn) {
     shuffleBtn.addEventListener("click", handleShuffle);
     shuffleBtn.addEventListener("touchstart", handleShuffle);

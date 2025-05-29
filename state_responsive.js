@@ -14,7 +14,7 @@ let playerCollection = [];
 let pointFeedbacks = [];
 let miniGameAudioPlayed = false;
 
-let mode = "minigame"; // "exploration", "collection", "minigame", "avatar"
+let mode = "minigame"; // "exploration", "collection", "minigame", "avatar", "onboarding", "gameSelector"
 let currentMiniGameTrack = null;
 let miniGameOptions = [];
 let miniGameAnswer = null;
@@ -28,10 +28,13 @@ let onboardingStep = 0;
 let userAnswers = [];
 let collectionAssigned = false;
 let currentMapIndex = 0;
-let currentMiniGameType = "tempo"; // par défaut
+let currentMiniGameType = "visual_match"; // par défaut
 let showPostMiniGameMessage = false;
 let postWinDiv = null;
 window.showPostMiniGameMessage = showPostMiniGameMessage; // pour l’exposer au script
+
+let maxLives = 5;
+let currentLives = maxLives;
 
 let evolutionTrack = null;
 let evolutionPoints = 0;
@@ -226,7 +229,7 @@ function updateAvatarGif() {
   avatar.style.display = "block";
 
   // Position dynamique selon le mode
-  if (mode === "collection") {
+  /* if (mode === "collection") {
     avatar.style.position = "absolute";
     //avatar.style.left = width / 2 - 75 + "px";
     let canvasW = window.innerWidth;
@@ -235,7 +238,17 @@ function updateAvatarGif() {
     avatar.style.width = "150px";
     //avatar.style.top = "110px";
     //avatar.style.width = "150px";
+    return;
   } else {
+    avatar.style.position = "fixed";
+    avatar.style.right = "20px";
+    avatar.style.top = "20px";
+    avatar.style.left = "auto";
+    avatar.style.width = "100px";
+  }
+*/
+  if (mode !== "collection") {
+    avatar.classList.remove("avatar-collection");
     avatar.style.position = "fixed";
     avatar.style.right = "20px";
     avatar.style.top = "20px";
@@ -348,10 +361,18 @@ function getGenreStats() {
   return genres;
 }
 
-function pickRandomTrackFromCollection() {
+/*function pickRandomTrackFromCollection() {
   if (playerCollection.length === 0) return null;
   let index = floor(random(playerCollection.length));
   return playerCollection[index];
+}
+*/
+function pickRandomTrackFromCollection() {
+  if (playerCollection.length === 0) {
+    console.warn("🎧 Collection vide, on prend un morceau de tracksData");
+    return random(tracksData);
+  }
+  return random(playerCollection);
 }
 
 function getMostCommonCluster(collection) {
@@ -434,4 +455,16 @@ function assignScatteredPositions(tracks) {
   for (let i = 0; i < tracks.length; i++) {
     tracks[i].pos = positions[i % positions.length];
   }
+}
+
+function groupCollectionByCluster() {
+  const grouped = {};
+
+  for (let track of playerCollection) {
+    let cluster = getClusterNameForGenre(track.genre);
+    if (!grouped[cluster]) grouped[cluster] = [];
+    grouped[cluster].push(track);
+  }
+
+  return grouped;
 }
