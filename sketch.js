@@ -173,31 +173,14 @@ function draw() {
       shuffleTooltip.style.opacity = "0";
     }
   }
-
   if (mode !== previousMode) {
     if (mode === "minigame") {
       currentMiniGameTrack = pickRandomTrackFromCollection();
-      const gameTypes = ["tempo", "valence", "genre"];
+      //const gameTypes = ["tempo", "genre", "visual_match"];
+      const gameTypes = ["visual_match"];
       currentMiniGameType = random(gameTypes);
       generateMiniGame(currentMiniGameTrack);
     }
-
-    // 👇 Ajoute ce bloc pour activer shuffle uniquement en mode "avatar"
-    let shuffleEl = document.getElementById("shuffleBtn");
-    if (shuffleEl) {
-      if (mode === "avatar") {
-        shuffleEl.onclick = () => {
-          currentMiniGameTrack = pickRandomTrackFromCollection();
-          const gameTypes = ["tempo", "valence", "genre"];
-          currentMiniGameType = random(gameTypes);
-          generateMiniGame(currentMiniGameTrack);
-          mode = "minigame";
-        };
-      } else {
-        shuffleEl.onclick = null;
-      }
-    }
-
     previousMode = mode;
   }
 }

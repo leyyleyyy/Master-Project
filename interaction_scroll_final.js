@@ -48,7 +48,9 @@ function mousePressed() {
   }
 
   // === MINI-JEU ===
+  /*
   if (mode === "minigame") {
+    // Bouton retour
     if (
       mouseX > 40 &&
       mouseX < 140 &&
@@ -64,6 +66,71 @@ function mousePressed() {
       return;
     }
 
+    // === visual_match spécifique ===
+    if (
+      currentMiniGameType === "visual_match" &&
+      miniGameOptions.length === 2
+    ) {
+      for (let i = 0; i < 2; i++) {
+        let blobX = width / 2 + (i === 0 ? -120 : 120);
+        let blobY = height * 0.4;
+        let blobR = isMobile ? 80 : 60;
+        let btnW = 130;
+        let btnH = 40;
+        let btnX = blobX - btnW / 2;
+        let btnY = blobY + blobR + 10;
+
+        // Clic sur le blob (jouer la musique)
+        if (dist(mouseX, mouseY, blobX, blobY) < blobR) {
+          let track = miniGameOptions[i];
+          if (currentAudio && currentAudio.isPlaying()) currentAudio.stop();
+          let newAudio = audioPlayers[track.title];
+          if (newAudio && newAudio.isLoaded()) {
+            newAudio.play();
+            currentAudio = newAudio;
+          }
+        }
+
+        // Clic sur le bouton sous le blob = réponse
+        if (
+          mouseX > btnX &&
+          mouseX < btnX + btnW &&
+          mouseY > btnY &&
+          mouseY < btnY + btnH
+        ) {
+          selectedOption = i;
+          miniGameFeedback =
+            miniGameOptions[i].title === miniGameAnswer ? "correct" : "wrong";
+        }
+      }
+
+      // Validation finale
+      if (selectedOption !== null) {
+        let valBtnW = isMobile ? 240 : 200;
+        let valBtnH = isMobile ? 55 : 45;
+        let valX = width / 2 - valBtnW / 2;
+        let valY = height - valBtnH - 20;
+
+        if (
+          mouseX > valX &&
+          mouseX < valX + valBtnW &&
+          mouseY > valY &&
+          mouseY < valY + valBtnH
+        ) {
+          mode = "exploration";
+          currentMiniGameTrack = null;
+          miniGameOptions = [];
+          miniGameAnswer = null;
+          miniGameFeedback = "";
+          selectedOption = null;
+          return;
+        }
+      }
+
+      return;
+    }
+
+    // === autres types classiques
     let btnW = isMobile ? width * 0.85 : min(400, width * 0.5);
     let btnH = isMobile ? 65 : 50;
     let spacing = isMobile ? 25 : 20;
@@ -82,6 +149,133 @@ function mousePressed() {
     }
 
     if (selectedOption) {
+      let valBtnW = isMobile ? 240 : 200;
+      let valBtnH = isMobile ? 55 : 45;
+      let valX = width / 2 - valBtnW / 2;
+      let valY = height - valBtnH - 20;
+
+      if (
+        mouseX > valX &&
+        mouseX < valX + valBtnW &&
+        mouseY > valY &&
+        mouseY < valY + valBtnH
+      ) {
+        mode = "exploration";
+        currentMiniGameTrack = null;
+        miniGameOptions = [];
+        miniGameAnswer = null;
+        miniGameFeedback = "";
+        selectedOption = null;
+        return;
+      }
+    }
+
+    return;
+  }
+*/
+  // === MINI-JEU ===
+  if (mode === "minigame") {
+    // Bouton retour
+    if (
+      mouseX > 40 &&
+      mouseX < 140 &&
+      mouseY > height - 60 &&
+      mouseY < height - 25
+    ) {
+      mode = "collection";
+      currentMiniGameTrack = null;
+      miniGameOptions = [];
+      miniGameAnswer = null;
+      miniGameFeedback = "";
+      selectedOption = null;
+      return;
+    }
+
+    // === visual_match spécifique ===
+    if (
+      currentMiniGameType === "visual_match" &&
+      miniGameOptions.length === 2
+    ) {
+      for (let i = 0; i < 2; i++) {
+        let blobX = width / 2 + (i === 0 ? -120 : 120);
+        let blobY = height * 0.4;
+        let blobR = isMobile ? 80 : 60;
+        let btnW = 130;
+        let btnH = 40;
+        let btnX = blobX - btnW / 2;
+        let btnY = blobY + blobR + 10;
+
+        // Clic sur le blob (jouer la musique)
+        if (dist(mouseX, mouseY, blobX, blobY) < blobR) {
+          let track = miniGameOptions[i];
+          if (currentAudio && currentAudio.isPlaying()) currentAudio.stop();
+          let newAudio = audioPlayers[track.title];
+          if (newAudio && newAudio.isLoaded()) {
+            newAudio.play();
+            currentAudio = newAudio;
+          }
+        }
+
+        // Clic sur le bouton sous le blob = réponse
+        if (
+          mouseX > btnX &&
+          mouseX < btnX + btnW &&
+          mouseY > btnY &&
+          mouseY < btnY + btnH
+        ) {
+          selectedOption = i;
+          miniGameFeedback =
+            miniGameOptions[i].title === miniGameAnswer ? "correct" : "wrong";
+        }
+      }
+
+      // Validation finale (uniquement si réponse correcte)
+      if (selectedOption !== null && miniGameFeedback === "correct") {
+        let valBtnW = isMobile ? 240 : 200;
+        let valBtnH = isMobile ? 55 : 45;
+        let valX = width / 2 - valBtnW / 2;
+        let valY = height - valBtnH - 20;
+        console.log("Valider :", mouseX, mouseY, "valX:", valX, "valY:", valY);
+
+        if (
+          mouseX > valX &&
+          mouseX < valX + valBtnW &&
+          mouseY > valY &&
+          mouseY < valY + valBtnH
+        ) {
+          mode = "exploration";
+          currentMiniGameTrack = null;
+          miniGameOptions = [];
+          miniGameAnswer = null;
+          miniGameFeedback = "";
+          selectedOption = null;
+          return;
+        }
+      }
+
+      return;
+    }
+
+    // === autres types classiques
+    let btnW = isMobile ? width * 0.85 : min(400, width * 0.5);
+    let btnH = isMobile ? 65 : 50;
+    let spacing = isMobile ? 25 : 20;
+    let startY = height * 0.35 + (isMobile ? 160 : 120);
+
+    for (let i = 0; i < miniGameOptions.length; i++) {
+      let x = width / 2 - btnW / 2;
+      let y = startY + i * (btnH + spacing);
+
+      if (mouseX > x && mouseX < x + btnW && mouseY > y && mouseY < y + btnH) {
+        selectedOption = miniGameOptions[i];
+        miniGameFeedback =
+          selectedOption === miniGameAnswer ? "correct" : "wrong";
+        return;
+      }
+    }
+
+    // Validation finale (uniquement si réponse correcte)
+    if (selectedOption && miniGameFeedback === "correct") {
       let valBtnW = isMobile ? 240 : 200;
       let valBtnH = isMobile ? 55 : 45;
       let valX = width / 2 - valBtnW / 2;
@@ -141,7 +335,8 @@ function mousePressed() {
 
         // MINI-JEU COLLECTION
         currentMiniGameTrack = selectedTrack;
-        const gameTypes = ["tempo", "valence", "genre"];
+        //const gameTypes = ["tempo", "valence", "genre", "visual_match"];
+        const gameTypes = ["visual_match"];
         currentMiniGameType = random(gameTypes);
         generateMiniGame(currentMiniGameTrack);
 
