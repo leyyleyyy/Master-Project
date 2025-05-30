@@ -113,6 +113,8 @@ function drawExplorationView() {
         )
           continue;
         drawTrackBlob(track, x, y, blobSize, i);
+        //drawTrackBlob(blob, blobX, blobY, blobSize, i, false, true, true);
+
         if (offsetX === 0 && offsetY === 0) {
           blobHitZones.push({
             x,
@@ -425,70 +427,265 @@ function drawCollectionView() {
     y += 40;
   }
 }
-
+/*
 function drawAvatarView() {
   background(260, 40, 10);
+
   let genreAvgs = getGenreAverages();
   let genreStats = getGenreStats();
   let genreUnlocked = genreStats.map((g) => g.name);
   let genreNames = Object.keys(genreAvgs);
 
-  if (
-    !window._genreBlobPositions ||
-    window._genreBlobPositions.length !== genreNames.length
-  ) {
-    window._genreBlobPositions = genreNames.map((genre) =>
-      getPositionForGenre(genre)
-    );
+  const hasUnlockedGenres = genreUnlocked.length > 0;
+  canScrollAvatar = genreUnlocked.length > 0;
 
-    const firstUnlocked = genreUnlocked[0];
-    if (firstUnlocked) {
-      const index = genreNames.indexOf(firstUnlocked);
-      const focusPos = window._genreBlobPositions[index];
-      if (focusPos) {
-        scrollXOffset = width / 2 - focusPos.x;
-        scrollYOffset = height / 2 - focusPos.y;
-      }
+  // Construire un tableau de blobs de genre SI NON DÉJÀ FAIT
+  if (!window.genreBlobs || window.genreBlobs.length !== genreNames.length) {
+    // ➕ Regrouper genres par cluster
+    const clusterGenreMap = {};
+    for (let genre of genreNames) {
+      const cluster = getClusterNameForGenre(genre);
+      if (!clusterGenreMap[cluster]) clusterGenreMap[cluster] = [];
+      clusterGenreMap[cluster].push(genre);
     }
-  }
 
+    window.genreBlobs = genreNames.map((genre, i) => {
+      const cluster = getClusterNameForGenre(genre);
+      const clusterGenres = clusterGenreMap[cluster];
+      const localIndex = clusterGenres.indexOf(genre);
+      const pos = getPositionForGenre(genre, localIndex, clusterGenres.length);
+
+      const isUnlocked =
+        genreUnlocked.includes(genre) ||
+        genreUnlocked.includes(genre.toLowerCase());
+
+      return {
+        title: genre,
+        genre: genre,
+        ...genreAvgs[genre],
+        pos,
+        isUnlocked,
+        index: i,
+      };
+    });
+
+    // 📍 CENTRAGE
+    if (scrollToGenre) {
+      const focusBlob = window.genreBlobs.find(
+        (b) => b.title === scrollToGenre
+      );
+      if (focusBlob) {
+        scrollXOffset = width / 2 - focusBlob.pos.x;
+        scrollYOffset = height / 2 - focusBlob.pos.y;
+
+        console.log("📍 Recentering on new genre:", scrollToGenre);
+      } else {
+        console.warn("❌ Genre non trouvé pour recentrage:", scrollToGenre);
+      }
+      scrollToGenre = null;
+    } else if (!window._alreadyCentered && hasUnlockedGenres) {
+      const firstUnlocked = genreUnlocked[0];
+      const focusBlob = window.genreBlobs.find(
+        (b) => b.title === firstUnlocked
+      );
+      if (focusBlob) {
+        scrollXOffset = width / 2 - focusBlob.pos.x;
+        scrollYOffset = height / 2 - focusBlob.pos.y;
+
+        console.log("📍 Centrage initial sur :", firstUnlocked);
+      }
+      window._alreadyCentered = true;
+    }
+
+    /*
+    if (hasUnlockedGenres) {
+      const firstUnlocked = genreUnlocked[0];
+      const focusBlob = window.genreBlobs.find(
+        (b) => b.title === firstUnlocked
+      );
+      if (focusBlob) {
+        scrollXOffset = width / 2 - focusBlob.pos.x;
+        scrollYOffset = height / 2 - focusBlob.pos.y;
+      }
+    } else {
+      let centerX = 0;
+      let centerY = 0;
+      for (let blob of window.genreBlobs) {
+        centerX += blob.pos.x;
+        centerY += blob.pos.y;
+      }
+      centerX /= window.genreBlobs.length;
+      centerY /= window.genreBlobs.length;
+      scrollXOffset = width / 2 - centerX;
+      scrollYOffset = height / 2 - centerY;
+    }
+  }*/
+/*
+  // 🎨 DESSIN
   push();
   translate(scrollXOffset, scrollYOffset);
-
-  for (let i = 0; i < genreNames.length; i++) {
-    let name = genreNames[i];
-    let visual = genreAvgs[name];
-    let pos = window._genreBlobPositions[i];
-    let isUnlocked =
-      genreUnlocked.includes(name) ||
-      genreUnlocked.includes(name.toLowerCase());
-
-    let blobVisual = { ...visual };
-
-    // 🎨 Si non débloqué : désature et assombrit
-
-    let fakeTrack = {
-      title: name,
-      genre: name,
-      ...blobVisual,
-    };
+  /*
+  for (let blob of window.genreBlobs) {
+    let { pos, index, isUnlocked } = blob;
 
     let screenMin = min(windowWidth, windowHeight);
     let blobSize = isMobile ? min(screenMin * 0.45, 240) : 80;
 
-    //drawTrackBlob(fakeTrack, pos.x, pos.y, blobSize, i);
-    drawTrackBlob(fakeTrack, pos.x, pos.y, blobSize, i, false, isUnlocked);
+    drawTrackBlob(blob, pos.x, pos.y, blobSize, index, false, isUnlocked);
 
     if (isUnlocked) {
       fill(0, 0, 100);
       textAlign(CENTER);
       textSize(isMobile ? 22 : 14);
-      text(name, pos.x, pos.y + blobSize / 2 + 24);
+      text(blob.genre, pos.x, pos.y + blobSize / 2 + 24);
+    }
+  }*/
+/*
+  let screenMin = min(windowWidth, windowHeight);
+  let blobSize = isMobile ? min(screenMin * 0.45, 240) : 80;
+
+  for (let blob of window.genreBlobs) {
+    const isUnlocked =
+      genreUnlocked.includes(blob.genre) ||
+      genreUnlocked.includes(blob.genre.toLowerCase());
+    let { pos, index } = blob;
+
+    drawTrackBlob(blob, pos.x, pos.y, blobSize, index, false, isUnlocked);
+
+    if (isUnlocked) {
+      fill(0, 0, 100);
+      textAlign(CENTER);
+      textSize(isMobile ? 22 : 14);
+      text(blob.genre, pos.x, pos.y + blobSize / 2 + 24);
     }
   }
 
   pop();
 }
+*/
+function drawAvatarView() {
+  background(260, 40, 10);
+
+  let genreAvgs = getGenreAverages();
+  let genreStats = getGenreStats();
+  let genreUnlocked = genreStats.map((g) => g.name);
+  let genreNames = Object.keys(genreAvgs);
+
+  const hasUnlockedGenres = genreUnlocked.length > 0;
+  canScrollAvatar = hasUnlockedGenres;
+
+  // Construire un tableau de blobs de genre SI NON DÉJÀ FAIT
+  if (!window.genreBlobs || window.genreBlobs.length !== genreNames.length) {
+    // ➕ Regrouper genres par cluster
+    const clusterGenreMap = {};
+    for (let genre of genreNames) {
+      const cluster = getClusterNameForGenre(genre);
+      if (!clusterGenreMap[cluster]) clusterGenreMap[cluster] = [];
+      clusterGenreMap[cluster].push(genre);
+    }
+
+    window.genreBlobs = genreNames.map((genre, i) => {
+      const cluster = getClusterNameForGenre(genre);
+      const clusterGenres = clusterGenreMap[cluster];
+      const localIndex = clusterGenres.indexOf(genre);
+      const pos = getPositionForGenre(genre, localIndex, clusterGenres.length);
+
+      const isUnlocked =
+        genreUnlocked.includes(genre) ||
+        genreUnlocked.includes(genre.toLowerCase());
+
+      return {
+        title: genre,
+        genre: genre,
+        ...genreAvgs[genre],
+        pos,
+        isUnlocked,
+        index: i,
+      };
+    });
+
+    // 📍 CENTRAGE complet et fiable
+    /*  let focusGenre = scrollToGenre || genreUnlocked[0];
+
+    if (!focusGenre) {
+      // Si aucun genre débloqué (ex: premier affichage)
+      let centerX = 0;
+      let centerY = 0;
+      for (let blob of window.genreBlobs) {
+        centerX += blob.pos.x;
+        centerY += blob.pos.y;
+      }
+      centerX /= window.genreBlobs.length;
+      centerY /= window.genreBlobs.length;
+      scrollXOffset = width / 2 - centerX;
+      scrollYOffset = height / 2 - centerY;
+      console.log("📍 Centrage par défaut (aucun genre débloqué)");
+    } else {
+      const focusBlob = window.genreBlobs.find((b) => b.title === focusGenre);
+      if (focusBlob) {
+        scrollXOffset = width / 2 - focusBlob.pos.x;
+        scrollYOffset = height / 2 - focusBlob.pos.y;
+        console.log("📍 Centrage sur :", focusGenre);
+      } else {
+        console.warn("❌ Genre non trouvé pour recentrage :", focusGenre);
+      }
+    }*/
+    let focusGenre = scrollToGenre || genreUnlocked[0];
+
+    if (!focusGenre) {
+      // Si aucun genre débloqué (ex: premier affichage)
+      let centerX = 0;
+      let centerY = 0;
+      for (let blob of window.genreBlobs) {
+        centerX += blob.pos.x;
+        centerY += blob.pos.y;
+      }
+      centerX /= window.genreBlobs.length;
+      centerY /= window.genreBlobs.length;
+      scrollXOffset = width / 2 - centerX;
+      scrollYOffset = height / 2 - centerY;
+      console.log("📍 Centrage par défaut (aucun genre débloqué)");
+    } else {
+      const focusBlob = window.genreBlobs.find((b) => b.title === focusGenre);
+      if (focusBlob) {
+        const verticalOffset = height * 0.35; // ← Décalage vers le haut pour que le blob soit plus bas à l’écran
+        scrollXOffset = width / 2 - focusBlob.pos.x;
+        scrollYOffset = height / 2 - focusBlob.pos.y - verticalOffset;
+        console.log("📍 Centrage sur :", focusGenre);
+      } else {
+        console.warn("❌ Genre non trouvé pour recentrage :", focusGenre);
+      }
+    }
+
+    scrollToGenre = null; // reset après recentrage
+  }
+
+  // 🎨 DESSIN
+  push();
+  translate(scrollXOffset, scrollYOffset);
+
+  let screenMin = min(windowWidth, windowHeight);
+  let blobSize = isMobile ? min(screenMin * 0.45, 240) : 80;
+
+  for (let blob of window.genreBlobs) {
+    const isUnlocked =
+      genreUnlocked.includes(blob.genre) ||
+      genreUnlocked.includes(blob.genre.toLowerCase());
+    let { pos, index } = blob;
+
+    drawTrackBlob(blob, pos.x, pos.y, blobSize, index, false, isUnlocked);
+
+    if (isUnlocked) {
+      fill(0, 0, 100);
+      textAlign(CENTER);
+      textSize(isMobile ? 22 : 14);
+      text(blob.genre, pos.x, pos.y + blobSize / 2 + 24);
+    }
+  }
+
+  pop();
+}
+
 function drawGameSelectorView() {
   background(0, 0, 11);
   textAlign(CENTER, CENTER);

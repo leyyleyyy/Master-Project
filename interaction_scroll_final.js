@@ -593,6 +593,15 @@ function mousePressed() {
       updateAvatarGif();
       evolutionTrack = cleaned;
       evolutionPoints = points;
+
+      // ✅ NOUVEAU : centrage sur le dernier genre débloqué via genreStats
+      const latestUnlocked = getGenreStats()
+        .map((g) => g.name)
+        .at(-1);
+      scrollToGenre = latestUnlocked || cleaned.genre;
+      delete window.genreBlobs;
+      window._alreadyCentered = false;
+
       selectedPendingTrack = null;
       selectedTrack = null;
       mode = "evolution";
@@ -641,7 +650,9 @@ function mousePressed() {
 isDragging = false;
 lastTouch = null;
 
+/*
 function touchMoved() {
+  
   if (isDragging && lastTouch) {
     let dx = mouseX - lastTouch.x;
     let dy = mouseY - lastTouch.y;
@@ -651,14 +662,37 @@ function touchMoved() {
   }
   return false;
 }
+*/
+function touchMoved() {
+  if (mode === "avatar" && !canScrollAvatar) return false;
+
+  if (isDragging && lastTouch) {
+    let dx = mouseX - lastTouch.x;
+    let dy = mouseY - lastTouch.y;
+    scrollXOffset += dx;
+    scrollYOffset += dy;
+    lastTouch.set(mouseX, mouseY);
+  }
+
+  return false;
+}
 
 function touchEnded() {
   isDragging = false;
   lastTouch = null;
   return false;
 }
-
+/*
 function mouseWheel(event) {
+  scrollYOffset -= event.delta;
+  scrollXOffset -= event.deltaX || 0;
+  if (!hasUnlockedGenres) return false;
+  scrollYOffset -= event.delta;
+  scrollXOffset -= event.deltaX || 0;
+}
+*/
+function mouseWheel(event) {
+  if (mode === "avatar" && !canScrollAvatar) return false;
   scrollYOffset -= event.delta;
   scrollXOffset -= event.deltaX || 0;
 }

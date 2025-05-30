@@ -5,7 +5,8 @@ function drawTrackBlob(
   maxSize,
   index,
   fixedWhiteMode = false,
-  isUnlocked = true
+  isUnlocked = true,
+  forceRound = false
 ) {
   let { tempo, energy, danceability, key, valence } = track;
   let isSelected = selectedTrack && selectedTrack.title === track.title;
@@ -70,7 +71,10 @@ function drawTrackBlob(
         let nx = cos(angle) * freqX + index * 0.1;
         let ny = sin(angle) * freqY + b * 0.1;
         let noiseVal = noise(nx, ny, fixedWhiteMode ? 0 : t);
-        let deform = map(noiseVal, 0, 1, 1 - deformation, 1 + deformation);
+        //let deform = map(noiseVal, 0, 1, 1 - deformation, 1 + deformation);
+        let deform = forceRound
+          ? 1
+          : map(noiseVal, 0, 1, 1 - deformation, 1 + deformation);
         let finalR = r * deform;
 
         if (!fixedWhiteMode) {

@@ -14,7 +14,7 @@ let playerCollection = [];
 let pointFeedbacks = [];
 let miniGameAudioPlayed = false;
 
-let mode = "minigame"; // "exploration", "collection", "minigame", "avatar", "onboarding", "gameSelector"
+let mode = "avatar"; // "exploration", "collection", "minigame", "avatar", "onboarding", "gameSelector"
 let currentMiniGameTrack = null;
 let miniGameOptions = [];
 let miniGameAnswer = null;
@@ -38,6 +38,8 @@ let currentLives = maxLives;
 
 let evolutionTrack = null;
 let evolutionPoints = 0;
+let canScrollAvatar = false;
+let scrollToGenre = null;
 
 // Variables du mini-jeu
 let miniGameLabel = "";
@@ -104,7 +106,7 @@ const CLUSTER_POSITIONS = {
   Autres: { x: 0, y: 300 },
 };
 
-function getPositionForGenre(genre) {
+/*function getPositionForGenre(genre) {
   const clusterName = getClusterNameForGenre(genre);
   const base = CLUSTER_POSITIONS[clusterName] || { x: 0, y: 0 };
 
@@ -114,6 +116,20 @@ function getPositionForGenre(genre) {
     x: base.x * scaleFactor + random(-60, 60),
     y: base.y * scaleFactor + random(-60, 60),
   };
+}*/
+function getPositionForGenre(genre, index = 0, total = 1) {
+  const clusterName = getClusterNameForGenre(genre);
+  const base = CLUSTER_POSITIONS[clusterName] || { x: 0, y: 0 };
+  const scaleFactor = isMobile ? min(windowWidth, windowHeight) / 320 : 1;
+
+  // Répartition circulaire si plusieurs genres dans le même cluster
+  const angle = (index / total) * TWO_PI;
+  const radius = 100 * scaleFactor;
+
+  const x = base.x * scaleFactor + cos(angle) * radius;
+  const y = base.y * scaleFactor + sin(angle) * radius;
+
+  return { x, y };
 }
 
 function getClusterNameForGenre(genre) {
@@ -467,4 +483,41 @@ function groupCollectionByCluster() {
   }
 
   return grouped;
+}
+function relaxBlobPositions(blobs, minDist = 100, iterations = 3) {
+  for (let iter = 0; iter < iterations; iter++) {
+    for (let i = 0; i < blobs.length; i++) {
+      for (let j = i + 1; j < blobs.length; j++) {
+        let a = blobs[i].pos;
+        let b = blobs[j].pos;
+        let d = dist(a.x, a.y, b.x, b.y);
+        if (d < minDist && d > 0.01) {
+          let overlap = (minDist - d) / 2;
+          let dx = (a.x - b.x) / d;
+          let dy = (a.y - b.y) / d;
+          a.x += dx * overlap;
+          a.y += dy * overlap;
+          b.x -= dx * overlap;
+          b.y -= dy * overlap;
+        }
+      }
+    }
+  }
+}
+
+function groupBlobsByCluster(blobs) {
+  const clusters = {};
+  for (let blob of blobs) {
+    const cluster = getClusterNameForGenre(blob.genre);
+    if (!clusters[cluster]) clusters[cluster] = [];
+    clusters[cluster].push(blob);
+  }
+  return clusters;
+}
+
+function relaxBlobPositionsInClusters(blobs, minDist = 130) {
+  const clusters = groupBlobsByCluster(blobs);
+  for (let clusterName in clusters) {
+    relaxBlobPositions(clusters[clusterName], minDist, 3);
+  }
 }

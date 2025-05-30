@@ -209,15 +209,9 @@ function draw() {
     }
   }
   if (mode !== previousMode) {
-    if (mode === "minigame") {
-      currentMiniGameTrack = pickRandomTrackFromCollection();
-      const gameTypes = ["tempo", "genre", "visual_match"];
-      //const gameTypes = ["visual_match"];
-      currentMiniGameType = random(gameTypes);
-      generateMiniGame(currentMiniGameTrack);
-    }
     previousMode = mode;
   }
+
   updatePageTitle();
 }
 
