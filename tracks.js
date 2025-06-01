@@ -379,9 +379,27 @@ let tracksData = [
   },
 ];
 let maps = [];
-let chunkSize = 20; // nombre de morceaux par map
+let chunkSize = 5; // nombre de morceaux par map
 let scoreThreshold = 0;
+const mapNames = [
+  "Suisse Hype",
+  "Social Media Vibes",
+  "Arte Concert",
+  "Myspace Revival",
+  "Paleo Rewind",
+  "404 Club",
+];
 
+for (let i = 0; i < tracksData.length; i += chunkSize) {
+  let chunk = tracksData.slice(i, i + chunkSize);
+  maps.push({
+    name: mapNames[maps.length] || "Unknown Map",
+    unlockScore: scoreThreshold,
+    tracks: chunk,
+  });
+  scoreThreshold += 20;
+}
+/*
 for (let i = 0; i < tracksData.length; i += chunkSize) {
   let chunk = tracksData.slice(i, i + chunkSize);
   maps.push({
@@ -391,3 +409,4 @@ for (let i = 0; i < tracksData.length; i += chunkSize) {
   });
   scoreThreshold += 20; // chaque map est débloquée tous les 20 points
 }
+*/

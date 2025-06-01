@@ -14,7 +14,7 @@ let playerCollection = [];
 let pointFeedbacks = [];
 let miniGameAudioPlayed = false;
 
-let mode = "avatar"; // "exploration", "collection", "minigame", "avatar", "onboarding", "gameSelector"
+let mode = "exploration"; // "exploration", "collection", "minigame", "avatar", "onboarding", "gameSelector", postMiniGameWin
 let currentMiniGameTrack = null;
 let miniGameOptions = [];
 let miniGameAnswer = null;
@@ -47,6 +47,14 @@ let selectedOption = null;
 let miniGameUnit = "";
 let isDragging = false;
 let lastTouch = null;
+let lastMiniGameTrack = null;
+
+//Background
+let currentBackgroundCluster = "Autres"; // par défaut
+
+function updateBackgroundClusterFromGenre(genre) {
+  currentBackgroundCluster = getGenreCluster(genre);
+}
 
 const DATA_KEYS = [
   "tempo",
@@ -227,10 +235,26 @@ function goToNextMap() {
 }
 function getAvatarStage() {
   let count = playerCollection.length;
-  if (count <= 3) return "avatar_0";
-  if (count <= 6) return "avatar_1";
-  if (count <= 12) return "avatar_0";
-  return "avatar_1";
+  if (count <= 2) return "evolution1";
+  if (count <= 6) return "evolution1.2";
+  if (count <= 12) return "evolution2";
+  return "confort";
+}
+
+function getMorphingStage() {
+  let count = playerCollection.length;
+  if (count <= 2) return "evolution1";
+  if (count <= 6) return "evolution1_2";
+  if (count <= 12) return "evolution2";
+  return "confort"; // ou autre nom si tu veux une morph finale
+}
+
+function getGameStage() {
+  const count = playerCollection.length;
+  if (count <= 3) return "initiation";
+  if (count <= 8) return "curiosité";
+  if (count <= 15) return "digging";
+  return "expert";
 }
 
 function updateAvatarGif() {
@@ -275,7 +299,7 @@ function updateAvatarGif() {
   // Met à jour l’image si nécessaire
   let stage = getAvatarStage();
   if (!avatar.src.includes(stage)) {
-    avatar.src = `avatars/${stage}.gif`;
+    avatar.src = `totems/${stage}.mp4`;
   }
 }
 
@@ -318,6 +342,15 @@ function getCollectionStats() {
     avgValence,
     style,
   };
+}
+
+function getMorphingStageForTrack(track) {
+  // Exemple simple basé sur titre ou index
+  if (!track) return "evolution1";
+  if (track.stage === "1") return "evolution1";
+  if (track.stage === "1_2") return "evolution1.2";
+  // ajoute d’autres logiques selon ton système
+  return "evolution1"; // fallback
 }
 
 function getDiversityAndUndergroundScore() {

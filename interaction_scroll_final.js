@@ -326,6 +326,7 @@ function mousePressed() {
       }
     }
   }
+
   if (mode === "postMiniGameWin") {
     for (let zone of blobHitZones) {
       if (
@@ -338,6 +339,164 @@ function mousePressed() {
       }
     }
   }
+
+  // === EVOLUTION ===
+  if (mode === "evolution") {
+    let btnW = 200;
+    let btnH = 50;
+    let btnX = width / 2 - btnW / 2;
+    let btnY = height - (isMobile ? 100 : 100);
+
+    if (
+      mouseX > btnX &&
+      mouseX < btnX + btnW &&
+      mouseY > btnY &&
+      mouseY < btnY + btnH
+    ) {
+      mode = "avatar";
+      evolutionTrack = null;
+      evolutionPoints = 0;
+      return;
+    }
+  }
+
+  if (mode === "minigame") {
+    // === Bouton retour ===
+    if (
+      mouseX > 40 &&
+      mouseX < 140 &&
+      mouseY > height - 60 &&
+      mouseY < height - 25
+    ) {
+      mode = "collection";
+      currentMiniGameTrack = null;
+      miniGameOptions = [];
+      miniGameAnswer = null;
+      miniGameFeedback = "";
+      selectedOption = null;
+      return;
+    }
+
+    // === Jeu VISUAL_MATCH ===
+    if (
+      currentMiniGameType === "visual_match" &&
+      miniGameOptions.length === 2
+    ) {
+      let blobR = (isMobile ? 240 : 160) / 2;
+      let spacing = isMobile ? 180 : 140;
+      let baseY = height / 2 - spacing / 2;
+
+      for (let i = 0; i < 2; i++) {
+        let blobX = width / 2;
+        let blobY = baseY + i * spacing;
+
+        if (dist(mouseX, mouseY, blobX, blobY) < blobR) {
+          selectedOption = i;
+
+          let track = miniGameOptions[i];
+          if (currentAudio && currentAudio.isPlaying()) currentAudio.stop();
+          let newAudio = audioPlayers[track.title];
+          if (newAudio && newAudio.isLoaded()) {
+            newAudio.play();
+            currentAudio = newAudio;
+          }
+          return;
+        }
+      }
+
+      let valBtnW = isMobile ? 320 : 250;
+      let valBtnH = isMobile ? 75 : 55;
+      let valX = width / 2 - valBtnW / 2;
+      let valY = height - valBtnH - (isMobile ? 80 : 20);
+
+      if (
+        selectedOption !== null &&
+        mouseX > valX &&
+        mouseX < valX + valBtnW &&
+        mouseY > valY &&
+        mouseY < valY + valBtnH
+      ) {
+        const isCorrect =
+          miniGameOptions[selectedOption].title === miniGameAnswer;
+
+        miniGameFeedback = isCorrect ? "correct" : "wrong";
+
+        if (isCorrect) {
+          lastMiniGameTrack = currentMiniGameTrack;
+          mode = "postMiniGameWin";
+          justWonMiniGame = true;
+          currentMiniGameTrack = null;
+          miniGameOptions = [];
+          miniGameAnswer = null;
+          selectedOption = null;
+        } else {
+          currentLives--;
+          console.log(
+            "\uD83D\uDC94 Mauvaise réponse, vies restantes :",
+            currentLives
+          );
+        }
+
+        return;
+      }
+
+      return;
+    }
+
+    // === Mini-jeux classiques : TEMPO / GENRE ===
+    let btnW = isMobile ? width * 0.85 : min(450, width * 0.6);
+    let btnH = isMobile ? 75 : 60;
+    let spacing = isMobile ? 30 : 25;
+    let blobCenterY = height * 0.35;
+    let startY = blobCenterY + (isMobile ? 80 : 60);
+
+    for (let i = 0; i < miniGameOptions.length; i++) {
+      let x = width / 2 - btnW / 2;
+      let y = startY + i * (btnH + spacing);
+
+      if (mouseX > x && mouseX < x + btnW && mouseY > y && mouseY < y + btnH) {
+        selectedOption = i;
+        miniGameFeedback = "";
+        return;
+      }
+    }
+
+    let valBtnW = isMobile ? 320 : 250;
+    let valBtnH = isMobile ? 75 : 55;
+    let valX = width / 2 - valBtnW / 2;
+    let valY = height - valBtnH - (isMobile ? 80 : 20);
+
+    if (
+      selectedOption !== null &&
+      mouseX > valX &&
+      mouseX < valX + valBtnW &&
+      mouseY > valY &&
+      mouseY < valY + valBtnH
+    ) {
+      const isCorrect = miniGameOptions[selectedOption] === miniGameAnswer;
+
+      miniGameFeedback = isCorrect ? "correct" : "wrong";
+
+      if (isCorrect) {
+        lastMiniGameTrack = currentMiniGameTrack;
+        mode = "postMiniGameWin";
+        justWonMiniGame = true;
+        currentMiniGameTrack = null;
+        miniGameOptions = [];
+        miniGameAnswer = null;
+        selectedOption = null;
+      } else {
+        currentLives--;
+        console.log(
+          "\uD83D\uDC94 Mauvaise réponse, vies restantes :",
+          currentLives
+        );
+      }
+      return;
+    }
+  }
+
+  // ... (reste du code inchangé)
 
   // === EVOLUTION ===
   if (mode === "evolution") {
@@ -359,9 +518,8 @@ function mousePressed() {
     }
   }
 
-  // === MINI-JEU ===
   if (mode === "minigame") {
-    // Bouton retour
+    // === Bouton retour ===
     if (
       mouseX > 40 &&
       mouseX < 140 &&
@@ -377,21 +535,23 @@ function mousePressed() {
       return;
     }
 
-    // === visual_match spécifique ===
+    // === Jeu VISUAL_MATCH ===
     if (
       currentMiniGameType === "visual_match" &&
       miniGameOptions.length === 2
     ) {
+      let blobR = (isMobile ? 240 : 160) / 2;
+      let spacing = isMobile ? 180 : 140;
+      let baseY = height / 2 - spacing / 2;
+
       for (let i = 0; i < 2; i++) {
-        let blobX = width / 2 + (i === 0 ? -120 : 120);
-        let blobY = height * 0.4;
-        let blobR = isMobile ? 80 : 60;
-        let btnW = 130;
-        let btnH = 40;
-        let btnX = blobX - btnW / 2;
-        let btnY = blobY + blobR + 10;
+        let blobX = width / 2;
+        let blobY = baseY + i * spacing;
 
         if (dist(mouseX, mouseY, blobX, blobY) < blobR) {
+          selectedOption = i;
+
+          // 🔊 Jouer la musique associée
           let track = miniGameOptions[i];
           if (currentAudio && currentAudio.isPlaying()) currentAudio.stop();
           let newAudio = audioPlayers[track.title];
@@ -399,106 +559,94 @@ function mousePressed() {
             newAudio.play();
             currentAudio = newAudio;
           }
-        }
-
-        if (
-          mouseX > btnX &&
-          mouseX < btnX + btnW &&
-          mouseY > btnY &&
-          mouseY < btnY + btnH
-        ) {
-          selectedOption = i;
-          miniGameFeedback =
-            miniGameOptions[i].title === miniGameAnswer ? "correct" : "wrong";
+          return;
         }
       }
 
-      if (selectedOption !== null && miniGameFeedback === "correct") {
-        let valBtnW = isMobile ? 240 : 200;
-        let valBtnH = isMobile ? 55 : 45;
-        let valX = width / 2 - valBtnW / 2;
-        let valY = height - valBtnH - (isMobile ? 80 : 20); // ✅ corrigé ici
+      // === Valider
+      let valBtnW = isMobile ? 320 : 250;
+      let valBtnH = isMobile ? 75 : 55;
+      let valX = width / 2 - valBtnW / 2;
+      let valY = height - valBtnH - (isMobile ? 80 : 20);
 
-        if (
-          mouseX > valX &&
-          mouseX < valX + valBtnW &&
-          mouseY > valY &&
-          mouseY < valY + valBtnH
-        ) {
+      if (
+        selectedOption !== null &&
+        mouseX > valX &&
+        mouseX < valX + valBtnW &&
+        mouseY > valY &&
+        mouseY < valY + valBtnH
+      ) {
+        const isCorrect =
+          miniGameOptions[selectedOption].title === miniGameAnswer;
+
+        miniGameFeedback = isCorrect ? "correct" : "wrong";
+
+        if (isCorrect) {
           mode = "postMiniGameWin";
           justWonMiniGame = true;
-
           currentMiniGameTrack = null;
           miniGameOptions = [];
           miniGameAnswer = null;
-          miniGameFeedback = "";
           selectedOption = null;
-          return;
+        } else {
+          currentLives--;
+          console.log("💔 Mauvaise réponse, vies restantes :", currentLives);
         }
+
+        return;
       }
 
       return;
     }
 
-    // === autres types classiques
-    let btnW = isMobile ? width * 0.85 : min(400, width * 0.5);
-    let btnH = isMobile ? 65 : 50;
-    let spacing = isMobile ? 25 : 20;
-    let startY = height * 0.35 + (isMobile ? 160 : 120);
+    // === Mini-jeux classiques : TEMPO / GENRE
+    let btnW = isMobile ? width * 0.85 : min(450, width * 0.6);
+    let btnH = isMobile ? 75 : 60;
+    let spacing = isMobile ? 30 : 25;
+    let blobCenterY = height * 0.35;
+    let startY = blobCenterY + (isMobile ? 80 : 60);
 
     for (let i = 0; i < miniGameOptions.length; i++) {
       let x = width / 2 - btnW / 2;
       let y = startY + i * (btnH + spacing);
 
       if (mouseX > x && mouseX < x + btnW && mouseY > y && mouseY < y + btnH) {
-        selectedOption = miniGameOptions[i];
-        miniGameFeedback =
-          selectedOption === miniGameAnswer ? "correct" : "wrong";
+        selectedOption = i;
+        miniGameFeedback = "";
         return;
       }
     }
 
-    if (selectedOption && miniGameFeedback === "correct") {
-      let valBtnW = isMobile ? 240 : 200;
-      let valBtnH = isMobile ? 55 : 45;
-      let valX = width / 2 - valBtnW / 2;
-      let valY = height - valBtnH - (isMobile ? 80 : 20); // ✅ corrigé ici
+    // === Valider (classique)
+    let valBtnW = isMobile ? 320 : 250;
+    let valBtnH = isMobile ? 75 : 55;
+    let valX = width / 2 - valBtnW / 2;
+    let valY = height - valBtnH - (isMobile ? 80 : 20);
 
-      if (
-        mouseX > valX &&
-        mouseX < valX + valBtnW &&
-        mouseY > valY &&
-        mouseY < valY + valBtnH
-      ) {
-        //mode = "exploration";
+    if (
+      selectedOption !== null &&
+      mouseX > valX &&
+      mouseX < valX + valBtnW &&
+      mouseY > valY &&
+      mouseY < valY + valBtnH
+    ) {
+      const isCorrect = miniGameOptions[selectedOption] === miniGameAnswer;
+
+      miniGameFeedback = isCorrect ? "correct" : "wrong";
+
+      if (isCorrect) {
         mode = "postMiniGameWin";
         justWonMiniGame = true;
-
         currentMiniGameTrack = null;
         miniGameOptions = [];
         miniGameAnswer = null;
-        miniGameFeedback = "";
         selectedOption = null;
-        return;
+      } else {
+        currentLives--;
+        console.log("💔 Mauvaise réponse, vies restantes :", currentLives);
       }
+      return;
     }
-    if (miniGameFeedback === "wrong") {
-      currentLives--;
-      console.log("💔 Mauvaise réponse, vies restantes :", currentLives);
-    }
-
-    return;
-  }
-  if (currentLives <= 0) {
-    alert("😢 Tu as perdu ! Réessaie plus tard."); // ou remplace par une vue personnalisée
-    mode = "collection";
-    currentMiniGameTrack = null;
-    miniGameOptions = [];
-    miniGameAnswer = null;
-    miniGameFeedback = "";
-    selectedOption = null;
-    currentLives = maxLives; // reset pour la prochaine fois
-    return;
   }
 
   // === COLLECTION ===
@@ -537,7 +685,7 @@ function mousePressed() {
         currentMiniGameTrack = selectedTrack;
         const gameTypes = ["visual_match"];
         currentMiniGameType = random(gameTypes);
-        generateMiniGame(currentMiniGameTrack);
+        generateMiniGame(null);
 
         mode = "minigame";
         return;
@@ -593,6 +741,8 @@ function mousePressed() {
       updateAvatarGif();
       evolutionTrack = cleaned;
       evolutionPoints = points;
+
+      updateBackgroundClusterFromGenre(cleaned.genre);
 
       // ✅ NOUVEAU : centrage sur le dernier genre débloqué via genreStats
       const latestUnlocked = getGenreStats()

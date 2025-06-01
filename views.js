@@ -22,9 +22,9 @@ function drawExplorationView() {
   let startX = width / 2 - totalW / 2;
 
   fill(0, 0, 100);
-  textAlign(LEFT);
-  textSize(18);
-  text(`Score : ${playerScore}`, 20, 38);
+  textAlign(CENTER);
+  textSize(28);
+  text(`Score : ${playerScore}`, width / 2, 320);
 
   let unlockedMaps = getUnlockedMaps();
   if (unlockedMaps.length === 0) {
@@ -49,7 +49,7 @@ function drawExplorationView() {
     assignScatteredPositions(currentMap.tracks);
     currentMap._blobPositions = currentMap.tracks.map((t) => t.pos);
   }
-
+  /*
   for (let i = 0; i < maps.length; i++) {
     let x = startX + i * (btnW + spacing);
     let y = 20;
@@ -74,6 +74,28 @@ function drawExplorationView() {
       isUnlocked,
     });
   }
+*/
+  // MAP CAROUSEL HTML
+  const mapCarousel = document.getElementById("mapCarousel");
+
+  if (mode === "exploration") {
+    mapCarousel.style.display = "block"; // Affiche le carousel
+    mapCarousel.innerHTML = ""; // Nettoie les anciens boutons
+
+    maps.forEach((map, i) => {
+      const isUnlocked = playerScore >= map.unlockScore;
+      const button = document.createElement("button");
+      button.className =
+        "map-carousel-btn" + (i === currentMapIndex ? " active" : "");
+      button.disabled = !isUnlocked;
+      button.textContent = isUnlocked ? map.name : "🔒 " + map.name;
+      button.onclick = () => {
+        currentMapIndex = i;
+        redraw();
+      };
+      mapCarousel.appendChild(button);
+    });
+  }
 
   if (unlockedMaps.length > 1) {
     fill(0, 0, 100);
@@ -83,10 +105,6 @@ function drawExplorationView() {
       text(">", width - 40, height / 2);
     text(currentMap.name, width / 2, 40);
   }
-
-  fill(0, 0, 80);
-  text("Clique sur une forme pour écouter.", width / 2, 80);
-  text("Puis valide pour l'ajouter à ta collection.", width / 2, 100);
 
   push();
   translate(scrollXOffset, scrollYOffset);
@@ -177,96 +195,149 @@ function drawMiniGameView() {
   textAlign(CENTER);
   fill(0, 0, 100);
 
-  let topOffset = isMobile ? 40 : 60;
-  let btnW = isMobile ? width * 0.85 : min(450, width * 0.6);
-  let btnH = isMobile ? 75 : 60;
-  let spacing = isMobile ? 30 : 25;
-  let radius = isMobile ? 20 : 12;
-  let titleSize = isMobile ? 34 : 28;
-  let questionSize = isMobile ? 22 : 18;
-  let labelSize = isMobile ? 16 : 14;
-  let questionY = topOffset + 40;
-
   // ❤️ Affichage des vies
   let heartIcon = "❤️";
   let heartText = heartIcon.repeat(currentLives);
   textAlign(RIGHT, TOP);
   textSize(isMobile ? 30 : 22);
-  fill(0, 0, 100);
   text(heartText, width - 30, 30);
-
-  /* fill(0, 0, 80);
-  textSize(questionSize);
-  text(miniGameLabel || "", width / 2, questionY);
- 
-  fill(0, 0, 60);
-  textSize(labelSize);
-  text("Écoute la musique et choisis :", width / 2, questionY + 30);
-*/
-  if (currentMiniGameType === "visual_match" && miniGameOptions.length === 2) {
-    for (let i = 0; i < 2; i++) {
-      let blob = miniGameOptions[i];
-      let blobX = width / 2 + (i === 0 ? -120 : 120);
-      let blobY = height * 0.4;
-      let blobR = isMobile ? 80 : 60;
-
-      push();
-      translate(blobX, blobY);
-      drawTrackBlob(blob, 0, 0, blobR, 0);
-      pop();
-
-      let btnW = isMobile ? 180 : 150; // Increased from 150 to 180
-      let btnH = isMobile ? 65 : 50; // Increased from 50 to 65
-      let btnX = blobX - btnW / 2;
-      let btnY = blobY + blobR + 10;
-
-      drawButton(
-        `Réponse ${i + 1}`,
-        btnX,
-        btnY,
-        btnW,
-        btnH,
-        selectedOption === i
-      );
-    }
-  } else {
-    let blobCenterY = height * 0.35;
-    if (currentMiniGameTrack) {
-      push();
-      translate(width / 2, blobCenterY);
-      drawTrackBlob(currentMiniGameTrack, 0, 0, isMobile ? 160 : 100, 0);
-      pop();
-    }
-
-    let startY = blobCenterY + (isMobile ? 160 : 120);
-    for (let i = 0; i < miniGameOptions.length; i++) {
-      let option = miniGameOptions[i];
-      let x = width / 2 - btnW / 2;
-      let y = startY + i * (btnH + spacing);
-      drawButton(
-        option + (miniGameUnit || ""),
-        x,
-        y,
-        btnW,
-        btnH,
-        selectedOption === option
-      );
-    }
-  }
 
   let valBtnW = isMobile ? 320 : 250;
   let valBtnH = isMobile ? 75 : 55;
   let valX = width / 2 - valBtnW / 2;
   let valY = height - valBtnH - (isMobile ? 80 : 20);
+
+  // === Consigne du jeu
+  fill(0, 0, 80);
+  textSize(isMobile ? 32 : 26);
+  textAlign(CENTER, CENTER);
+
+  let instruction = "";
+  if (currentMiniGameType === "tempo")
+    instruction = "Quel est le tempo de cette musique ?";
+  else if (currentMiniGameType === "genre")
+    instruction = "Quel est le genre de cette musique ?";
+  else if (currentMiniGameType === "visual_match")
+    instruction = "Quelle musique est la plus mainstream ?";
+
+  text(instruction, width / 2, isMobile ? 20 : 160);
+
+  // === Jeu VISUAL_MATCH ===
+  if (currentMiniGameType === "visual_match" && miniGameOptions.length === 2) {
+    let blobSize = isMobile ? 240 : 160;
+    let spacing = isMobile ? 340 : 260;
+    let baseY = height / 2 - spacing / 2;
+
+    for (let i = 0; i < 2; i++) {
+      let blob = miniGameOptions[i];
+      let blobX = width / 2;
+      let blobY = baseY + i * spacing;
+
+      push();
+      translate(blobX, blobY);
+
+      // 🤍 Glow uniquement si sélectionné (comme dans exploration)
+      selectedTrack = selectedOption === i ? blob : null;
+
+      drawTrackBlob(blob, 0, 0, blobSize, i, false, true);
+
+      selectedTrack = null;
+      pop();
+    }
+
+    if (miniGameFeedback === "wrong") {
+      fill(0, 100, 100);
+      textSize(22);
+      textAlign(CENTER, CENTER);
+      text("❌ Mauvaise réponse !", width / 2, height - 120);
+    }
+
+    drawButton(
+      "Valider",
+      valX,
+      valY,
+      valBtnW,
+      valBtnH,
+      selectedOption !== null
+    );
+    return;
+  }
+
+  // === Jeux classiques (tempo / genre)
+  let titleSize = isMobile ? 34 : 28;
+  let labelSize = isMobile ? 16 : 14;
+  let blobCenterY = height * 0.35;
+
+  if (currentMiniGameTrack) {
+    push();
+    translate(width / 2, blobCenterY);
+    drawTrackBlob(currentMiniGameTrack, 0, 0, isMobile ? 160 : 100, 0);
+    pop();
+  }
+
+  let btnW = isMobile ? width * 0.85 : min(450, width * 0.6);
+  let btnH = isMobile ? 75 : 60;
+  let spacing = isMobile ? 30 : 25;
+  let startY = blobCenterY + (isMobile ? 80 : 60);
+
+  for (let i = 0; i < miniGameOptions.length; i++) {
+    let option = miniGameOptions[i];
+    let x = width / 2 - btnW / 2;
+    let y = startY + i * (btnH + spacing);
+
+    drawButton(
+      option + (miniGameUnit || ""),
+      x,
+      y,
+      btnW,
+      btnH,
+      selectedOption === i
+    );
+  }
+
+  if (miniGameFeedback === "wrong") {
+    fill(0, 100, 100);
+    textSize(22);
+    textAlign(CENTER, CENTER);
+    text("❌ Mauvaise réponse ! Réessaie…", width / 2, height - 120);
+  }
+
   drawButton("Valider", valX, valY, valBtnW, valBtnH, selectedOption !== null);
 }
 
+function playMorphVideo(stage) {
+  const video = document.getElementById("morphVideo");
+  if (!video) return;
+
+  video.src = `totems/${stage}.mp4`;
+  video.style.display = "block";
+  video.currentTime = 0;
+  video.muted = true;
+  video.play();
+
+  video.onended = () => {
+    video.pause();
+    video.currentTime = video.duration;
+  };
+}
+
 function drawEvolutionView() {
+  const morphVideo = document.getElementById("morphVideo");
+  if (morphVideo) morphVideo.style.display = "block";
+
+  // Lancer la vidéo si pas encore jouée
+  if (
+    !window.lastMorphPlayed ||
+    window.lastMorphPlayed !== evolutionTrack.title
+  ) {
+    playMorphVideo("evolution1"); // ou le bon nom via une fonction
+    window.lastMorphPlayed = evolutionTrack.title;
+  }
   if (!evolutionTrack) {
     background(0, 0, 11);
     fill(0, 0, 100);
     textAlign(CENTER, CENTER);
-    textSize(20);
+    textSize(isMobile ? 35 : 20); // Bigger on mobile
     text("Erreur : aucune musique en évolution", width / 2, height / 2);
     return;
   }
@@ -275,11 +346,7 @@ function drawEvolutionView() {
   textAlign(CENTER, CENTER);
   fill(0, 0, 100);
 
-  imageMode(CENTER);
-  let gifSize = isMobile ? min(width * 0.65, 280) : 200;
-  image(morphingGif, width / 2, height / 2 - 130, gifSize, gifSize);
-
-  textSize(isMobile ? 32 : 24);
+  textSize(isMobile ? 46 : 24); // Bigger on mobile
   fill(evolutionPoints >= 0 ? color(120, 100, 100) : color(0, 100, 100));
   text(
     `${evolutionPoints >= 0 ? "+" : ""}${evolutionPoints} points ${
@@ -290,7 +357,7 @@ function drawEvolutionView() {
   );
 
   fill(0, 0, 80);
-  textSize(isMobile ? 20 : 16);
+  textSize(isMobile ? 35 : 16); // Bigger on mobile
   text(
     `Tu as ajouté : ${evolutionTrack?.title || "—"}`,
     width / 2,
@@ -299,7 +366,7 @@ function drawEvolutionView() {
 
   if (evolutionTrack?.genre) {
     fill(0, 0, 100);
-    textSize(isMobile ? 20 : 16);
+    textSize(isMobile ? 35 : 16); // Bigger on mobile
     text(
       `🎧 Tu as débloqué le genre : ${evolutionTrack.genre}`,
       width / 2,
@@ -311,16 +378,16 @@ function drawEvolutionView() {
   let evolutionComments = getEvolutionComment(evolutionTrack, dominantCluster);
 
   fill(0, 0, 80);
-  textSize(isMobile ? 16 : 14);
+  textSize(isMobile ? 30 : 14); // Bigger on mobile
   let baseY = height / 2 + (isMobile ? 140 : 100);
   for (let i = 0; i < evolutionComments.length; i++) {
-    text(evolutionComments[i], width / 2, baseY + i * 26);
+    text(evolutionComments[i], width / 2, baseY + i * (isMobile ? 34 : 26));
   }
 
   let btnW = isMobile ? 320 : 250;
   let btnH = isMobile ? 80 : 60;
   let btnX = width / 2 - btnW / 2;
-  let btnY = height - (isMobile ? 100 : 100); // ✅ déjà correct, mais tu peux mettre 120 si tu veux encore plus haut
+  let btnY = height - (isMobile ? 160 : 160);
   drawButton("Continuer", btnX, btnY, btnW, btnH);
 }
 
@@ -364,15 +431,8 @@ function drawCollectionView() {
 
   fill(0, 0, 100);
   textSize(28);
-  text(`Score total : ${playerScore}`, width / 2, infoY + 280);
-
-  fill(0, 0, 80);
-  textSize(38);
-  text(
-    "Tu peux rejouer les sons découverts ou en débloquer de nouveaux !",
-    width / 2,
-    infoY + 300
-  );
+  textAlign(CENTER);
+  text(`Score total : ${playerScore}`, width / 2, infoY + 700);
 
   // === BLOBS & TRACKS EN LISTE VERS LE BAS ===
   let grouped = groupCollectionByCluster();
@@ -427,144 +487,14 @@ function drawCollectionView() {
     y += 40;
   }
 }
-/*
+
 function drawAvatarView() {
-  background(260, 40, 10);
-
-  let genreAvgs = getGenreAverages();
-  let genreStats = getGenreStats();
-  let genreUnlocked = genreStats.map((g) => g.name);
-  let genreNames = Object.keys(genreAvgs);
-
-  const hasUnlockedGenres = genreUnlocked.length > 0;
-  canScrollAvatar = genreUnlocked.length > 0;
-
-  // Construire un tableau de blobs de genre SI NON DÉJÀ FAIT
-  if (!window.genreBlobs || window.genreBlobs.length !== genreNames.length) {
-    // ➕ Regrouper genres par cluster
-    const clusterGenreMap = {};
-    for (let genre of genreNames) {
-      const cluster = getClusterNameForGenre(genre);
-      if (!clusterGenreMap[cluster]) clusterGenreMap[cluster] = [];
-      clusterGenreMap[cluster].push(genre);
-    }
-
-    window.genreBlobs = genreNames.map((genre, i) => {
-      const cluster = getClusterNameForGenre(genre);
-      const clusterGenres = clusterGenreMap[cluster];
-      const localIndex = clusterGenres.indexOf(genre);
-      const pos = getPositionForGenre(genre, localIndex, clusterGenres.length);
-
-      const isUnlocked =
-        genreUnlocked.includes(genre) ||
-        genreUnlocked.includes(genre.toLowerCase());
-
-      return {
-        title: genre,
-        genre: genre,
-        ...genreAvgs[genre],
-        pos,
-        isUnlocked,
-        index: i,
-      };
-    });
-
-    // 📍 CENTRAGE
-    if (scrollToGenre) {
-      const focusBlob = window.genreBlobs.find(
-        (b) => b.title === scrollToGenre
-      );
-      if (focusBlob) {
-        scrollXOffset = width / 2 - focusBlob.pos.x;
-        scrollYOffset = height / 2 - focusBlob.pos.y;
-
-        console.log("📍 Recentering on new genre:", scrollToGenre);
-      } else {
-        console.warn("❌ Genre non trouvé pour recentrage:", scrollToGenre);
-      }
-      scrollToGenre = null;
-    } else if (!window._alreadyCentered && hasUnlockedGenres) {
-      const firstUnlocked = genreUnlocked[0];
-      const focusBlob = window.genreBlobs.find(
-        (b) => b.title === firstUnlocked
-      );
-      if (focusBlob) {
-        scrollXOffset = width / 2 - focusBlob.pos.x;
-        scrollYOffset = height / 2 - focusBlob.pos.y;
-
-        console.log("📍 Centrage initial sur :", firstUnlocked);
-      }
-      window._alreadyCentered = true;
-    }
-
-    /*
-    if (hasUnlockedGenres) {
-      const firstUnlocked = genreUnlocked[0];
-      const focusBlob = window.genreBlobs.find(
-        (b) => b.title === firstUnlocked
-      );
-      if (focusBlob) {
-        scrollXOffset = width / 2 - focusBlob.pos.x;
-        scrollYOffset = height / 2 - focusBlob.pos.y;
-      }
-    } else {
-      let centerX = 0;
-      let centerY = 0;
-      for (let blob of window.genreBlobs) {
-        centerX += blob.pos.x;
-        centerY += blob.pos.y;
-      }
-      centerX /= window.genreBlobs.length;
-      centerY /= window.genreBlobs.length;
-      scrollXOffset = width / 2 - centerX;
-      scrollYOffset = height / 2 - centerY;
-    }
-  }*/
-/*
-  // 🎨 DESSIN
-  push();
-  translate(scrollXOffset, scrollYOffset);
-  /*
-  for (let blob of window.genreBlobs) {
-    let { pos, index, isUnlocked } = blob;
-
-    let screenMin = min(windowWidth, windowHeight);
-    let blobSize = isMobile ? min(screenMin * 0.45, 240) : 80;
-
-    drawTrackBlob(blob, pos.x, pos.y, blobSize, index, false, isUnlocked);
-
-    if (isUnlocked) {
-      fill(0, 0, 100);
-      textAlign(CENTER);
-      textSize(isMobile ? 22 : 14);
-      text(blob.genre, pos.x, pos.y + blobSize / 2 + 24);
-    }
-  }*/
-/*
-  let screenMin = min(windowWidth, windowHeight);
-  let blobSize = isMobile ? min(screenMin * 0.45, 240) : 80;
-
-  for (let blob of window.genreBlobs) {
-    const isUnlocked =
-      genreUnlocked.includes(blob.genre) ||
-      genreUnlocked.includes(blob.genre.toLowerCase());
-    let { pos, index } = blob;
-
-    drawTrackBlob(blob, pos.x, pos.y, blobSize, index, false, isUnlocked);
-
-    if (isUnlocked) {
-      fill(0, 0, 100);
-      textAlign(CENTER);
-      textSize(isMobile ? 22 : 14);
-      text(blob.genre, pos.x, pos.y + blobSize / 2 + 24);
-    }
+  // background(260, 40, 10);
+  // interpolation douce
+  if (backgroundImages[currentBackgroundCluster]) {
+    imageMode(CORNER);
+    image(backgroundImages[currentBackgroundCluster], 0, 0, width, height);
   }
-
-  pop();
-}
-*/
-function drawAvatarView() {
-  background(260, 40, 10);
 
   let genreAvgs = getGenreAverages();
   let genreStats = getGenreStats();
@@ -603,33 +533,6 @@ function drawAvatarView() {
         index: i,
       };
     });
-
-    // 📍 CENTRAGE complet et fiable
-    /*  let focusGenre = scrollToGenre || genreUnlocked[0];
-
-    if (!focusGenre) {
-      // Si aucun genre débloqué (ex: premier affichage)
-      let centerX = 0;
-      let centerY = 0;
-      for (let blob of window.genreBlobs) {
-        centerX += blob.pos.x;
-        centerY += blob.pos.y;
-      }
-      centerX /= window.genreBlobs.length;
-      centerY /= window.genreBlobs.length;
-      scrollXOffset = width / 2 - centerX;
-      scrollYOffset = height / 2 - centerY;
-      console.log("📍 Centrage par défaut (aucun genre débloqué)");
-    } else {
-      const focusBlob = window.genreBlobs.find((b) => b.title === focusGenre);
-      if (focusBlob) {
-        scrollXOffset = width / 2 - focusBlob.pos.x;
-        scrollYOffset = height / 2 - focusBlob.pos.y;
-        console.log("📍 Centrage sur :", focusGenre);
-      } else {
-        console.warn("❌ Genre non trouvé pour recentrage :", focusGenre);
-      }
-    }*/
     let focusGenre = scrollToGenre || genreUnlocked[0];
 
     if (!focusGenre) {
@@ -719,6 +622,7 @@ function drawGameSelectorView() {
   }
 }
 
+/*
 function drawPostMiniGameWinView() {
   background(0, 0, 11);
   textAlign(CENTER, CENTER);
@@ -753,4 +657,96 @@ function drawPostMiniGameWinView() {
     w: btnW,
     h: btnH,
   });
+}
+*/
+function drawPostMiniGameWinView() {
+  background(0, 0, 11);
+  textAlign(CENTER, CENTER);
+  fill(0, 0, 100);
+
+  // 🎉 Titre
+  textSize(isMobile ? 34 : 28);
+  text("🎉 Bravo !", width / 2, height / 2 - 140);
+
+  // ✅ Confirmation de réussite
+  textSize(isMobile ? 22 : 18);
+  text("Tu as réussi ce mini-jeu !", width / 2, height / 2 - 100);
+
+  // 🎵 Info sur la musique jouée
+  if (lastMiniGameTrack) {
+    let title = lastMiniGameTrack.title || "Titre inconnu";
+    let artist = lastMiniGameTrack.artist || "Artiste inconnu";
+    fill(0, 0, 95);
+    textSize(isMobile ? 20 : 16);
+    text(`🎵 ${title} – ${artist}`, width / 2, height / 2 - 60);
+  }
+
+  // 🧠 Anecdote en fonction du type de mini-jeu
+  let anecdote = getMiniGameAnecdote(currentMiniGameType, lastMiniGameTrack);
+  fill(0, 0, 85);
+  textSize(isMobile ? 18 : 14);
+  text(anecdote, width / 2, height / 2 - 20);
+
+  // 💡 Astuce générique
+  fill(0, 0, 80);
+  textSize(isMobile ? 18 : 14);
+  text(
+    "💡 Astuce : cherche une musique suisse pour marquer plus de points !",
+    width / 2,
+    height / 2 + 20
+  );
+
+  if (lastMiniGameTrack) {
+    // 👁️ Petit effet de pulsation
+    let scalePulse = 1 + 0.05 * sin(frameCount * 0.1);
+    push();
+    translate(width / 2, height / 2 + 160);
+    scale(scalePulse);
+
+    drawTrackBlob(
+      lastMiniGameTrack,
+      0, // position x après translate
+      0, // position y après translate
+      120, // taille max blob
+      0, // index
+      false, // fixedWhiteMode
+      true // isUnlocked
+    );
+
+    pop();
+  }
+
+  // 🟦 Bouton continuer
+  let btnW = isMobile ? 300 : 240;
+  let btnH = isMobile ? 75 : 55;
+  let btnX = width / 2 - btnW / 2;
+  let btnY = height / 2 + 90;
+
+  drawButton("Continuer", btnX, btnY, btnW, btnH, true);
+
+  blobHitZones.push({
+    type: "continueExploration",
+    x: btnX,
+    y: btnY,
+    w: btnW,
+    h: btnH,
+  });
+}
+
+function getMiniGameAnecdote(type, track) {
+  if (!track) return "";
+
+  let genre = track.genre || "inconnu";
+  let tempo = track.tempo ? Math.round(track.tempo) : "un tempo inconnu";
+
+  switch (type) {
+    case "tempo":
+      return `⚡ Ce morceau a un tempo de ${tempo} BPM — parfait pour te booster !`;
+    case "visual_match":
+      return `👁️ Tu as bien matché la vibe visuelle de ce son.`;
+    case "genre":
+      return `🎧 Tu as identifié le genre "${genre}" avec justesse !`;
+    default:
+      return `🎶 Une belle découverte musicale !`;
+  }
 }

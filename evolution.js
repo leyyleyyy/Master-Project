@@ -13,6 +13,13 @@ function getMixRatio(collection) {
   return mixRatio;
 }
 
+function shuffleArray(array) {
+  return array
+    .map((v) => ({ v, sort: Math.random() }))
+    .sort((a, b) => a.sort - b.sort)
+    .map(({ v }) => v);
+}
+
 const mixRatio = getMixRatio(playerCollection);
 
 function getEvolutionComment(track, dominantCluster) {
@@ -83,6 +90,5 @@ function getEvolutionComment(track, dominantCluster) {
   if (cluster === "chill" && genre.includes("rap")) {
     comments.push("😎 Tu explores le côté laidback du rap, c’est smooth.");
   }
-
-  return comments;
+  return comments.slice(0, 2); // max 2 commentaires
 }

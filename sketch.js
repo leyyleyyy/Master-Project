@@ -5,8 +5,9 @@ let activeFilters = {
 };
 
 let previousMode = null;
-let morphingGif;
 let bananaFont;
+let backgroundImages = {};
+
 function preload() {
   // Charge les sons uniquement si autorisé (évite crash Safari)
   /* tracksData.forEach((track) => {
@@ -18,8 +19,19 @@ function preload() {
   });*/
 
   // Image morphing préchargée
-  morphingGif = loadImage("avatars/morphing.gif");
   bananaFont = loadFont("fonts/bananasp.ttf");
+
+  //Background
+  backgroundImages = {
+    Pop: loadImage("assets/background1.png"),
+    "Hip-Hop": loadImage("assets/background1.png"),
+    Électro: loadImage("assets/background1.png"),
+    "Rock/Metal": loadImage("assets/background1.png"),
+    Indé: loadImage("assets/background1.png"),
+    Latin: loadImage("assets/background1.png"),
+    Classique: loadImage("assets/background1.png"),
+    Hyperpop: loadImage("assets/background1.png"),
+  };
 }
 
 function setup() {
@@ -96,6 +108,11 @@ function updatePageTitle() {
     subtitle.innerText = "Choisis ton jeu !";
     title.style.display = "block";
     subtitle.style.display = "none";
+  } else if (mode === "exploration") {
+    title.innerText = mapNames[currentMapIndex] || "Map inconnue";
+    subtitle.innerText = "Clique sur une forme pour écouter un son";
+    title.style.display = "block";
+    subtitle.style.display = "block";
   } else {
     title.style.display = "none";
     subtitle.style.display = "none";
@@ -104,7 +121,13 @@ function updatePageTitle() {
 
 function draw() {
   background(0, 0, 11);
-  t += 0.01;
+  const morphVideo = document.getElementById("morphVideo");
+  if (morphVideo) morphVideo.style.display = "none";
+
+  let mapCarousel = document.getElementById("mapCarousel");
+  if (mapCarousel) {
+    mapCarousel.style.display = mode === "exploration" ? "block" : "none";
+  }
 
   if (mode === "exploration") {
     drawExplorationView();
@@ -137,28 +160,11 @@ function draw() {
 
   let shuffleEl = document.getElementById("shuffleBtn");
   if (shuffleEl) {
-    /*if (mode === "avatar") {
-      shuffleEl.style.display = "block";
-      shuffleEl.style.left = width / 2 - 100 + "px";
-      shuffleEl.style.top = height / 2 - 280 + "px"; // ⬅️ bas de l'écran
-    } else {
-      shuffleEl.style.display = "none";
-    }*/
-
     shuffleEl.style.display = mode === "avatar" ? "block" : "none";
     if (mode === "avatar") {
       shuffleEl.style.left = width / 2 - 100 + "px";
       shuffleEl.style.top = height / 2 - 280 + "px";
     }
-
-    /*
-    if (mode === "avatar") {
-      shuffleEl.style.display = "block";
-      shuffleEl.style.left = width / 2 - 40 + "px";
-      shuffleEl.style.top = height / 2 - 40 + "px";
-    } else {
-      shuffleEl.style.display = "none";
-    }*/
   }
 
   let avatarTitleGroup = document.getElementById("avatarTitleGroup");
@@ -213,6 +219,24 @@ function draw() {
   }
 
   updatePageTitle();
+}
+function renderMapCarousel() {
+  const mapCarousel = document.getElementById("mapCarousel");
+  mapCarousel.innerHTML = "";
+
+  maps.forEach((map, i) => {
+    const isUnlocked = playerScore >= map.unlockScore;
+    const button = document.createElement("button");
+    button.className =
+      "map-carousel-btn" + (i === currentMapIndex ? " active" : "");
+    button.disabled = !isUnlocked;
+    button.textContent = isUnlocked ? map.name : "🔒 " + map.name;
+    button.onclick = () => {
+      currentMapIndex = i;
+      redraw(); // Forcer le redessin
+    };
+    mapCarousel.appendChild(button);
+  });
 }
 
 window.addEventListener("DOMContentLoaded", () => {
@@ -290,3 +314,4 @@ window.addEventListener("DOMContentLoaded", () => {
     shuffleBtn.addEventListener("touchstart", handleShuffle);
   }
 });
+window.addEventListener("touchstart", () => {}, { passive: true });

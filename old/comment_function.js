@@ -798,7 +798,7 @@ function drawAvatarView() {
   pop();
 }
 */
-/*
+
 window.addEventListener("DOMContentLoaded", () => {
   const avatarEl = document.getElementById("avatar");
   // Toggle burger menu
@@ -855,7 +855,6 @@ window.addEventListener("DOMContentLoaded", () => {
   });
 });
 
-*/
 /*
 function drawMiniGameView() {
   background(0, 0, 11);
@@ -1028,4 +1027,494 @@ function drawAvatarView() {
 
   pop();
 }
+*/
+/*
+function drawMiniGameView() {
+  background(0, 0, 11);
+  textAlign(CENTER);
+  fill(0, 0, 100);
+
+  let topOffset = isMobile ? 40 : 60;
+  let btnW = isMobile ? width * 0.85 : min(450, width * 0.6);
+  let btnH = isMobile ? 75 : 60;
+  let spacing = isMobile ? 30 : 25;
+  let radius = isMobile ? 20 : 12;
+  let titleSize = isMobile ? 34 : 28;
+  let questionSize = isMobile ? 22 : 18;
+  let labelSize = isMobile ? 16 : 14;
+  let blobCenterY = height * 0.35;
+  let questionY = topOffset + 40;
+
+  // ❤️ Affichage des vies
+  let heartIcon = "❤️";
+  let heartText = heartIcon.repeat(currentLives);
+  textAlign(RIGHT, TOP);
+  textSize(isMobile ? 30 : 22);
+  fill(0, 0, 100);
+  text(heartText, width - 30, 30);
+
+  if (currentMiniGameTrack) {
+    push();
+    translate(width / 2, blobCenterY);
+    drawTrackBlob(currentMiniGameTrack, 0, 0, isMobile ? 160 : 100, 0);
+    pop();
+  }
+
+  // 🎯 Affichage des options
+  let startY = blobCenterY + (isMobile ? 80 : 60);
+  for (let i = 0; i < miniGameOptions.length; i++) {
+    let option = miniGameOptions[i];
+    let x = width / 2 - btnW / 2;
+    let y = startY + i * (btnH + spacing);
+
+    drawButton(
+      option + (miniGameUnit || ""),
+      x,
+      y,
+      btnW,
+      btnH,
+      selectedOption === i // ✅ compare index à index
+    );
+  }
+
+  if (miniGameFeedback === "wrong") {
+    fill(0, 100, 100);
+    textSize(22);
+    textAlign(CENTER, CENTER);
+    text("❌ Mauvaise réponse ! Réessaie…", width / 2, height - 120);
+  }
+
+  // ✅ Bouton Valider
+  let valBtnW = isMobile ? 320 : 250;
+  let valBtnH = isMobile ? 75 : 55;
+  let valX = width / 2 - valBtnW / 2;
+  let valY = height - valBtnH - (isMobile ? 80 : 20);
+  drawButton("Valider", valX, valY, valBtnW, valBtnH, selectedOption !== null);
+}
+*/
+
+/*
+function drawAvatarView() {
+  background(260, 40, 10);
+
+  let genreAvgs = getGenreAverages();
+  let genreStats = getGenreStats();
+  let genreUnlocked = genreStats.map((g) => g.name);
+  let genreNames = Object.keys(genreAvgs);
+
+  const hasUnlockedGenres = genreUnlocked.length > 0;
+  canScrollAvatar = genreUnlocked.length > 0;
+
+  // Construire un tableau de blobs de genre SI NON DÉJÀ FAIT
+  if (!window.genreBlobs || window.genreBlobs.length !== genreNames.length) {
+    // ➕ Regrouper genres par cluster
+    const clusterGenreMap = {};
+    for (let genre of genreNames) {
+      const cluster = getClusterNameForGenre(genre);
+      if (!clusterGenreMap[cluster]) clusterGenreMap[cluster] = [];
+      clusterGenreMap[cluster].push(genre);
+    }
+
+    window.genreBlobs = genreNames.map((genre, i) => {
+      const cluster = getClusterNameForGenre(genre);
+      const clusterGenres = clusterGenreMap[cluster];
+      const localIndex = clusterGenres.indexOf(genre);
+      const pos = getPositionForGenre(genre, localIndex, clusterGenres.length);
+
+      const isUnlocked =
+        genreUnlocked.includes(genre) ||
+        genreUnlocked.includes(genre.toLowerCase());
+
+      return {
+        title: genre,
+        genre: genre,
+        ...genreAvgs[genre],
+        pos,
+        isUnlocked,
+        index: i,
+      };
+    });
+
+    // 📍 CENTRAGE
+    if (scrollToGenre) {
+      const focusBlob = window.genreBlobs.find(
+        (b) => b.title === scrollToGenre
+      );
+      if (focusBlob) {
+        scrollXOffset = width / 2 - focusBlob.pos.x;
+        scrollYOffset = height / 2 - focusBlob.pos.y;
+
+        console.log("📍 Recentering on new genre:", scrollToGenre);
+      } else {
+        console.warn("❌ Genre non trouvé pour recentrage:", scrollToGenre);
+      }
+      scrollToGenre = null;
+    } else if (!window._alreadyCentered && hasUnlockedGenres) {
+      const firstUnlocked = genreUnlocked[0];
+      const focusBlob = window.genreBlobs.find(
+        (b) => b.title === firstUnlocked
+      );
+      if (focusBlob) {
+        scrollXOffset = width / 2 - focusBlob.pos.x;
+        scrollYOffset = height / 2 - focusBlob.pos.y;
+
+        console.log("📍 Centrage initial sur :", firstUnlocked);
+      }
+      window._alreadyCentered = true;
+    }
+
+    /*
+    if (hasUnlockedGenres) {
+      const firstUnlocked = genreUnlocked[0];
+      const focusBlob = window.genreBlobs.find(
+        (b) => b.title === firstUnlocked
+      );
+      if (focusBlob) {
+        scrollXOffset = width / 2 - focusBlob.pos.x;
+        scrollYOffset = height / 2 - focusBlob.pos.y;
+      }
+    } else {
+      let centerX = 0;
+      let centerY = 0;
+      for (let blob of window.genreBlobs) {
+        centerX += blob.pos.x;
+        centerY += blob.pos.y;
+      }
+      centerX /= window.genreBlobs.length;
+      centerY /= window.genreBlobs.length;
+      scrollXOffset = width / 2 - centerX;
+      scrollYOffset = height / 2 - centerY;
+    }
+  }*/
+/*
+  // 🎨 DESSIN
+  push();
+  translate(scrollXOffset, scrollYOffset);
+  /*
+  for (let blob of window.genreBlobs) {
+    let { pos, index, isUnlocked } = blob;
+
+    let screenMin = min(windowWidth, windowHeight);
+    let blobSize = isMobile ? min(screenMin * 0.45, 240) : 80;
+
+    drawTrackBlob(blob, pos.x, pos.y, blobSize, index, false, isUnlocked);
+
+    if (isUnlocked) {
+      fill(0, 0, 100);
+      textAlign(CENTER);
+      textSize(isMobile ? 22 : 14);
+      text(blob.genre, pos.x, pos.y + blobSize / 2 + 24);
+    }
+  }*/
+/*
+  let screenMin = min(windowWidth, windowHeight);
+  let blobSize = isMobile ? min(screenMin * 0.45, 240) : 80;
+
+  for (let blob of window.genreBlobs) {
+    const isUnlocked =
+      genreUnlocked.includes(blob.genre) ||
+      genreUnlocked.includes(blob.genre.toLowerCase());
+    let { pos, index } = blob;
+
+    drawTrackBlob(blob, pos.x, pos.y, blobSize, index, false, isUnlocked);
+
+    if (isUnlocked) {
+      fill(0, 0, 100);
+      textAlign(CENTER);
+      textSize(isMobile ? 22 : 14);
+      text(blob.genre, pos.x, pos.y + blobSize / 2 + 24);
+    }
+  }
+
+  pop();
+}
+*/
+
+// === MINI-JEU ===
+/*
+  if (mode === "minigame") {
+    // Bouton retour
+    if (
+      mouseX > 40 &&
+      mouseX < 140 &&
+      mouseY > height - 60 &&
+      mouseY < height - 25
+    ) {
+      mode = "collection";
+      currentMiniGameTrack = null;
+      miniGameOptions = [];
+      miniGameAnswer = null;
+      miniGameFeedback = "";
+      selectedOption = null;
+      return;
+    }
+
+    // === visual_match spécifique ===
+    if (
+      currentMiniGameType === "visual_match" &&
+      miniGameOptions.length === 2
+    ) {
+      for (let i = 0; i < 2; i++) {
+        let blobX = width / 2 + (i === 0 ? -120 : 120);
+        let blobY = height * 0.4;
+        let blobR = isMobile ? 80 : 60;
+        let btnW = 130;
+        let btnH = 40;
+        let btnX = blobX - btnW / 2;
+        let btnY = blobY + blobR + 10;
+
+        if (dist(mouseX, mouseY, blobX, blobY) < blobR) {
+          let track = miniGameOptions[i];
+          if (currentAudio && currentAudio.isPlaying()) currentAudio.stop();
+          let newAudio = audioPlayers[track.title];
+          if (newAudio && newAudio.isLoaded()) {
+            newAudio.play();
+            currentAudio = newAudio;
+          }
+        }
+
+        if (
+          mouseX > btnX &&
+          mouseX < btnX + btnW &&
+          mouseY > btnY &&
+          mouseY < btnY + btnH
+        ) {
+          selectedOption = i;
+          miniGameFeedback =
+            miniGameOptions[i].title === miniGameAnswer ? "correct" : "wrong";
+        }
+      }
+
+      if (selectedOption !== null && miniGameFeedback === "correct") {
+        let valBtnW = isMobile ? 240 : 200;
+        let valBtnH = isMobile ? 55 : 45;
+        let valX = width / 2 - valBtnW / 2;
+        let valY = height - valBtnH - (isMobile ? 80 : 20); // ✅ corrigé ici
+
+        if (
+          mouseX > valX &&
+          mouseX < valX + valBtnW &&
+          mouseY > valY &&
+          mouseY < valY + valBtnH
+        ) {
+          mode = "postMiniGameWin";
+          justWonMiniGame = true;
+
+          currentMiniGameTrack = null;
+          miniGameOptions = [];
+          miniGameAnswer = null;
+          miniGameFeedback = "";
+          selectedOption = null;
+          return;
+        }
+      }
+
+      return;
+    }
+
+    // === autres types classiques
+    let btnW = isMobile ? width * 0.85 : min(400, width * 0.5);
+    let btnH = isMobile ? 65 : 50;
+    let spacing = isMobile ? 25 : 20;
+    let startY = height * 0.35 + (isMobile ? 160 : 120);
+
+    for (let i = 0; i < miniGameOptions.length; i++) {
+      let x = width / 2 - btnW / 2;
+      let y = startY + i * (btnH + spacing);
+
+      if (mouseX > x && mouseX < x + btnW && mouseY > y && mouseY < y + btnH) {
+        selectedOption = miniGameOptions[i];
+        miniGameFeedback =
+          selectedOption === miniGameAnswer ? "correct" : "wrong";
+        return;
+      }
+    }
+
+    if (selectedOption && miniGameFeedback === "correct") {
+      let valBtnW = isMobile ? 240 : 200;
+      let valBtnH = isMobile ? 55 : 45;
+      let valX = width / 2 - valBtnW / 2;
+      let valY = height - valBtnH - (isMobile ? 80 : 20); // ✅ corrigé ici
+
+      if (
+        mouseX > valX &&
+        mouseX < valX + valBtnW &&
+        mouseY > valY &&
+        mouseY < valY + valBtnH
+      ) {
+        //mode = "exploration";
+        mode = "postMiniGameWin";
+        justWonMiniGame = true;
+
+        currentMiniGameTrack = null;
+        miniGameOptions = [];
+        miniGameAnswer = null;
+        miniGameFeedback = "";
+        selectedOption = null;
+        return;
+      }
+    }
+    if (miniGameFeedback === "wrong") {
+      currentLives--;
+      console.log("💔 Mauvaise réponse, vies restantes :", currentLives);
+    }
+
+    return;
+  }
+  if (currentLives <= 0) {
+    alert("😢 Tu as perdu ! Réessaie plus tard."); // ou remplace par une vue personnalisée
+    mode = "collection";
+    currentMiniGameTrack = null;
+    miniGameOptions = [];
+    miniGameAnswer = null;
+    miniGameFeedback = "";
+    selectedOption = null;
+    currentLives = maxLives; // reset pour la prochaine fois
+    return;
+  }
+*/
+/*
+  if (mode === "minigame") {
+    // === Bouton retour ===
+    if (
+      mouseX > 40 &&
+      mouseX < 140 &&
+      mouseY > height - 60 &&
+      mouseY < height - 25
+    ) {
+      mode = "collection";
+      currentMiniGameTrack = null;
+      miniGameOptions = [];
+      miniGameAnswer = null;
+      miniGameFeedback = "";
+      selectedOption = null;
+      return;
+    }
+
+    // === visual_match spécifique ===
+    if (
+      currentMiniGameType === "visual_match" &&
+      miniGameOptions.length === 2
+    ) {
+      for (let i = 0; i < 2; i++) {
+        let blobX = width / 2 + (i === 0 ? -120 : 120);
+        let blobY = height * 0.4;
+        let blobR = isMobile ? 80 : 60;
+        let btnW = 130;
+        let btnH = 40;
+        let btnX = blobX - btnW / 2;
+        let btnY = blobY + blobR + 10;
+
+        // Clic sur le blob (jouer la musique)
+        if (dist(mouseX, mouseY, blobX, blobY) < blobR) {
+          let track = miniGameOptions[i];
+          if (currentAudio && currentAudio.isPlaying()) currentAudio.stop();
+          let newAudio = audioPlayers[track.title];
+          if (newAudio && newAudio.isLoaded()) {
+            newAudio.play();
+            currentAudio = newAudio;
+          }
+        }
+
+        // Clic sur le bouton sous le blob = sélection
+        if (
+          mouseX > btnX &&
+          mouseX < btnX + btnW &&
+          mouseY > btnY &&
+          mouseY < btnY + btnH
+        ) {
+          selectedOption = i;
+          miniGameFeedback = ""; // Ne juge pas encore
+        }
+      }
+
+      // === Clic sur "Valider"
+      let valBtnW = isMobile ? 240 : 200;
+      let valBtnH = isMobile ? 55 : 45;
+      let valX = width / 2 - valBtnW / 2;
+      let valY = height - valBtnH - (isMobile ? 80 : 20);
+
+      if (
+        selectedOption !== null &&
+        mouseX > valX &&
+        mouseX < valX + valBtnW &&
+        mouseY > valY &&
+        mouseY < valY + valBtnH
+      ) {
+        const isCorrect =
+          miniGameOptions[selectedOption].title === miniGameAnswer;
+
+        miniGameFeedback = isCorrect ? "correct" : "wrong";
+
+        if (isCorrect) {
+          mode = "postMiniGameWin";
+          justWonMiniGame = true;
+          currentMiniGameTrack = null;
+          miniGameOptions = [];
+          miniGameAnswer = null;
+          selectedOption = null;
+        } else {
+          currentLives--;
+          console.log("💔 Mauvaise réponse, vies restantes :", currentLives);
+          // Ne reset rien ici, on garde les options affichées
+        }
+      }
+
+      return;
+    }
+
+    // === Autres types de mini-jeux ===
+    let btnW = isMobile ? width * 0.85 : min(400, width * 0.5);
+    let btnH = isMobile ? 65 : 50;
+    let spacing = isMobile ? 25 : 20;
+    let blobCenterY = height * 0.35; // pour être parfaitement synchro
+
+    let startY = blobCenterY + (isMobile ? 160 : 120);
+
+    for (let i = 0; i < miniGameOptions.length; i++) {
+      let x = width / 2 - btnW / 2;
+      let y = startY + i * (btnH + spacing);
+      console.log(`Bouton ${i}`, y, y + btnH);
+      console.log("mouseY:", mouseY);
+      console.log("Window height:", windowHeight, "Canvas height:", height);
+
+      if (mouseX > x && mouseX < x + btnW && mouseY > y && mouseY < y + btnH) {
+        selectedOption = miniGameOptions[i];
+        miniGameFeedback = ""; // Pas encore de jugement
+      }
+    }
+
+    // === Clic sur "Valider"
+    let valBtnW = isMobile ? 240 : 200;
+    let valBtnH = isMobile ? 55 : 45;
+    let valX = width / 2 - valBtnW / 2;
+    let valY = height - valBtnH - (isMobile ? 80 : 20);
+
+    if (
+      selectedOption &&
+      mouseX > valX &&
+      mouseX < valX + valBtnW &&
+      mouseY > valY &&
+      mouseY < valY + valBtnH
+    ) {
+      const isCorrect = selectedOption === miniGameAnswer;
+
+      miniGameFeedback = isCorrect ? "correct" : "wrong";
+
+      if (isCorrect) {
+        mode = "postMiniGameWin";
+        justWonMiniGame = true;
+        currentMiniGameTrack = null;
+        miniGameOptions = [];
+        miniGameAnswer = null;
+        selectedOption = null;
+      } else {
+        currentLives--;
+        console.log("💔 Mauvaise réponse, vies restantes :", currentLives);
+        // On garde les options visibles
+      }
+    }
+
+    return;
+  }
 */
