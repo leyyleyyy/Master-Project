@@ -325,86 +325,88 @@ function drawEvolutionView() {
   const morphVideo = document.getElementById("morphVideo");
   if (morphVideo) morphVideo.style.display = "block";
 
-  // Lancer la vidéo si pas encore jouée
   if (
     !window.lastMorphPlayed ||
     window.lastMorphPlayed !== evolutionTrack.title
   ) {
-    playMorphVideo("evolution1"); // ou le bon nom via une fonction
+    playMorphVideo("evolution1");
     window.lastMorphPlayed = evolutionTrack.title;
   }
+
   if (!evolutionTrack) {
     background(0, 0, 11);
     fill(0, 0, 100);
     textAlign(CENTER, CENTER);
-    textSize(isMobile ? 35 : 20); // Bigger on mobile
+    textSize(isMobile ? 35 : 20);
     text("Erreur : aucune musique en évolution", width / 2, height / 2);
     return;
   }
 
   background(0, 0, 11);
-  textAlign(CENTER, CENTER);
-  fill(0, 0, 100);
 
-  textSize(isMobile ? 46 : 24); // Bigger on mobile
+  textAlign(CENTER); // ✅ Important !
+  textWrap(WORD);
+  let maxTextWidth = isMobile ? width * 0.85 : width * 0.6;
+  let x = width / 2 - maxTextWidth / 2; // ✅ Décale vers la gauche
+
+  let y = height / 2 - (isMobile ? -10 : -20);
+  let spacing = isMobile ? 60 : 40;
+
+  // 🎯 Points
+  textSize(isMobile ? 46 : 24);
   fill(evolutionPoints >= 0 ? color(120, 100, 100) : color(0, 100, 100));
   text(
     `${evolutionPoints >= 0 ? "+" : ""}${evolutionPoints} points ${
       evolutionPoints >= 0 ? "🎉" : "😞"
     }`,
-    width / 2,
-    height / 2 + (isMobile ? 20 : 10)
+    x,
+    y,
+    maxTextWidth
   );
+  y += spacing;
 
-  fill(0, 0, 80);
-  textSize(isMobile ? 35 : 16); // Bigger on mobile
-  text(
-    `Tu as ajouté : ${evolutionTrack?.title || "—"}`,
-    width / 2,
-    height / 2 + (isMobile ? 60 : 40)
-  );
+  // 🎵 Titre
+  textSize(isMobile ? 36 : 20);
+  fill(0, 0, 100);
+  text(`Tu as ajouté : ${evolutionTrack.title || "—"}`, x, y, maxTextWidth);
+  y += spacing;
 
-  if (evolutionTrack?.genre) {
-    fill(0, 0, 100);
-    textSize(isMobile ? 35 : 16); // Bigger on mobile
-    text(
-      `🎧 Tu as débloqué le genre : ${evolutionTrack.genre}`,
-      width / 2,
-      height / 2 + (isMobile ? 100 : 70)
-    );
+  // 🎧 Genre
+  if (evolutionTrack.genre) {
+    textSize(isMobile ? 32 : 18);
+    fill(0, 0, 90);
+    text(`🎧 Genre débloqué : ${evolutionTrack.genre}`, x, y, maxTextWidth);
+    y += spacing;
   }
 
+  // 💬 Commentaires
   let dominantCluster = getMostCommonCluster(playerCollection);
   let evolutionComments = getEvolutionComment(evolutionTrack, dominantCluster);
 
+  textSize(isMobile ? 26 : 16);
   fill(0, 0, 80);
-  textSize(isMobile ? 30 : 14); // Bigger on mobile
-  let baseY = height / 2 + (isMobile ? 140 : 100);
-  for (let i = 0; i < evolutionComments.length; i++) {
-    text(evolutionComments[i], width / 2, baseY + i * (isMobile ? 34 : 26));
+  for (let comment of evolutionComments) {
+    text(comment, x, y, maxTextWidth);
+    y += spacing * 0.9;
   }
 
+  // ✅ Bouton
   let btnW = isMobile ? 320 : 250;
   let btnH = isMobile ? 80 : 60;
   let btnX = width / 2 - btnW / 2;
-  let btnY = height - (isMobile ? 160 : 160);
+  let btnY = height - (isMobile ? 160 : 120);
+
   drawButton("Continuer", btnX, btnY, btnW, btnH);
-}
 
-function drawStatBar(label, value, x, y, min, max) {
-  let barW = 200;
-  let pct = map(value, min, max, 0, barW);
-
-  fill(0, 0, 80);
-  textSize(14);
-  textAlign(LEFT);
-  text(`${label} : ${nf(value, 1, 1)}`, x, y - 8);
-
-  fill(0, 0, 30);
-  rect(x, y, barW, 10, 5);
-
-  fill(200, 80, 100); // couleur dynamique
-  rect(x, y, pct, 10, 5);
+  blobHitZones = [
+    {
+      type: "continueExploration",
+      x: btnX,
+      y: btnY,
+      w: btnW,
+      h: btnH,
+    },
+  ];
 }
 
 function drawCollectionView() {

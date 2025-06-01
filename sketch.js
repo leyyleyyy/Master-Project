@@ -237,6 +237,10 @@ function renderMapCarousel() {
     };
     mapCarousel.appendChild(button);
   });
+  let evoOverlay = document.getElementById("evolutionOverlay");
+  if (evoOverlay) {
+    evoOverlay.style.display = mode === "evolution" ? "block" : "none";
+  }
 }
 
 window.addEventListener("DOMContentLoaded", () => {
