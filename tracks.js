@@ -379,7 +379,7 @@ let tracksData = [
   },
 ];
 let maps = [];
-let chunkSize = 5; // nombre de morceaux par map
+let chunkSize = 25; // nombre de morceaux par map
 let scoreThreshold = 0;
 const mapNames = [
   "Suisse Hype",

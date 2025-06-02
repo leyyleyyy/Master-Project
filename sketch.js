@@ -7,7 +7,10 @@ let activeFilters = {
 let previousMode = null;
 let bananaFont;
 let backgroundImages = {};
-
+let totem;
+let minigameBackground;
+let winBackground;
+let evolutionBackground;
 function preload() {
   // Charge les sons uniquement si autorisé (évite crash Safari)
   /* tracksData.forEach((track) => {
@@ -17,20 +20,24 @@ function preload() {
       console.warn("Erreur de preload audio :", track.title, e);
     }
   });*/
-
+  minigameBackground = loadImage("assets/minigame_background.jpg");
+  winBackground = loadImage("assets/winBackground.jpg");
+  evolutionBackground = loadImage("assets/evolution_background.png");
   // Image morphing préchargée
   bananaFont = loadFont("fonts/bananasp.ttf");
 
   //Background
   backgroundImages = {
-    Pop: loadImage("assets/background1.png"),
-    "Hip-Hop": loadImage("assets/background1.png"),
-    Électro: loadImage("assets/background1.png"),
-    "Rock/Metal": loadImage("assets/background1.png"),
-    Indé: loadImage("assets/background1.png"),
-    Latin: loadImage("assets/background1.png"),
-    Classique: loadImage("assets/background1.png"),
-    Hyperpop: loadImage("assets/background1.png"),
+    Pop: loadImage("assets/evolution_background.png"),
+    "Hip-Hop": loadImage("assets/evolution_background.png"),
+    "Rap arab": loadImage("assets/evolution_background.png"),
+    "Música popular brasileira": loadImage("assets/evolution_background.png"),
+    Électro: loadImage("assets/evolution_background.png"),
+    "Rock/Metal": loadImage("assets/evolution_background.png"),
+    Indé: loadImage("assets/evolution_background.png"),
+    Latin: loadImage("assets/evolution_background.png"),
+    Classique: loadImage("assets/evolution_background.png"),
+    Hyperpop: loadImage("assets/evolution_background.png"),
   };
 }
 

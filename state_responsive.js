@@ -14,7 +14,7 @@ let playerCollection = [];
 let pointFeedbacks = [];
 let miniGameAudioPlayed = false;
 
-let mode = "exploration"; // "exploration", "collection", "minigame", "avatar", "onboarding", "gameSelector", postMiniGameWin
+let mode = "postMiniGameWin"; // "exploration", "collection", "minigame", "avatar", "onboarding", "gameSelector", postMiniGameWin
 let currentMiniGameTrack = null;
 let miniGameOptions = [];
 let miniGameAnswer = null;
@@ -79,6 +79,7 @@ function cleanTrack(track) {
     camelot: track.camelot,
     audio: track.audio,
     genre: track.genre,
+    artist: track.artist,
   };
 }
 const GENRE_CLUSTERS = {
@@ -148,12 +149,38 @@ function getClusterNameForGenre(genre) {
   }
   return "Autres";
 }
-
+/*
 function getGenreClusterPoints(track) {
   let cluster = getGenreCluster(track.genre);
   let genreStats = playerCollection.map((t) => getGenreCluster(t.genre));
   let clusterCount = genreStats.filter((c) => c === cluster).length;
 
+  if (clusterCount === 0) return 10;
+  if (clusterCount === 1) return 6;
+  if (clusterCount === 2) return 3;
+  if (clusterCount === 3) return 1;
+  return -2;
+}
+*/
+function getGenreClusterPoints(track) {
+  let cluster = getGenreCluster(track.genre);
+  let genreStats = playerCollection.map((t) => getGenreCluster(t.genre));
+  let clusterCount = genreStats.filter((c) => c === cluster).length;
+  let totalTracks = playerCollection.length;
+
+  // Étape 1 : stricte en tout début de partie (1-2 morceaux max)
+  if (totalTracks < 2) {
+    return clusterCount === 0 ? 10 : -5;
+  }
+
+  // Étape 2 : en transition (2-5 morceaux)
+  if (totalTracks < 6) {
+    if (clusterCount === 0) return 10;
+    if (clusterCount === 1) return 2;
+    return -2;
+  }
+
+  // Étape 3 : progression normale
   if (clusterCount === 0) return 10;
   if (clusterCount === 1) return 6;
   if (clusterCount === 2) return 3;
@@ -299,7 +326,7 @@ function updateAvatarGif() {
   // Met à jour l’image si nécessaire
   let stage = getAvatarStage();
   if (!avatar.src.includes(stage)) {
-    avatar.src = `totems/${stage}.mp4`;
+    avatar.src = `totems/${stage}.gif`;
   }
 }
 

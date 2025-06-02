@@ -191,7 +191,11 @@ function drawOnboardingView() {
 }
 
 function drawMiniGameView() {
-  background(0, 0, 11);
+  // Affiche l'image de fond du mini-jeu si elle est chargée, sinon fond uni
+
+  imageMode(CORNER);
+  image(minigameBackground, 0, 0, width, height);
+
   textAlign(CENTER);
   fill(0, 0, 100);
 
@@ -209,7 +213,7 @@ function drawMiniGameView() {
 
   // === Consigne du jeu
   fill(0, 0, 80);
-  textSize(isMobile ? 32 : 26);
+  textSize(isMobile ? 42 : 26);
   textAlign(CENTER, CENTER);
 
   let instruction = "";
@@ -220,7 +224,7 @@ function drawMiniGameView() {
   else if (currentMiniGameType === "visual_match")
     instruction = "Quelle musique est la plus mainstream ?";
 
-  text(instruction, width / 2, isMobile ? 20 : 160);
+  text(instruction, width / 2, isMobile ? 300 : 160);
 
   // === Jeu VISUAL_MATCH ===
   if (currentMiniGameType === "visual_match" && miniGameOptions.length === 2) {
@@ -243,13 +247,6 @@ function drawMiniGameView() {
 
       selectedTrack = null;
       pop();
-    }
-
-    if (miniGameFeedback === "wrong") {
-      fill(0, 100, 100);
-      textSize(22);
-      textAlign(CENTER, CENTER);
-      text("❌ Mauvaise réponse !", width / 2, height - 120);
     }
 
     drawButton(
@@ -295,13 +292,6 @@ function drawMiniGameView() {
     );
   }
 
-  if (miniGameFeedback === "wrong") {
-    fill(0, 100, 100);
-    textSize(22);
-    textAlign(CENTER, CENTER);
-    text("❌ Mauvaise réponse ! Réessaie…", width / 2, height - 120);
-  }
-
   drawButton("Valider", valX, valY, valBtnW, valBtnH, selectedOption !== null);
 }
 
@@ -342,8 +332,8 @@ function drawEvolutionView() {
     return;
   }
 
-  background(0, 0, 11);
-
+  imageMode(CORNER);
+  image(evolutionBackground, 0, 0, width, height);
   textAlign(CENTER); // ✅ Important !
   textWrap(WORD);
   let maxTextWidth = isMobile ? width * 0.85 : width * 0.6;
@@ -409,21 +399,13 @@ function drawEvolutionView() {
   ];
 }
 
+/*
 function drawCollectionView() {
   background(0, 0, 11);
 
   // === AVATAR BIEN CENTRÉ & GROS ===
   let avatarSize = isMobile ? 220 : 160;
   let avatarY = 140;
-  /*let avatarImg = document.getElementById("avatar");
-  if (avatarImg) {
-    avatarImg.style.left = width / 2 - avatarSize / 2 + "px";
-    avatarImg.style.top = avatarY - avatarSize / 2 + "px";
-    avatarImg.style.width = avatarSize + "px";
-    avatarImg.style.position = "absolute";
-    avatarImg.style.display = "block";
-  }
-*/
   let avatarImg = document.getElementById("avatar");
   if (avatarImg) {
     avatarImg.classList.add("avatar-collection");
@@ -434,30 +416,29 @@ function drawCollectionView() {
   fill(0, 0, 100);
   textSize(28);
   textAlign(CENTER);
-  text(`Score total : ${playerScore}`, width / 2, infoY + 700);
+  text(`Score total : ${playerScore}`, width / 2, infoY + 650);
 
   // === BLOBS & TRACKS EN LISTE VERS LE BAS ===
   let grouped = groupCollectionByCluster();
   let clusters = Object.keys(grouped);
-  let y = infoY + 90;
-  let blobSize = isMobile ? 90 : 70;
-  let lineHeight = isMobile ? 120 : 100;
-  let paddingX = isMobile ? 40 : 100;
+  let y = infoY + 750; // ↘️ On descend le contenu ici
+  let blobSize = isMobile ? 200 : 70;
+  let lineHeight = isMobile ? 140 : 120;
 
-  textAlign(LEFT);
+  textAlign(CENTER);
 
   for (let cluster of clusters) {
     let tracks = grouped[cluster];
 
     // CLUSTER LABEL
     fill(220, 80, 100);
-    textSize(20);
-    text(cluster, paddingX, y);
-    y += 35;
+    textSize(30);
+    text(cluster, width / 2, y);
+    y += 45;
 
     for (let track of tracks) {
-      // BLOB
-      let blobX = paddingX + blobSize / 2;
+      // BLOB centré
+      let blobX = width / 2;
       let blobY = y + blobSize / 2;
 
       push();
@@ -474,19 +455,92 @@ function drawCollectionView() {
         type: "blob",
       });
 
-      // TITRE / ARTISTE
+      // TITRE / ARTISTE en dessous
       fill(0, 0, 100);
-      textSize(17);
-      text(track.title || "Sans titre", blobX + blobSize + 25, y + 25);
+      textSize(27);
+      text(track.title || "Sans titre", blobX, blobY + blobSize / 2 + 35);
+
+      fill(0, 0, 60);
+      textSize(24);
+      text(track.artist || "Artiste inconnu", blobX, blobY + blobSize / 2 + 65);
+
+      y += lineHeight + 40;
+    }
+
+    y += 40;
+  }
+}
+*/
+function drawCollectionView() {
+  background(0, 0, 11);
+
+  // === Avatar en grand ===
+  let avatarSize = isMobile ? 220 : 160;
+  let avatarY = 140;
+  let avatarImg = document.getElementById("avatar");
+  if (avatarImg) {
+    avatarImg.classList.add("avatar-collection");
+  }
+
+  // === Titre + score ===
+  let infoY = avatarY + avatarSize / 2 + 30;
+  fill(0, 0, 100);
+  textSize(28);
+  textAlign(CENTER);
+  text(`Score total : ${playerScore}`, width / 2, infoY);
+
+  // === Blobs + morceaux ===
+  let grouped = groupCollectionByCluster();
+  let clusters = Object.keys(grouped);
+  let y = infoY + 700;
+
+  let blobSize = isMobile ? 70 : 50;
+  let lineHeight = blobSize + 40;
+  let textOffsetX = blobSize + 40;
+
+  for (let cluster of clusters) {
+    let tracks = grouped[cluster];
+
+    // Nom du cluster
+    fill(220, 80, 100);
+    textSize(20);
+    textAlign(LEFT);
+    text(cluster, 40, y);
+    y += 30;
+
+    for (let track of tracks) {
+      let blobX = 40 + blobSize / 2;
+      let blobY = y + blobSize / 2;
+
+      // 🎨 Dessin du blob
+      push();
+      translate(blobX, blobY);
+      drawTrackBlob(track, 0, 0, blobSize, 0);
+      pop();
+
+      // 🎯 Zone clic
+      blobHitZones.push({
+        x: blobX,
+        y: blobY,
+        r: blobSize / 2,
+        track: track,
+        type: "blob",
+      });
+
+      // 🎵 Texte à droite
+      fill(0, 0, 100);
+      textAlign(LEFT);
+      textSize(16);
+      text(track.title || "Sans titre", blobX + textOffsetX, y + 20);
 
       fill(0, 0, 60);
       textSize(14);
-      text(track.artist || "Artiste inconnu", blobX + blobSize + 25, y + 50);
+      text(track.artist || "Artiste inconnu", blobX + textOffsetX, y + 40);
 
       y += lineHeight;
     }
 
-    y += 40;
+    y += 30; // espace entre clusters
   }
 }
 
@@ -583,7 +637,7 @@ function drawAvatarView() {
     if (isUnlocked) {
       fill(0, 0, 100);
       textAlign(CENTER);
-      textSize(isMobile ? 22 : 14);
+      textSize(isMobile ? 32 : 14);
       text(blob.genre, pos.x, pos.y + blobSize / 2 + 24);
     }
   }
@@ -592,7 +646,8 @@ function drawAvatarView() {
 }
 
 function drawGameSelectorView() {
-  background(0, 0, 11);
+  imageMode(CORNER);
+  image(minigameBackground, 0, 0, width, height);
   textAlign(CENTER, CENTER);
   fill(0, 0, 100);
   textSize(isMobile ? 32 : 24);
@@ -662,7 +717,8 @@ function drawPostMiniGameWinView() {
 }
 */
 function drawPostMiniGameWinView() {
-  background(0, 0, 11);
+  imageMode(CORNER);
+  image(winBackground, 0, 0, width, height);
   textAlign(CENTER, CENTER);
   fill(0, 0, 100);
 
