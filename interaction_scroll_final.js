@@ -1,3 +1,5 @@
+let justClickedShuffle = false;
+
 function isInsideClickableZone(zone, mx, my) {
   if (!zone) return false;
 
@@ -315,6 +317,26 @@ function mousePressed() {
 */
 function mousePressed() {
   // === GAME SELECTOR / AFTER GAME ===
+  /* if (mode === "gameSelector") {
+    for (let zone of blobHitZones) {
+      if (isInsideClickableZone(zone, mouseX, mouseY)) {
+        currentMiniGameType = zone.miniGameType;
+        currentMiniGameTrack = pickRandomTrackFromCollection();
+        generateMiniGame(currentMiniGameTrack);
+        mode = "minigame";
+        return;
+      }
+    }
+  }
+ */
+  /*if (justClickedShuffle) {
+    // ⏱ Ignore temporairement les clics parasites
+    console.log("🛑 Clic ignoré car juste après shuffle");
+    justClickedShuffle = false;
+    return;
+  }*/
+
+  // === GAME SELECTOR / AFTER GAME ===
   if (mode === "gameSelector") {
     for (let zone of blobHitZones) {
       if (isInsideClickableZone(zone, mouseX, mouseY)) {
@@ -327,6 +349,19 @@ function mousePressed() {
     }
   }
 
+  // === CHALLENGE INTRO ===
+  if (mode === "challengeIntro") {
+    for (let zone of blobHitZones) {
+      if (
+        zone.type === "startChallenge" &&
+        isInsideClickableZone(zone, mouseX, mouseY)
+      ) {
+        challengeProgress = 0;
+        launchNextChallengeGame();
+        return;
+      }
+    }
+  }
   if (mode === "postMiniGameWin") {
     for (let zone of blobHitZones) {
       if (
@@ -448,7 +483,7 @@ function mousePressed() {
     let btnH = isMobile ? 75 : 60;
     let spacing = isMobile ? 30 : 25;
     let blobCenterY = height * 0.35;
-    let startY = blobCenterY + (isMobile ? 80 : 60);
+    let startY = blobCenterY + (isMobile ? 140 : 100);
 
     for (let i = 0; i < miniGameOptions.length; i++) {
       let x = width / 2 - btnW / 2;
@@ -493,6 +528,15 @@ function mousePressed() {
         );
       }
       return;
+    }
+    for (let zone of blobHitZones) {
+      if (
+        zone.type === "validateMiniGame" &&
+        isInsideClickableZone(zone, mouseX, mouseY)
+      ) {
+        handleMiniGameValidation();
+        return;
+      }
     }
   }
 
@@ -647,10 +691,26 @@ function mousePressed() {
       }
       return;
     }
+    if (miniGameFeedback === "correct") {
+      if (challengeProgress < challengeMax - 1) {
+        challengeProgress++;
+        launchNextChallengeGame();
+      } else {
+        challengeProgress = 0;
+        mode = "exploration"; // Accès à une nouvelle musique
+      }
+    }
   }
 
   // === COLLECTION ===
   if (mode === "collection") {
+    if (handlePlaylistSelection(mouseX, mouseY)) return;
+    console.log("🖱️ clic détecté - mode =", mode);
+    if (handlePlaylistSelection(mouseX, mouseY)) {
+      console.log("🎯 playlist cliquée !");
+      return;
+    }
+
     let btnW = 100;
     let btnH = 30;
     let spacing = 20;
@@ -734,8 +794,14 @@ function mousePressed() {
 
       pointFeedbacks.push({ points, x: 100, y: 30, alpha: 255, size: 36 });
 
+      /*
       let cleaned = cleanTrack(selectedPendingTrack);
       playerCollection.push(cleaned);
+      localStorage.setItem("btm_collection", JSON.stringify(playerCollection));
+*/
+      let cleaned = cleanTrack(selectedPendingTrack);
+      let withMap = { ...cleaned, mapName: mapNames[currentMapIndex] }; // Assigne le nom de la map en cours
+      playerCollection.push(withMap);
       localStorage.setItem("btm_collection", JSON.stringify(playerCollection));
 
       updateAvatarGif();
@@ -784,7 +850,7 @@ function mousePressed() {
   }
 
   // === AVATAR ===
-  if (mode === "avatar") {
+  if (mode === "avatar" && !justClickedShuffle) {
     if (dist(mouseX, mouseY, width / 2, height / 2) < 40) {
       currentMiniGameTrack = pickRandomTrackFromCollection();
       const gameTypes = ["tempo", "genre"];
@@ -794,7 +860,17 @@ function mousePressed() {
       mode = "minigame";
       return;
     }
+    for (let zone of blobHitZones) {
+      if (
+        zone.type === "goToCollection" &&
+        isInsideClickableZone(zone, mouseX, mouseY)
+      ) {
+        mode = "collection";
+        return;
+      }
+    }
   }
+  justClickedShuffle = false;
 }
 
 isDragging = false;

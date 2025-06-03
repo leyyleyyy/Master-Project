@@ -13,7 +13,7 @@ let winBackground;
 let evolutionBackground;
 function preload() {
   // Charge les sons uniquement si autorisé (évite crash Safari)
-  /* tracksData.forEach((track) => {
+  /*tracksData.forEach((track) => {
     try {
       audioPlayers[track.title] = loadSound(track.audio);
     } catch (e) {
@@ -29,15 +29,16 @@ function preload() {
   //Background
   backgroundImages = {
     Pop: loadImage("assets/evolution_background.png"),
-    "Hip-Hop": loadImage("assets/evolution_background.png"),
+    "Hip-Hop": loadImage("assets/yellow_green.png"),
     "Rap arab": loadImage("assets/evolution_background.png"),
-    "Música popular brasileira": loadImage("assets/evolution_background.png"),
+    "Música popular brasileira": loadImage("assets/green.jpg"),
     Électro: loadImage("assets/evolution_background.png"),
-    "Rock/Metal": loadImage("assets/evolution_background.png"),
+    "Rock/Metal": loadImage("assets/rose.png"),
     Indé: loadImage("assets/evolution_background.png"),
-    Latin: loadImage("assets/evolution_background.png"),
-    Classique: loadImage("assets/evolution_background.png"),
-    Hyperpop: loadImage("assets/evolution_background.png"),
+    Latin: loadImage("assets/rose.png"),
+    Classique: loadImage("assets/rose.png"),
+    Hyperpop: loadImage("assets/green.jpg"),
+    "Música popular brasileira": loadImage("assets/rose.png"),
   };
 }
 
@@ -152,6 +153,8 @@ function draw() {
     drawGameSelectorView();
   } else if (mode === "postMiniGameWin") {
     drawPostMiniGameWinView();
+  } else if (mode === "challengeIntro") {
+    drawChallengeIntroView(); // ou le nom de ta vue de challenge
   }
 
   updateAvatarGif(); // avatar évolue dynamiquement
@@ -166,7 +169,7 @@ function draw() {
   }
 
   let shuffleEl = document.getElementById("shuffleBtn");
-  if (shuffleEl) {
+  /*if (shuffleEl) {
     shuffleEl.style.display = mode === "avatar" ? "block" : "none";
     if (mode === "avatar") {
       shuffleEl.style.left = width / 2 - 100 + "px";
@@ -180,6 +183,39 @@ function draw() {
       avatarTitleGroup.style.display = "block";
     } else {
       avatarTitleGroup.style.display = "none";
+    }
+  }*/
+  if (shuffleEl) {
+    shuffleEl.style.display = mode === "avatar" ? "block" : "none";
+
+    if (mode === "avatar") {
+      shuffleEl.style.left = width / 2 - 100 + "px";
+      shuffleEl.style.top = height / 2 - 280 + "px";
+
+      const unlockedGenres = getGenreStats().length;
+
+      // CHANGER IMAGE
+      if (unlockedGenres >= 10) {
+        shuffleEl.style.backgroundImage = "url('assets/shuffle_bis.png')";
+      } else {
+        shuffleEl.style.backgroundImage = "url('assets/shuffle.png')";
+      }
+
+      // FORCER ONCLICK ICI
+      shuffleEl.onclick = () => {
+        justClickedShuffle = true; // ✅ protège contre double-clic / mousePressed
+
+        if (unlockedGenres >= 10) {
+          console.log("🎯 Passage en mode challengeIntro");
+          mode = "challengeIntro";
+        } else {
+          console.log("🎮 Passage en mode minigame");
+          currentMiniGameTrack = pickRandomTrackFromCollection();
+          currentMiniGameType = random(["tempo", "genre"]);
+          generateMiniGame(currentMiniGameTrack);
+          mode = "minigame";
+        }
+      };
     }
   }
 
@@ -310,14 +346,30 @@ window.addEventListener("DOMContentLoaded", () => {
   }*/
   function handleShuffle(e) {
     e.preventDefault();
-    mode = "gameSelector";
+    justClickedShuffle = true;
 
-    shuffleBtn.style.boxShadow = "0 0 20px rgba(255,255,255,0.8)";
-    shuffleBtn.style.transform = "scale(1.15)";
-    setTimeout(() => {
-      shuffleBtn.style.boxShadow = "";
-      shuffleBtn.style.transform = "scale(1)";
-    }, 200);
+    const unlockedGenres = getGenreStats().length;
+
+    if (mode === "avatar") {
+      if (unlockedGenres >= 10) {
+        console.log("🎯 Passage en mode challengeIntro");
+        mode = "challengeIntro";
+      } else {
+        console.log("🎮 Passage en mode minigame");
+        currentMiniGameTrack = pickRandomTrackFromCollection();
+        generateMiniGame(currentMiniGameTrack);
+        mode = "gameSelector";
+      }
+
+      // Feedback visuel (si tu veux garder l'effet)
+      const shuffleBtn = document.getElementById("shuffleBtn");
+      shuffleBtn.style.boxShadow = "0 0 20px rgba(255,255,255,0.8)";
+      shuffleBtn.style.transform = "scale(1.15)";
+      setTimeout(() => {
+        shuffleBtn.style.boxShadow = "";
+        shuffleBtn.style.transform = "scale(1)";
+      }, 200);
+    }
   }
 
   if (shuffleBtn) {

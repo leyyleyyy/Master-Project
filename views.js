@@ -11,6 +11,82 @@ function drawButton(label, x, y, w, h, isActive = true) {
   text(label, x + w / 2, y + h / 2);
 }
 
+function drawButtonBis(label, x, y, w, h, isActive = true) {
+  let radius = isMobile ? 22 : 12;
+  let fontSize = isMobile ? 28 : 16;
+
+  // === Fond noir transparent avec effet "verre" ===
+  drawingContext.shadowBlur = isActive ? 12 : 0;
+  drawingContext.shadowColor = color(255, 255, 255, 40); // lueur douce
+
+  fill(0, 0, 100, isActive ? 10 : 5); // noir quasi transparent (en HSB, 10% opacité)
+  stroke(255, 255, 255, isActive ? 30 : 10); // bordure douce si tu veux
+  strokeWeight(1);
+  rect(x, y, w, h, radius);
+
+  // === Texte blanc ou grisé ===
+  noStroke();
+  fill(0, 0, isActive ? 100 : 60); // blanc ou gris clair
+  textSize(fontSize);
+  textAlign(CENTER, CENTER);
+  textStyle(BOLD);
+  text(label, x + w / 2, y + h / 2);
+  textStyle(NORMAL);
+}
+
+function drawButtonCol(label, x, y, w, h, isActive = true) {
+  let radius = isMobile ? 22 : 12;
+  let fontSize = isMobile ? 28 : 16;
+
+  // === Glow blanc lumineux
+  drawingContext.shadowBlur = isActive ? 16 : 0;
+  drawingContext.shadowColor = isActive
+    ? color(0, 0, 100, 100) // HSB → teinte 0, saturation 0%, luminosité 100% = blanc pur
+    : color(0, 0, 100, 0);
+
+  // === Fond gris très foncé et transparent
+  //fill(0, 0, 10, isActive ? 10 : 5); // noir doux
+  noFill();
+  stroke(0, 0, 100, isActive ? 80 : 20); // bordure blanche très visible
+  strokeWeight(1.5);
+  rect(x, y, w, h, radius);
+
+  // === Texte blanc ou gris clair
+  noStroke();
+  fill(0, 0, isActive ? 100 : 60);
+  textSize(fontSize);
+  textAlign(CENTER, CENTER);
+  text(label, x + w / 2, y + h / 2);
+  textStyle(NORMAL);
+}
+
+function handleMiniGameValidation() {
+  justClickedShuffle = false;
+  const correct = miniGameAnswer === currentMiniGameTrack.correctAnswer;
+  miniGameFeedback = correct ? "correct" : "incorrect";
+
+  if (correct) {
+    if (challengeStep > 0) {
+      challengeStep++;
+      if (challengeStep <= 3) {
+        currentMiniGameTrack = pickRandomTrackFromDatabase();
+        currentMiniGameType = random(["tempo", "genre"]);
+        generateMiniGame(currentMiniGameTrack);
+        mode = "minigame";
+      } else {
+        challengeStep = 0;
+        mode = "exploration";
+      }
+    } else {
+      mode = "postMiniGameWin";
+    }
+  } else {
+    // Perdu → retour collection ou autre selon logique
+    challengeStep = 0;
+    mode = "collection";
+  }
+}
+
 function drawExplorationView() {
   blobHitZones = [];
   textAlign(CENTER, CENTER);
@@ -275,14 +351,14 @@ function drawMiniGameView() {
   let btnW = isMobile ? width * 0.85 : min(450, width * 0.6);
   let btnH = isMobile ? 75 : 60;
   let spacing = isMobile ? 30 : 25;
-  let startY = blobCenterY + (isMobile ? 80 : 60);
+  let startY = blobCenterY + (isMobile ? 140 : 100);
 
   for (let i = 0; i < miniGameOptions.length; i++) {
     let option = miniGameOptions[i];
     let x = width / 2 - btnW / 2;
     let y = startY + i * (btnH + spacing);
 
-    drawButton(
+    drawButtonBis(
       option + (miniGameUnit || ""),
       x,
       y,
@@ -471,6 +547,8 @@ function drawCollectionView() {
   }
 }
 */
+
+/*
 function drawCollectionView() {
   background(0, 0, 11);
 
@@ -543,7 +621,143 @@ function drawCollectionView() {
     y += 30; // espace entre clusters
   }
 }
+*/
+function drawCollectionView() {
+  blobHitZones = [];
+  background(0, 0, 11);
 
+  // === Avatar en grand ===
+  let avatarSize = isMobile ? 220 : 160;
+  let avatarY = 140;
+  let avatarImg = document.getElementById("avatar");
+  if (avatarImg) {
+    avatarImg.classList.add("avatar-collection");
+  }
+
+  // === Titre + score ===
+  let infoY = avatarY + avatarSize / 2 + 30;
+  fill(0, 0, 100);
+  textSize(28);
+  textAlign(CENTER);
+  text(`Score total : ${playerScore}`, width / 2, infoY);
+
+  // === Playlists par map ===
+  let allPlaylists = [
+    ...new Set(playerCollection.map((t) => t.mapName || "Inconnue")),
+  ];
+
+  // Initialise activePlaylist s’il n’existe pas
+  if (typeof window.activePlaylist === "undefined") {
+    window.activePlaylist = allPlaylists[0];
+  }
+
+  // Affichage des boutons de playlist
+  let btnW = isMobile ? 160 : 140;
+  let btnH = isMobile ? 55 : 40;
+  let spacing = 20;
+  let startX =
+    width / 2 - (allPlaylists.length * (btnW + spacing) - spacing) / 2;
+  let btnY = infoY + 60;
+
+  for (let i = 0; i < allPlaylists.length; i++) {
+    let label = allPlaylists[i];
+    let x = startX + i * (btnW + spacing);
+    drawButtonCol(label, x, btnY, btnW, btnH, label === window.activePlaylist);
+
+    blobHitZones.push({
+      type: "playlistSelect",
+      x,
+      y: btnY,
+      w: btnW,
+      h: btnH,
+      playlist: label,
+    });
+  }
+
+  // === Blobs + morceaux ===
+  let filteredTracks = playerCollection.filter(
+    (t) => (t.mapName || "Inconnue") === window.activePlaylist
+  );
+  let grouped = groupByCluster(filteredTracks);
+  let clusters = Object.keys(grouped);
+  let y = btnY + btnH + 40;
+
+  let blobSize = isMobile ? 70 : 50;
+  let lineHeight = blobSize + 40;
+  let textOffsetX = blobSize + 40;
+
+  for (let cluster of clusters) {
+    let tracks = grouped[cluster];
+
+    // Nom du cluster
+    fill(220, 80, 100);
+    textSize(20);
+    textAlign(LEFT);
+    text(cluster, 40, y);
+    y += 30;
+
+    for (let track of tracks) {
+      let blobX = 40 + blobSize / 2;
+      let blobY = y + blobSize / 2;
+
+      // 🎨 Dessin du blob
+      push();
+      translate(blobX, blobY);
+      drawTrackBlob(track, 0, 0, blobSize, 0);
+      pop();
+
+      // 🎯 Zone clic
+      blobHitZones.push({
+        x: blobX,
+        y: blobY,
+        r: blobSize / 2,
+        track: track,
+        type: "blob",
+      });
+
+      // 🎵 Texte à droite
+      fill(0, 0, 100);
+      textAlign(LEFT);
+      textSize(16);
+      text(track.title || "Sans titre", blobX + textOffsetX, y + 20);
+
+      fill(0, 0, 60);
+      textSize(14);
+      text(track.artist || "Artiste inconnu", blobX + textOffsetX, y + 40);
+
+      y += lineHeight;
+    }
+
+    y += 30; // espace entre clusters
+  }
+}
+function groupByCluster(tracks) {
+  let grouped = {};
+  for (let t of tracks) {
+    let cluster = getGenreCluster(t.genre);
+    if (!grouped[cluster]) grouped[cluster] = [];
+    grouped[cluster].push(t);
+  }
+  return grouped;
+}
+function handlePlaylistSelection(mx, my) {
+  for (let zone of blobHitZones) {
+    if (
+      zone.type === "playlistSelect" &&
+      mx >= zone.x &&
+      mx <= zone.x + zone.w &&
+      my >= zone.y &&
+      my <= zone.y + zone.h
+    ) {
+      window.activePlaylist = zone.playlist;
+      redraw();
+      return true;
+    }
+  }
+  return false;
+}
+
+/*
 function drawAvatarView() {
   // background(260, 40, 10);
   // interpolation douce
@@ -641,8 +855,152 @@ function drawAvatarView() {
       text(blob.genre, pos.x, pos.y + blobSize / 2 + 24);
     }
   }
+  // === BOUTON "Ma collection" ===
+  let btnW = isMobile ? 240 : 160;
+  let btnH = isMobile ? 65 : 50;
+  let btnX = width / 2 - btnW / 2;
+  let btnY = height - btnH - (isMobile ? 40 : 20);
+
+  drawButtonBis("🎵 Ma collection", btnX, btnY, btnW, btnH, true);
+
+  // Enregistre la zone cliquable dans blobHitZones
+  blobHitZones.push({
+    type: "goToCollection",
+    x: btnX,
+    y: btnY,
+    w: btnW,
+    h: btnH,
+  });
 
   pop();
+}
+*/
+function drawAvatarView() {
+  if (backgroundImages[currentBackgroundCluster]) {
+    imageMode(CORNER);
+    image(backgroundImages[currentBackgroundCluster], 0, 0, width, height);
+  }
+
+  let genreAvgs = getGenreAverages();
+  let genreStats = getGenreStats();
+  let genreUnlocked = genreStats.map((g) => g.name);
+  let genreNames = Object.keys(genreAvgs);
+
+  const hasUnlockedGenres = genreUnlocked.length > 0;
+  canScrollAvatar = hasUnlockedGenres;
+
+  // Construction des blobs (inchangé)
+  if (!window.genreBlobs || window.genreBlobs.length !== genreNames.length) {
+    const clusterGenreMap = {};
+    for (let genre of genreNames) {
+      const cluster = getClusterNameForGenre(genre);
+      if (!clusterGenreMap[cluster]) clusterGenreMap[cluster] = [];
+      clusterGenreMap[cluster].push(genre);
+    }
+
+    window.genreBlobs = genreNames.map((genre, i) => {
+      const cluster = getClusterNameForGenre(genre);
+      const clusterGenres = clusterGenreMap[cluster];
+      const localIndex = clusterGenres.indexOf(genre);
+      const pos = getPositionForGenre(genre, localIndex, clusterGenres.length);
+
+      const isUnlocked =
+        genreUnlocked.includes(genre) ||
+        genreUnlocked.includes(genre.toLowerCase());
+
+      return {
+        title: genre,
+        genre: genre,
+        ...genreAvgs[genre],
+        pos,
+        isUnlocked,
+        index: i,
+      };
+    });
+
+    let focusGenre = scrollToGenre || genreUnlocked[0];
+
+    if (!focusGenre) {
+      let centerX = 0;
+      let centerY = 0;
+      for (let blob of window.genreBlobs) {
+        centerX += blob.pos.x;
+        centerY += blob.pos.y;
+      }
+      centerX /= window.genreBlobs.length;
+      centerY /= window.genreBlobs.length;
+      scrollXOffset = width / 2 - centerX;
+      scrollYOffset = height / 2 - centerY;
+      console.log("📍 Centrage par défaut (aucun genre débloqué)");
+    } else {
+      const focusBlob = window.genreBlobs.find((b) => b.title === focusGenre);
+      if (focusBlob) {
+        const verticalOffset = height * 0.35;
+        scrollXOffset = width / 2 - focusBlob.pos.x;
+        scrollYOffset = height / 2 - focusBlob.pos.y - verticalOffset;
+        console.log("📍 Centrage sur :", focusGenre);
+      } else {
+        console.warn("❌ Genre non trouvé pour recentrage :", focusGenre);
+      }
+    }
+
+    scrollToGenre = null;
+  }
+
+  // 🎨 DESSIN
+  push();
+  translate(scrollXOffset, scrollYOffset);
+
+  let screenMin = min(windowWidth, windowHeight);
+  let blobSize = isMobile ? min(screenMin * 0.45, 240) : 80;
+
+  for (let blob of window.genreBlobs) {
+    const isUnlocked =
+      genreUnlocked.includes(blob.genre) ||
+      genreUnlocked.includes(blob.genre.toLowerCase());
+    let { pos, index } = blob;
+
+    drawTrackBlob(
+      blob,
+      pos.x,
+      pos.y,
+      blobSize,
+      index,
+      false,
+      !isUnlocked,
+      isUnlocked
+    );
+
+    /* if (isUnlocked) {
+    fill(0, 0, 100);
+    textAlign(CENTER);
+    textSize(isMobile ? 32 : 14);
+    text(blob.genre, pos.x, pos.y + blobSize / 2 + 24);
+    }*/
+  }
+
+  pop(); // 🔁 important : drawButtonBis doit être en dehors du translate()
+
+  // Position du bouton Shuffle (à adapter à ton code réel)
+  let shuffleBtnY = isMobile ? 40 : 30;
+  let shuffleBtnH = isMobile ? 65 : 50;
+  if (hasUnlockedGenres) {
+    // === BOUTON "Ma collection" ===
+    let btnW = isMobile ? 240 : 160;
+    let btnH = isMobile ? 65 : 50;
+    let btnX = width / 2 - btnW / 2;
+    let btnY = height / 2 + (isMobile ? 150 : 20); // placé plus bas, proche du bas de l'écran
+
+    drawButtonCol("Ma collection", btnX, btnY, btnW, btnH, true);
+
+    blobHitZones.push({
+      type: "goToCollection",
+      x: btnX,
+      y: btnY,
+      w: btnW,
+      h: btnH,
+    });
+  }
 }
 
 function drawGameSelectorView() {
@@ -650,13 +1008,11 @@ function drawGameSelectorView() {
   image(minigameBackground, 0, 0, width, height);
   textAlign(CENTER, CENTER);
   fill(0, 0, 100);
-  textSize(isMobile ? 32 : 24);
-  text("Choisis ton mini-jeu :", width / 2, 80);
 
   let options = [
-    { label: "🎵 Quiz tempo", type: "tempo" },
-    { label: "🎧 Genre", type: "genre" },
-    { label: "👀 Reconnaissance", type: "visual_match" },
+    { label: "Feel the Beat", type: "tempo" },
+    { label: "GenreGuesser", type: "genre" },
+    { label: "Popular or Not", type: "visual_match" },
   ];
 
   let btnW = isMobile ? width * 0.85 : 300;
@@ -667,7 +1023,7 @@ function drawGameSelectorView() {
   for (let i = 0; i < options.length; i++) {
     let x = width / 2 - btnW / 2;
     let y = startY + i * (btnH + spacing);
-    drawButton(options[i].label, x, y, btnW, btnH);
+    drawButtonBis(options[i].label, x, y, btnW, btnH);
     blobHitZones.push({
       type: "gameChoice",
       x,
@@ -807,4 +1163,41 @@ function getMiniGameAnecdote(type, track) {
     default:
       return `🎶 Une belle découverte musicale !`;
   }
+}
+function drawChallengeIntroView() {
+  background(260, 40, 10);
+  textAlign(CENTER);
+  fill(0, 0, 100);
+  textSize(isMobile ? 36 : 28);
+  text("🌟 Défi spécial débloqué !", width / 2, 100);
+  textSize(isMobile ? 22 : 18);
+  text(
+    "Tu dois réussir 3 mini-jeux à la suite pour débloquer une nouvelle musique !",
+    width / 2,
+    180
+  );
+
+  let btnW = isMobile ? 300 : 240;
+  let btnH = isMobile ? 70 : 50;
+  let btnX = width / 2 - btnW / 2;
+  let btnY = height - 120;
+
+  drawButton(
+    "Commencer le challenge",
+    width / 2 - 100,
+    height - 80,
+    200,
+    50,
+    startChallenge
+  );
+
+  blobHitZones = [
+    {
+      type: "startChallenge",
+      x: btnX,
+      y: btnY,
+      w: btnW,
+      h: btnH,
+    },
+  ];
 }

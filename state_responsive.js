@@ -14,7 +14,7 @@ let playerCollection = [];
 let pointFeedbacks = [];
 let miniGameAudioPlayed = false;
 
-let mode = "postMiniGameWin"; // "exploration", "collection", "minigame", "avatar", "onboarding", "gameSelector", postMiniGameWin
+let mode = "collection"; // "exploration", "collection", "minigame", "avatar", "onboarding", "gameSelector", postMiniGameWin, "challengeIntro"
 let currentMiniGameTrack = null;
 let miniGameOptions = [];
 let miniGameAnswer = null;
@@ -82,6 +82,7 @@ function cleanTrack(track) {
     artist: track.artist,
   };
 }
+
 const GENRE_CLUSTERS = {
   "Hip-Hop": ["Hip-Hop", "Rap français", "Rap arab", "Drill français"],
   Pop: ["Pop", "Urban pop", "Latin pop", "Social media pop"],
@@ -580,4 +581,14 @@ function relaxBlobPositionsInClusters(blobs, minDist = 130) {
   for (let clusterName in clusters) {
     relaxBlobPositions(clusters[clusterName], minDist, 3);
   }
+}
+
+let challengeProgress = 0;
+let challengeMax = 3;
+
+function launchNextChallengeGame() {
+  currentMiniGameTrack = pickRandomTrackFromCollection();
+  currentMiniGameType = random(["tempo", "genre", "visual_match"]);
+  generateMiniGame(currentMiniGameTrack);
+  mode = "minigame";
 }
