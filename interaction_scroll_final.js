@@ -13,20 +13,25 @@ function isInsideClickableZone(zone, mx, my) {
   }
 
   // 🔥 AJOUTER : Pour la collection, on corrige avec le scroll Y
-  if (mode === "collection" && zone.type === "blob") {
-    correctedY = my - (window.collectionScrollY || 0);
+  if (
+    mode === "collection" &&
+    (zone.type === "blob" || zone.type === "collectionPlay")
+  ) {
+    correctedX = mx;
+    correctedY = my - (window.collectionScrollY || 0); // ✅ CORRECTION SCROLL COLLECTION
   }
 
   if (zone.r) {
-    // C'est un cercle (ex: blob ou cercle de collection)
-    return dist(correctedX, correctedY, zone.x, zone.y) < zone.r;
+    // Zone circulaire
+    let distance = dist(correctedX, correctedY, zone.x, zone.y);
+    return distance <= zone.r;
   } else if (zone.w && zone.h) {
-    // C'est un rectangle (ex: bouton)
+    // Zone rectangulaire
     return (
-      correctedX > zone.x &&
-      correctedX < zone.x + zone.w &&
-      correctedY > zone.y &&
-      correctedY < zone.y + zone.h
+      correctedX >= zone.x &&
+      correctedX <= zone.x + zone.w &&
+      correctedY >= zone.y &&
+      correctedY <= zone.y + zone.h
     );
   }
 
@@ -486,32 +491,33 @@ function mousePressed() {
       return;
     }
 
-    // Clic sur les blobs
+    // ✅ CORRECTION : Clic sur les blobs - JOUER au lieu de lancer mini-jeu
     for (let zone of blobHitZones) {
       if (isInsideClickableZone(zone, mouseX, mouseY)) {
-        selectedTrack = zone.track;
-        selectedPendingTrack = zone.track;
-
-        if (currentAudio && currentAudio.isPlaying()) currentAudio.stop();
-
-        let newAudio = audioPlayers[selectedTrack.title];
-        if (newAudio && newAudio.isLoaded()) {
-          newAudio.play();
-          currentAudio = newAudio;
+        // ✅ VÉRIFIER : Si c'est le nouveau type "collectionPlay"
+        if (zone.type === "collectionPlay") {
+          handleCollectionTrackClick(zone.track);
+          return;
         }
 
-        currentMiniGameTrack = selectedTrack;
-        const gameTypes = ["visual_match"];
-        currentMiniGameType = random(gameTypes);
-        generateMiniGame(null);
+        // ✅ ANCIEN CODE : Pour compatibilité avec l'ancien type "blob"
+        if (zone.type === "blob") {
+          selectedTrack = zone.track;
 
-        mode = "minigame";
+          // ✅ JOUER : Arrêter l'audio précédent et jouer le nouveau
+          if (currentAudio && currentAudio.isPlaying()) {
+            currentAudio.stop();
+          }
 
-        // Reset des flags pour le nouveau jeu
-        window.miniGameStarted = false;
-        window.miniGameMusicStarted = false;
-        miniGameAttempts = 0; // Reset du compteur d'essais
-        return;
+          let newAudio = audioPlayers[zone.track.title];
+          if (newAudio && newAudio.isLoaded()) {
+            newAudio.play();
+            currentAudio = newAudio;
+            console.log("🎵 Lecture:", zone.track.title);
+          }
+
+          return; // ✅ IMPORTANT : Ne pas lancer de mini-jeu !
+        }
       }
     }
     return;

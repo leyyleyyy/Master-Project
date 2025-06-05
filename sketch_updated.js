@@ -13,13 +13,13 @@ let winBackground;
 let evolutionBackground;
 function preload() {
   // Charge les sons uniquement si autorisé (évite crash Safari)
-  /*tracksData.forEach((track) => {
+  tracksData.forEach((track) => {
     try {
       audioPlayers[track.title] = loadSound(track.audio);
     } catch (e) {
       console.warn("Erreur de preload audio :", track.title, e);
     }
-  });*/
+  });
   minigameBackground = loadImage("assets/minigame_background.jpg");
   winBackground = loadImage("assets/winBackground.jpg");
   evolutionBackground = loadImage("assets/evolution_background.png");
@@ -260,6 +260,8 @@ function draw() {
     drawCollectionView();
   } else if (mode === "exploration") {
     drawExplorationView();
+  } else if (mode === "evolution") {
+    drawEvolutionView();
   } else if (mode === "minigame") {
     drawMiniGameView();
   } else if (mode === "postMiniGameWin") {
@@ -420,7 +422,7 @@ function updateStreamButtonLock(streamButton) {
     }
     streamButton.classList.add("unlocked");
     streamButton.classList.remove("locked");
-    streamButton.textContent = "Digin' the Stream"; // Sans cadenas
+    streamButton.textContent = "Digin’ the Stream"; // Sans cadenas
   } else {
     // Afficher le cadenas
     if (lockIcon) {
@@ -610,4 +612,36 @@ if (streamButton) {
       console.log("🔒 Stream verrouillé, score:", playerScore);
     }
   });
+}
+
+// ✅ CORRIGER : Mettre cette logique dans une fonction ou dans un event listener
+function handleCollectionTrackClick(clickedTrack) {
+  // ✅ SÉLECTIONNER : Marquer comme track sélectionnée pour l'illumination
+  selectedTrack = clickedTrack;
+
+  // ✅ JOUER : Arrêter l'audio précédent et jouer le nouveau
+  if (currentAudio) {
+    currentAudio.stop();
+  }
+
+  // Charger et jouer l'audio si disponible
+  if (clickedTrack.audio && typeof loadSound === "function") {
+    try {
+      if (!audioPlayers[clickedTrack.title]) {
+        audioPlayers[clickedTrack.title] = loadSound(clickedTrack.audio, () => {
+          console.log("🎵 Audio chargé:", clickedTrack.title);
+        });
+      }
+
+      currentAudio = audioPlayers[clickedTrack.title];
+      if (currentAudio && currentAudio.isLoaded()) {
+        currentAudio.play();
+        console.log("🎵 Lecture:", clickedTrack.title);
+      }
+    } catch (e) {
+      console.warn("❌ Erreur lecture audio:", e);
+    }
+  }
+
+  redraw(); // Redessiner pour afficher l'illumination
 }

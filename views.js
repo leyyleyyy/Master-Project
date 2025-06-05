@@ -556,16 +556,6 @@ function playMorphVideo(stage) {
 
 function drawEvolutionView() {
   const morphVideo = document.getElementById("morphVideo");
-  if (morphVideo) morphVideo.style.display = "block";
-
-  if (
-    !window.lastMorphPlayed ||
-    window.lastMorphPlayed !== evolutionTrack.title
-  ) {
-    const stage = getAvatarStage();
-    playMorphVideo(stage);
-    window.lastMorphPlayed = evolutionTrack.title;
-  }
 
   if (!evolutionTrack) {
     background(0, 0, 11);
@@ -576,60 +566,102 @@ function drawEvolutionView() {
     return;
   }
 
-  // ✅ AJOUTER : Dessiner le fond d'abord
-  background(10, 8, 11); // Fond par défaut si pas d'image
+  if (morphVideo) {
+    morphVideo.style.display = "block";
 
-  if (backgroundImages[currentBackgroundCluster]) {
-    imageMode(CORNER);
-    image(backgroundImages[currentBackgroundCluster], 0, 0, width, height);
+    if (
+      !window.lastMorphPlayed ||
+      window.lastMorphPlayed !== evolutionTrack.title
+    ) {
+      const stage = getAvatarStage();
+      playMorphVideo(stage);
+      window.lastMorphPlayed = evolutionTrack.title;
+    }
   }
 
-  // ✅ CORRIGER : Réinitialiser les paramètres de texte
-  colorMode(HSB, 360, 100, 100, 100); // S'assurer qu'on est en HSB
-  textFont(manropeFont || 'Arial'); // Police par défaut si manropeFont n'existe pas
-  textAlign(CENTER, TOP); // ✅ Changer TOP au lieu de CENTER pour éviter les conflits
+  background(10, 8, 11);
+
+  push();
+
+  colorMode(HSB, 360, 100, 100, 100);
+  textSize(isMobile ? 26 : 20);
+  textFont("sans-serif");
+  textAlign(CENTER, CENTER); // ✅ CHANGER : CENTER pour vraiment centrer
   textWrap(WORD);
-  
-  let maxTextWidth = isMobile ? width * 0.85 : width * 0.6;
-  let x = width / 2; // ✅ SIMPLIFIER : centrer directement
-  let y = height / 2 - (isMobile ? 100 : 80); // ✅ Position de départ plus haute
-  let spacing = isMobile ? 60 : 40;
+  noStroke();
+
+  let x = width / 2; // ✅ Position X centrée
+  let y = height / 2 - (isMobile ? -10 : 150);
+  let spacing = isMobile ? 90 : 50;
+
+  if (typeof evolutionPoints === "undefined") {
+    evolutionPoints = 0;
+  }
 
   // 🎯 Points
   textSize(isMobile ? 46 : 24);
-  fill(evolutionPoints >= 0 ? color(120, 100, 100) : color(0, 100, 100));
+  if (evolutionPoints >= 0) {
+    fill(120, 100, 100);
+  } else {
+    fill(0, 100, 100);
+  }
+
+  // ✅ CORRIGER : Enlever la largeur pour un vrai centrage
   text(
     `${evolutionPoints >= 0 ? "+" : ""}${evolutionPoints} points ${
       evolutionPoints >= 0 ? "🎉" : "😞"
     }`,
-    x, y, maxTextWidth
+    x,
+    y
   );
   y += spacing;
 
   // 🎵 Titre
   textSize(isMobile ? 36 : 20);
   fill(0, 0, 100);
-  text(`Tu as ajouté : ${evolutionTrack.title || "—"}`, x, y, maxTextWidth);
+  text(`Tu as ajouté : ${evolutionTrack.title || "—"}`, x, y);
   y += spacing;
 
   // 🎧 Genre
   if (evolutionTrack.genre) {
     textSize(isMobile ? 32 : 18);
     fill(0, 0, 90);
-    text(`🎧 Genre débloqué : ${evolutionTrack.genre}`, x, y, maxTextWidth);
+    text(`🎧 Genre débloqué : ${evolutionTrack.genre}`, x, y);
     y += spacing;
   }
 
-  // 💬 Commentaires
-  let dominantCluster = getMostCommonCluster(playerCollection);
-  let evolutionComments = getEvolutionComment(evolutionTrack, dominantCluster);
+  // 💬 Commentaires - ✅ CORRIGER : Si texte long, utiliser LEFT + calcul manuel
+  if (
+    typeof getMostCommonCluster === "function" &&
+    typeof getEvolutionComment === "function"
+  ) {
+    let dominantCluster = getMostCommonCluster(playerCollection);
+    let evolutionComments = getEvolutionComment(
+      evolutionTrack,
+      dominantCluster
+    );
 
-  textSize(isMobile ? 26 : 16);
-  fill(0, 0, 80);
-  for (let comment of evolutionComments) {
-    text(comment, x, y, maxTextWidth);
-    y += spacing * 0.9;
+    textSize(isMobile ? 36 : 16);
+    fill(0, 0, 80);
+
+    if (evolutionComments && evolutionComments.length > 0) {
+      for (let comment of evolutionComments) {
+        // ✅ SOLUTION : Si le commentaire est court, centrer. Si long, utiliser LEFT
+        if (comment.length < 50) {
+          textAlign(CENTER, CENTER);
+          text(comment, x, y);
+        } else {
+          textAlign(LEFT, CENTER);
+          let maxTextWidth = isMobile ? width * 0.85 : width * 0.6;
+          let textX = width / 2 - maxTextWidth / 2;
+          text(comment, textX, y, maxTextWidth);
+        }
+        y += spacing;
+      }
+    }
   }
+
+  pop();
 
   // ✅ Bouton
   let btnW = isMobile ? 320 : 250;
@@ -639,7 +671,6 @@ function drawEvolutionView() {
 
   drawButton("Continuer", btnX, btnY, btnW, btnH);
 
-  // ✅ CORRIGER : Réinitialiser blobHitZones
   if (!blobHitZones) blobHitZones = [];
   blobHitZones.push({
     type: "continueExploration",
@@ -648,16 +679,7 @@ function drawEvolutionView() {
     w: btnW,
     h: btnH,
   });
-
-  // ✅ DEBUG : Vérifier les variables
-  console.log("🔍 DEBUG drawEvolutionView:", {
-    evolutionTrack: evolutionTrack ? evolutionTrack.title : "undefined",
-    evolutionPoints,
-    currentBackgroundCluster,
-    hasBackground: !!backgroundImages[currentBackgroundCluster]
-  });
 }
-
 function drawCollectionView() {
   blobHitZones = [];
   background(10, 0, 0);
@@ -743,10 +765,19 @@ function drawCollectionView() {
       let blobX = leftMargin + blobSize / 2;
       let blobY = y + blobSize / 2;
 
-      // 🎨 Dessin du blob
+      // 🎨 Dessin du blob avec illumination si sélectionné
       push();
       translate(blobX, blobY);
-      drawTrackBlob(track, 0, 0, blobSize, 0);
+
+      // ✅ CORRIGER : Garder la forme originale, juste changer l'illumination
+      let isSelectedTrack =
+        selectedTrack && selectedTrack.title === track.title;
+
+      // ✅ MODIFICATION : Utiliser un paramètre pour contrôler seulement l'illumination
+      drawTrackBlob(track, 0, 0, blobSize, 0, false, true, false); // ✅ Dernier paramètre à false
+
+      // ✅ AJOUTER : Effet d'illumination personnalisé si sélectionné
+
       pop();
 
       // 🎯 Zone clic
@@ -755,7 +786,7 @@ function drawCollectionView() {
         y: blobY,
         r: blobSize / 2,
         track: track,
-        type: "blob",
+        type: "collectionPlay",
       });
 
       // 🎵 Texte à droite
@@ -931,7 +962,7 @@ function drawGameSelectorView() {
   let options = [
     { label: "Feel the Beat", type: "tempo" },
     { label: "GenreGuesser", type: "genre" },
-    { label: "Popular or Not", type: "visual_match" },
+    { label: "Pop’ Or Not", type: "visual_match" },
   ];
 
   let btnW = isMobile ? width * 0.85 : 300;

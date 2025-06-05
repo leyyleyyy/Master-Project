@@ -36,7 +36,7 @@ let playerCollection = [];
 let pointFeedbacks = [];
 let miniGameAudioPlayed = false;
 
-let mode = "exploration"; // "exploration", "collection", "minigame", "avatar", "onboarding", "gameSelector", postMiniGameWin, "challengeIntro"
+let mode = "gameSelector"; // "exploration", "collection", "minigame", "avatar", "onboarding", "gameSelector", postMiniGameWin, "challengeIntro"
 let currentMiniGameTrack = null;
 let miniGameOptions = [];
 let miniGameAnswer = null;
