@@ -695,26 +695,10 @@ function touchMoved() {
     return false;
   }
 
-  // ✅ NOUVEAU : Avatar avec zoom/scroll
+  // ✅ MODIFIÉ : Avatar sans zoom, seulement scroll
   if (mode === "avatar") {
-    if (touches.length >= 2) {
-      // Zoom avec deux doigts
-      let currentDistance = dist(
-        touches[0].x,
-        touches[0].y,
-        touches[1].x,
-        touches[1].y
-      );
-
-      if (lastTouchDistance > 0) {
-        let scale = currentDistance / lastTouchDistance;
-        handleAvatarPinchZoom(scale);
-      }
-
-      lastTouchDistance = currentDistance;
-      return false;
-    } else if (touches.length === 1) {
-      // Scroll avec un doigt
+    if (touches.length === 1) {
+      // Scroll avec un doigt seulement
       if (
         typeof lastTouchX !== "undefined" &&
         typeof lastTouchY !== "undefined"
