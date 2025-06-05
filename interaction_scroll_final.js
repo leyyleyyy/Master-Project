@@ -126,7 +126,7 @@ function mousePressed() {
             // 🎉 Aller à la page de déblocage
             localStorage.removeItem("btm_justUnlockedStream"); // Nettoyer le flag
             localStorage.setItem("btm_firstStreamUnlock", "true"); // Marquer comme vu
-            mode = "exploration";
+            mode = "gameSelector";
             console.log("On explore !");
           } else {
             // 📱 Retour normal au sélecteur de jeux
@@ -687,14 +687,50 @@ function touchMoved() {
 }
 */
 function touchMoved() {
-  // 🔥 AJOUTER : Gestion du scroll tactile pour la collection
+  // Collection scroll (existant)
   if (mode === "collection") {
     let deltaY = (window.touchStartY || mouseY) - mouseY;
-    handleCollectionScroll(deltaY / 10); // Divise pour un scroll plus doux
+    handleCollectionScroll(deltaY / 10);
     window.touchStartY = mouseY;
     return false;
   }
 
+  // ✅ NOUVEAU : Avatar avec zoom/scroll
+  if (mode === "avatar") {
+    if (touches.length >= 2) {
+      // Zoom avec deux doigts
+      let currentDistance = dist(
+        touches[0].x,
+        touches[0].y,
+        touches[1].x,
+        touches[1].y
+      );
+
+      if (lastTouchDistance > 0) {
+        let scale = currentDistance / lastTouchDistance;
+        handleAvatarPinchZoom(scale);
+      }
+
+      lastTouchDistance = currentDistance;
+      return false;
+    } else if (touches.length === 1) {
+      // Scroll avec un doigt
+      if (
+        typeof lastTouchX !== "undefined" &&
+        typeof lastTouchY !== "undefined"
+      ) {
+        let deltaX = touches[0].x - lastTouchX;
+        let deltaY = touches[0].y - lastTouchY;
+        handleAvatarDrag(deltaX, deltaY);
+      }
+
+      lastTouchX = touches[0].x;
+      lastTouchY = touches[0].y;
+      return false;
+    }
+  }
+
+  // Ancien code pour autres modes
   if (mode === "avatar" && !canScrollAvatar) return false;
 
   if (isDragging && lastTouch) {

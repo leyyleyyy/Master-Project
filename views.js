@@ -1,3 +1,13 @@
+if (typeof window.avatarZoom === "undefined") {
+  window.avatarZoom = 1.0;
+  window.minZoom = 0.5;
+  window.maxZoom = 2.5;
+}
+
+// Variables pour gérer les touches
+let lastTouchDistance = 0;
+let lastTouchX, lastTouchY;
+
 function drawButton(label, x, y, w, h, isActive = true) {
   let radius = isMobile ? 50 : 12; // Increased from 18 to 22
   let fontSize = isMobile ? 95 : 16; // Increased from 26 to 28
@@ -917,10 +927,12 @@ function drawAvatarView() {
   // 🎨 DESSIN
   push();
   translate(scrollXOffset, scrollYOffset);
+  scale(window.avatarZoom); // ✅ AJOUTER cette ligne
 
   let screenMin = min(windowWidth, windowHeight);
   let blobSize = isMobile ? min(screenMin * 0.45, 240) : 80;
 
+  // ✅ MODIFIER : Ne pas ajouter de zones cliquables pour les blobs
   for (let blob of window.genreBlobs) {
     const isUnlocked =
       genreUnlocked.includes(blob.genre) ||
@@ -932,17 +944,19 @@ function drawAvatarView() {
     if (isUnlocked) {
       fill(0, 0, 100);
       textAlign(CENTER);
-      textFont(manropeFont); // ✅ CHANGER : utiliser Manrope au lieu de la police par défaut
-      textSize(isMobile ? 42 : 18); // ✅ AGRANDIR : de 32→42 (mobile) et 14→18 (desktop)
-      textStyle(BOLD); // ✅ AJOUTER : mettre en gras pour plus de visibilité
+      textFont(manropeFont);
+      textSize(isMobile ? 42 : 18);
+      textStyle(BOLD);
       text(blob.genre, pos.x, pos.y + blobSize / 2 + 20);
-      textStyle(NORMAL); // ✅ REMETTRE : style normal après
+      textStyle(NORMAL);
     }
   }
 
-  pop(); // 🔁 important : drawButtonBis doit être en dehors du translate()/*
-}
+  pop();
 
+  // ✅ AJOUTER : Initialiser blobHitZones vide pour éviter les clics parasites
+  blobHitZones = [];
+}
 function drawGameSelectorView() {
   imageMode(CORNER);
   image(minigameBackground, 0, 0, width, height);
@@ -1268,6 +1282,34 @@ function handleCollectionScroll(deltaY) {
 
   window.collectionScrollY -= deltaY * scrollSpeed;
   window.collectionScrollY = constrain(window.collectionScrollY, -maxScroll, 0);
+
+  redraw();
+  return true;
+}
+
+// ✅ AJOUTER ces nouvelles fonctions
+function handleAvatarPinchZoom(scale) {
+  if (mode !== "avatar") return false;
+
+  let oldZoom = window.avatarZoom;
+  window.avatarZoom = constrain(
+    window.avatarZoom * scale,
+    window.minZoom,
+    window.maxZoom
+  );
+
+  if (window.avatarZoom !== oldZoom) {
+    redraw();
+  }
+
+  return true;
+}
+
+function handleAvatarDrag(deltaX, deltaY) {
+  if (mode !== "avatar") return false;
+
+  scrollXOffset += deltaX;
+  scrollYOffset += deltaY;
 
   redraw();
   return true;
