@@ -26,7 +26,7 @@
     <script src="views.js" defer></script>
     <script src="interaction_scroll_final.js" defer></script>
     <script src="onboarding.js" defer></script>
-    <script src="sketch.js" defer></script>
+    <script src="sketch_updated.js" defer></script>
     <link rel="stylesheet" href="style.css" />
 
 </head>
@@ -42,22 +42,24 @@
 
 
     <div id="container">
-        <div id="burgerMenuToggle">☰</div>
-        <div id="burgerMenu">
-            <button class="menu-btn" data-mode="avatar">Genre map</button>
-            <button class="menu-btn" data-mode="collection">Collection</button>
-            <button class="menu-btn" data-mode="minigame">Mini-jeu</button>
+        <div id="topNav">
+            <button class="nav-btn" data-mode="avatar">Genre map</button>
+            <button class="nav-btn" data-mode="gameSelector">Jeux</button>
+            <button class="nav-btn" data-mode="collection">Collection</button>
         </div>
+        <button id="streamButton" class="nav-btn stream-btn" data-mode="exploration">
+            <span class="lock-icon">🔒 </span>Digin' the Stream
+        </button>
 
-        <!-- SHUFFLE -->
+        <!-- SHUFFLE 
         <div id="shuffleBtn" class="button-icon" style="background-image:
       linear-gradient(145deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0)),
       url('assets/shuffle.png');"></div>
-        <div id="shuffleTooltip">Jouer pour découvrir un nouveau genre</div>
+        <div id="shuffleTooltip">Joue pour débloquer des genres de musique</div>
         <div id="pageTitleContainer">
-            <h1 id="pageTitle">Ma Collection</h1>
-            <p id="pageSubtitle">Tu peux rejouer les sons ou en débloquer !</p>
-        </div>
+            <h1 id="pageTitle">Ma Collection</h1>-->
+        <p id="pageSubtitle">Tu peux rejouer les sons ou en débloquer !</p>
+    </div>
 
     </div>
     <div id="mapCarousel"></div>

@@ -8,13 +8,35 @@ let audioPlayers = {};
 let currentAudio = null;
 let scrollXOffset = 0;
 let scrollYOffset = 0;
+
+// ✅ Ajouter ces variables pour le système de scroll
+let scrollRangeX = 2000;
+let scrollRangeY = 1500;
+let scrollSpeed = 5;
 let allBlobs = [];
-let playerScore = 0;
+let playerScore = 0; // ← Cette ligne existe déjà
+
+// Ajouter cette fonction pour charger le score
+function loadPlayerScore() {
+  try {
+    let storedScore = localStorage.getItem("btm_score");
+    if (storedScore !== null) {
+      playerScore = parseInt(storedScore) || 0;
+      console.log("📊 Score chargé depuis localStorage:", playerScore);
+    } else {
+      console.log("📊 Nouveau joueur, score initialisé à 0");
+    }
+  } catch (e) {
+    console.warn("Erreur lecture localStorage score", e);
+    playerScore = 0;
+  }
+}
+
 let playerCollection = [];
 let pointFeedbacks = [];
 let miniGameAudioPlayed = false;
 
-let mode = "collection"; // "exploration", "collection", "minigame", "avatar", "onboarding", "gameSelector", postMiniGameWin, "challengeIntro"
+let mode = "exploration"; // "exploration", "collection", "minigame", "avatar", "onboarding", "gameSelector", postMiniGameWin, "challengeIntro"
 let currentMiniGameTrack = null;
 let miniGameOptions = [];
 let miniGameAnswer = null;
@@ -33,7 +55,7 @@ let showPostMiniGameMessage = false;
 let postWinDiv = null;
 window.showPostMiniGameMessage = showPostMiniGameMessage; // pour l’exposer au script
 
-let maxLives = 5;
+let maxLives = 3;
 let currentLives = maxLives;
 
 let evolutionTrack = null;
@@ -51,9 +73,40 @@ let lastMiniGameTrack = null;
 
 //Background
 let currentBackgroundCluster = "Autres"; // par défaut
-
+/*
 function updateBackgroundClusterFromGenre(genre) {
   currentBackgroundCluster = getGenreCluster(genre);
+}
+*/
+const BACKGROUND_BY_GENRE = {
+  "rose.jpg": [
+    "Urban pop",
+    "Social media pop",
+    "House mélodique",
+    "Métal",
+    "Rap arab",
+    "New wave",
+    "Classique",
+    "Raggaeton",
+  ],
+  "orange.jpg": ["Pop", "Latin pop", "Drill français"],
+  "vert.jpg": ["Rap français", "Hip-Hop", "Música popular brasileira", "Metal"],
+  "violet.jpg": [
+    "Indie",
+    "Metal balear",
+    "Slowed and reverb",
+    "Alternativ pop",
+  ],
+};
+
+function updateBackgroundClusterFromGenre(genre) {
+  for (let bg in BACKGROUND_BY_GENRE) {
+    if (BACKGROUND_BY_GENRE[bg].includes(genre)) {
+      currentBackgroundCluster = bg;
+      return;
+    }
+  }
+  currentBackgroundCluster = "rose.jpg"; // si genre inconnu
 }
 
 const DATA_KEYS = [
@@ -149,6 +202,27 @@ function getClusterNameForGenre(genre) {
     }
   }
   return "Autres";
+}
+function getMostCommonCluster(collection) {
+  const clusterCounts = {};
+
+  for (let track of collection) {
+    if (!track || !track.genre) continue; // ✅ Sécurisation
+
+    let clusterFound = null;
+    for (let cluster in GENRE_CLUSTERS) {
+      if (GENRE_CLUSTERS[cluster].includes(track.genre)) {
+        clusterFound = cluster;
+        break;
+      }
+    }
+
+    if (!clusterFound) continue;
+    clusterCounts[clusterFound] = (clusterCounts[clusterFound] || 0) + 1;
+  }
+
+  const sorted = Object.entries(clusterCounts).sort((a, b) => b[1] - a[1]);
+  return sorted.length > 0 ? sorted[0][0] : null;
 }
 /*
 function getGenreClusterPoints(track) {
@@ -263,10 +337,10 @@ function goToNextMap() {
 }
 function getAvatarStage() {
   let count = playerCollection.length;
-  if (count <= 2) return "evolution1";
-  if (count <= 6) return "evolution1.2";
-  if (count <= 12) return "evolution2";
-  return "confort";
+  if (count <= 1) return "2";
+  if (count <= 2) return "4";
+  if (count <= 3) return "6";
+  return "1";
 }
 
 function getMorphingStage() {
@@ -285,6 +359,7 @@ function getGameStage() {
   return "expert";
 }
 
+/*
 function updateAvatarGif() {
   let avatar = document.getElementById("avatar");
   if (!avatar || typeof mode === "undefined") return;
@@ -315,6 +390,7 @@ function updateAvatarGif() {
     avatar.style.width = "100px";
   }
 */
+/*
   if (mode !== "collection") {
     avatar.classList.remove("avatar-collection");
     avatar.style.position = "fixed";
@@ -328,6 +404,28 @@ function updateAvatarGif() {
   let stage = getAvatarStage();
   if (!avatar.src.includes(stage)) {
     avatar.src = `totems/${stage}.gif`;
+  }
+}
+*/
+function updateAvatarGif() {
+  const morphVideo = document.getElementById("morphVideo");
+  if (!morphVideo) return;
+
+  if (mode === "onboarding") {
+    morphVideo.style.display = "none";
+    return;
+  }
+
+  morphVideo.style.display = ["collection", "evolution"].includes(mode)
+    ? "block"
+    : "none";
+
+  const stage = getAvatarStage(); // basé sur playerCollection.length
+
+  if (!morphVideo.src.includes(stage)) {
+    morphVideo.src = `videos/${stage}.mp4`;
+    morphVideo.load();
+    morphVideo.play();
   }
 }
 
@@ -445,150 +543,97 @@ function getGenreStats() {
 }
 */
 function pickRandomTrackFromCollection() {
-  if (playerCollection.length === 0) {
-    console.warn("🎧 Collection vide, on prend un morceau de tracksData");
+  // Pour garder la compatibilité, mais maintenant utilise toutes les musiques
+  return pickRandomTrackFromAllTracks();
+}
+
+// Ajouter cette nouvelle fonction après pickRandomTrackFromCollection()
+function pickRandomTrackFromAllTracks() {
+  // Si tracksData existe, l'utiliser directement
+  if (typeof tracksData !== "undefined" && tracksData.length > 0) {
     return random(tracksData);
   }
-  return random(playerCollection);
+
+  // Sinon, prendre de toutes les cartes
+  let allTracks = [];
+  for (let map of maps) {
+    allTracks = allTracks.concat(map.tracks);
+  }
+
+  if (allTracks.length > 0) {
+    return random(allTracks);
+  }
+
+  console.warn("⚠️ Aucune musique disponible");
+  return null;
 }
 
-function getMostCommonCluster(collection) {
-  const clusterCounts = {};
-
-  for (let track of collection) {
-    if (!track || !track.genre) continue; // ✅ Sécurisation
-
-    let clusterFound = null;
-    for (let cluster in GENRE_CLUSTERS) {
-      if (GENRE_CLUSTERS[cluster].includes(track.genre)) {
-        clusterFound = cluster;
-        break;
-      }
-    }
-
-    if (!clusterFound) continue;
-    clusterCounts[clusterFound] = (clusterCounts[clusterFound] || 0) + 1;
-  }
-
-  const sorted = Object.entries(clusterCounts).sort((a, b) => b[1] - a[1]);
-  return sorted.length > 0 ? sorted[0][0] : null;
-}
-
-function playCurrentTrack() {
-  if (!currentMiniGameTrack) return;
-
-  const audio = audioPlayers[currentMiniGameTrack.title];
-  if (!audio) {
-    console.log("🚫 Aucun audio trouvé pour :", currentMiniGameTrack.title);
-    return;
-  }
-
-  console.log("🎵 trying to play:", currentMiniGameTrack.title);
-  console.log("🔍 audio loaded =", audio.isLoaded());
-
-  if (audio.isLoaded()) {
-    if (currentAudio && currentAudio.isPlaying()) {
-      currentAudio.stop();
-    }
-    audio.play();
-    currentAudio = audio;
-    console.log("▶️ Lecture :", currentMiniGameTrack.title);
-  } else {
-    console.log("⚠️ Audio non prêt pour :", currentMiniGameTrack.title);
-  }
-  if (!miniGameAudioPlayed) {
-    audio.play();
-    currentAudio = audio;
-    miniGameAudioPlayed = true;
-  }
-}
-
-const scrollRangeX = 3000;
-const scrollRangeY = 3000;
-
-function assignScatteredPositions(tracks) {
-  const blobSize = isMobile ? 220 : 90;
-  const spacing = blobSize * 1.4;
-  const padding = 150;
-
-  const cols = floor(scrollRangeX / spacing);
-  const rows = floor(scrollRangeY / spacing);
-
-  let positions = [];
-
-  for (let r = 0; r < rows; r++) {
-    for (let c = 0; c < cols; c++) {
-      let x = -scrollRangeX / 2 + c * spacing + padding;
-      let y = -scrollRangeY / 2 + r * spacing + padding;
-
-      // Décalage pour casser la grille parfaite
-      if (r % 2 === 0) x += spacing / 2;
-      positions.push({ x, y });
-    }
-  }
-
-  shuffle(positions, true); // P5.js shuffle to randomize layout
-
-  for (let i = 0; i < tracks.length; i++) {
-    tracks[i].pos = positions[i % positions.length];
-  }
-}
-
-function groupCollectionByCluster() {
-  const grouped = {};
-
-  for (let track of playerCollection) {
-    let cluster = getClusterNameForGenre(track.genre);
-    if (!grouped[cluster]) grouped[cluster] = [];
-    grouped[cluster].push(track);
-  }
-
-  return grouped;
-}
-function relaxBlobPositions(blobs, minDist = 100, iterations = 3) {
-  for (let iter = 0; iter < iterations; iter++) {
-    for (let i = 0; i < blobs.length; i++) {
-      for (let j = i + 1; j < blobs.length; j++) {
-        let a = blobs[i].pos;
-        let b = blobs[j].pos;
-        let d = dist(a.x, a.y, b.x, b.y);
-        if (d < minDist && d > 0.01) {
-          let overlap = (minDist - d) / 2;
-          let dx = (a.x - b.x) / d;
-          let dy = (a.y - b.y) / d;
-          a.x += dx * overlap;
-          a.y += dy * overlap;
-          b.x -= dx * overlap;
-          b.y -= dy * overlap;
-        }
-      }
-    }
-  }
-}
-
-function groupBlobsByCluster(blobs) {
-  const clusters = {};
-  for (let blob of blobs) {
-    const cluster = getClusterNameForGenre(blob.genre);
-    if (!clusters[cluster]) clusters[cluster] = [];
-    clusters[cluster].push(blob);
-  }
-  return clusters;
-}
-
-function relaxBlobPositionsInClusters(blobs, minDist = 130) {
-  const clusters = groupBlobsByCluster(blobs);
-  for (let clusterName in clusters) {
-    relaxBlobPositions(clusters[clusterName], minDist, 3);
-  }
-}
-
-let challengeProgress = 0;
-let challengeMax = 3;
-
+// Modifier cette fonction (ligne 645)
 function launchNextChallengeGame() {
-  currentMiniGameTrack = pickRandomTrackFromCollection();
+  currentMiniGameTrack = pickRandomTrackFromAllTracks(); // ← Changé ici
   currentMiniGameType = random(["tempo", "genre", "visual_match"]);
   generateMiniGame(currentMiniGameTrack);
   mode = "minigame";
+}
+
+// Ajouter ces nouvelles variables après les autres variables du mini-jeu
+let miniGameAttempts = 0; // Compteur d'essais pour le mini-jeu actuel
+
+// Remplacer ou ajouter cette fonction
+function getMiniGamePoints(attempts) {
+  let points = 0;
+
+  // Points basés sur le nombre d'essais
+  switch (attempts) {
+    case 1:
+      points = 3; // Bonne réponse du premier coup
+      break;
+    case 2:
+      points = 1; // Bonne réponse au deuxième essai
+      break;
+    default:
+      points = 0; // 3 essais ou plus = pas de points
+      break;
+  }
+
+  return points;
+}
+
+// Ajouter cette variable après les autres variables
+let firstMiniGameWon = false; // Pour tracker si on a gagné au moins un mini-jeu
+
+function assignScatteredPositions(tracks) {
+  if (!tracks || tracks.length === 0) return;
+
+  console.log(`📍 Attribution de positions pour ${tracks.length} morceaux`);
+
+  // 🎯 Approche grille avec randomness - ESPACEMENT AUGMENTÉ
+  const gridSize = Math.ceil(Math.sqrt(tracks.length));
+  const spacing = 400; // ← Augmenté de 300 à 400
+  const randomOffset = 120; // ← Augmenté de 80 à 120 pour plus de variation
+
+  for (let i = 0; i < tracks.length; i++) {
+    let track = tracks[i];
+
+    // Position de base en grille
+    let row = Math.floor(i / gridSize);
+    let col = i % gridSize;
+
+    // Centrer la grille
+    let startX = (-(gridSize - 1) * spacing) / 2;
+    let startY = (-(gridSize - 1) * spacing) / 2;
+
+    let baseX = startX + col * spacing;
+    let baseY = startY + row * spacing;
+
+    // Ajouter de la variation aléatoire
+    let offsetX = random(-randomOffset, randomOffset);
+    let offsetY = random(-randomOffset, randomOffset);
+
+    track.pos = createVector(baseX + offsetX, baseY + offsetY);
+  }
+
+  console.log(
+    `✅ ${tracks.length} positions assignées en grille dispersée avec espacement ${spacing}px`
+  );
 }

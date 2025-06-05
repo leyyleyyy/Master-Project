@@ -33,9 +33,10 @@ body {
   transform: scale(1.08);
   box-shadow: 0 0 12px rgba(255, 255, 255, 0.4);
 }
+
 #pageTitleContainer {
   position: absolute;
-  top: 150px; /* Ajuste en fonction de ton design */
+  top: 220px; /* Ajuste en fonction de ton design */
   left: 50%;
   transform: translateX(-50%);
   text-align: center;
@@ -46,7 +47,7 @@ body {
 
 #pageTitle {
   font-family: 'Banana', sans-serif;
-  font-size: 80px; /* 💥 plus grand que p5.js */
+  font-size: 80px; 
   color: white;
   margin: 0;
   display: none; /* visible uniquement en mode actif */
@@ -160,9 +161,9 @@ canvas {
 }
 #genreProgress {
   position: absolute;
-  bottom: 30px;
+  top: 90%; /* Changed from bottom to center vertically */
   left: 50%;
-  transform: translateX(-50%);
+  transform: translate(-50%, -50%); /* Now centers both horizontally and vertically */
   width: 80%;
   text-align: center;
   z-index: 10;
@@ -171,35 +172,35 @@ canvas {
 
 #progressBarContainer {
   width: 100%;
-  height: 20px;
+  height: 40px; /* Increased from 20px to 40px */
   background-color: rgba(255, 255, 255, 0.15);
-  border-radius: 6px;
+  border-radius: 10px; /* Increased to match the taller height */
   overflow: hidden;
-  margin-bottom: 6px;
+  margin-bottom: 8px; /* Slightly increased margin */
 }
 
 #progressBar {
   height: 100%;
   width: 0%;
   background-color: white;
-  border-radius: 6px;
+  border-radius: 10px; /* Matching the container */
   transition: width 0.4s ease;
 }
 
 #progressText {
   font-family: 'Manrope', sans-serif;
-  font-size: 24px;
+  font-size: 44px;
   color: white;
-  margin: 0;
+  margin: 20;
 }
 
 #shuffleTooltip {
   position: absolute;
-  top: 50%;
+  top: 30%;
   left: 50%;
   transform: translate(-50%, 0px); /* plus proche */
   font-family: 'Manrope', sans-serif;
-  font-size: 32px;
+  font-size: 38px;
   color: white;         /* blanc pur */
   padding: 0;           /* aucun fond, aucune bordure */
   opacity: 0;
@@ -310,32 +311,34 @@ canvas {
 
 #mapCarousel {
   position: fixed; /* reste visible même si on scroll */
-  top: 60px; /* position verticale ajustée */
-  left: 0;
-  right: 0;
+  top: 160px; /* position verticale ajustée */
+  left: 50%;
+  transform: translateX(-50%);
   display: flex;
   flex-direction: row;
-  gap: 12px;
+  gap: 20px;
   padding: 10px 20px;
   overflow-x: auto; /* ✅ active le scroll horizontal */
   overflow-y: hidden;
   white-space: nowrap; /* ✅ évite les retours à la ligne */
   scroll-behavior: smooth; /* pour un scroll fluide */
   scrollbar-width: none; /* ❌ cache la scrollbar sur Firefox */
-  max-width: 100vw; /* ✅ évite les débordements */
+  max-width: 90vw; /* ✅ évite les débordements */
   box-sizing: border-box; /* pour un padding cohérent */
   z-index: 1000;
+
   -webkit-overflow-scrolling: touch; /* ✅ essentiel pour iOS */
   touch-action: pan-x; 
+    justify-content: center;
 }
 
 
 
 .map-carousel-btn {
   flex: 0 0 auto; /* ✅ indispensable pour que ça scroll */
-  padding: 12px 20px;
-  font-size: 26px;
-  border-radius: 30px;
+  padding: 30px 30px;
+  font-size: 30px;
+  border-radius: 50px;
   background-color: rgba(255, 255, 255, 0.15);
   color: white;
   border: none;
@@ -351,7 +354,7 @@ canvas {
 }
 
 .map-carousel-btn:disabled {
-  opacity: 0.4;
+  opacity: 0.8;
   cursor: default;
 }
 
@@ -394,12 +397,168 @@ canvas {
 
 #morphVideo {
   position: absolute;
-  top: 50%;
+  top: 60%;
   left: 50%;
   transform: translate(-50%, -50%); /* 🧨 centrage parfait */
   width: 520px;
   object-fit: contain;
   display: none;
+}
+
+
+#topNav {
+  position: fixed;
+  top: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
+  display: flex;
+  gap: 20px;
+    pointer-events: auto;
+
+}
+
+.nav-btn {
+  font-family: 'Manrope', sans-serif;
+  font-size: 30px; 
+  padding: 20px 90px; 
+  background-color: rgba(0, 0, 10);
+  color: white;
+  border: 2px solid transparent;  border-radius: 62px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;           
+  display: flex;                
+  align-items: center;          /* Center vertically */
+  justify-content: center;      /* Center horizontally */
+  backdrop-filter: blur(8px);
+  box-shadow: 0 0 25px hsla(270, 100%, 55%, 0.8);
+}
+.nav-btn:hover {
+  background-color: rgba(255, 255, 255, 0.15);
+  transform: scale(1.05);
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.2);
+}
+
+.nav-btn.active{
+  border-color: hsl(270, 100%, 75%); /* violet clair */
+  font-weight: bold;
+  box-shadow: 0 0 12px hsla(270, 100%, 75%, 0.8);
+  transform: scale(1.1);
+}
+
+/* Animation d'illumination pour le bouton Collection */
+.nav-btn.collection-highlight {
+  animation: collectionPulse 2s infinite;
+  border-color: hsl(50, 100%, 70%) !important; /* jaune doré */
+  box-shadow: 0 0 20px hsla(50, 100%, 70%, 0.8) !important;
+}
+
+@keyframes collectionPulse {
+  0%, 100% {
+    box-shadow: 0 0 20px hsla(50, 100%, 70%, 0.8);
+    transform: scale(1.05);
+  }
+  50% {
+    box-shadow: 0 0 30px hsla(50, 100%, 70%, 1);
+    transform: scale(1.1);
+  }
+}
+
+/* ✅ AJOUTER : Animation d'illumination pour le bouton Genre Map */
+.nav-btn.genre-map-highlight {
+  animation: genreMapPulse 2s infinite;
+  border-color: hsl(50, 100%, 70%) !important; /* jaune doré */
+  box-shadow: 0 0 20px hsla(50, 100%, 70%, 0.8) !important;
+}
+
+@keyframes genreMapPulse {
+  0%, 100% {
+    box-shadow: 0 0 20px hsla(50, 100%, 70%, 0.8);
+    transform: scale(1.05);
+  }
+  50% {
+    box-shadow: 0 0 30px hsla(50, 100%, 70%, 1);
+    transform: scale(1.1);
+  }
+}
+
+/* ===== BOUTON STREAM (toute la largeur CENTRÉ) ===== */
+#streamButton {
+  position: fixed;
+  bottom: 80px;
+  left: 50%; /* ✅ Centrage horizontal */
+  transform: translateX(-50%); /* ✅ Centrage parfait */
+  width: 90vw; /* ✅ 90% of viewport width for bigger button */
+  min-height: 120px; /* Added minimum height */
+  z-index: 1000;
+  
+  /* Styles hérités de .nav-btn mais adaptés */
+  padding: 30px 50px; /* Increased padding */
+  background: rgba(255, 255, 255, 0.1);
+  /* border: 2px solid rgba(255, 255, 255, 0.2); /* ✅ Bordure tout autour */
+  border-radius: 80px; /* ✅ Arrondi comme les autres boutons */
+  color: white;
+  font-family: 'Banana', sans-serif;
+  font-size: 80px; /* Increased font size */
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: center;
+  backdrop-filter: blur(8px); /* ✅ Même effet que navigation */
+}
+
+/* État débloqué (même que nav-btn actif) */
+#streamButton.unlocked {
+  /*background: rgba(255, 255, 255, 0.9);
+  color: black;*/
+  border-color: white;
+  font-weight: bold;
+}
+
+#streamButton.unlocked .lock-icon {
+  display: none;
+}
+
+/* État verrouillé */
+#streamButton.locked {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.6);
+  cursor: not-allowed;
+}
+
+/* Hover (avec scale comme les autres boutons) */
+#streamButton.unlocked:hover {
+  background: rgba(255, 255, 255, 1);
+  transform: translateX(-50%) scale(1.05); /* ✅ Scale + centrage */
+  box-shadow: 0 4px 15px rgba(255, 255, 255, 0.3);
+}
+
+/* ✨ Animation d'illumination (avec centrage maintenu) */
+#streamButton.stream-highlight {
+  animation: streamPulseCentered 2s infinite;
+  border-color: hsl(50, 100%, 70%) !important;
+  box-shadow: 0 4px 20px hsla(50, 100%, 70%, 0.8) !important;
+}
+
+@keyframes streamPulseCentered {
+  0%, 100% {
+    box-shadow: 0 4px 20px hsla(50, 100%, 70%, 0.8);
+    transform: translateX(-50%) scale(1.05); /* ✅ Centrage + scale */
+  }
+  50% {
+    box-shadow: 0 8px 30px hsla(50, 100%, 70%, 1);
+    transform: translateX(-50%) scale(1.1); /* ✅ Centrage + scale */
+  }
+}
+
+/* Responsive mobile */
+@media (max-width: 768px) {
+  #streamButton {
+    bottom: 20px; /* ✅ Un peu plus haut sur mobile */
+    width: 90vw; /* ✅ Plus large sur mobile */
+    padding: 25px 20px;
+    font-size: 28px;
+  }
 }
 
 

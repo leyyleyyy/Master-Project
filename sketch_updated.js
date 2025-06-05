@@ -25,8 +25,18 @@ function preload() {
   evolutionBackground = loadImage("assets/evolution_background.png");
   // Image morphing préchargée
   bananaFont = loadFont("fonts/bananasp.ttf");
+  manropeFont = loadFont("fonts/manrope-regular.otf");
+  manropeMedium = loadFont("fonts/manrope-medium.otf");
 
   //Background
+  backgroundImages = {
+    "rose.jpg": loadImage("assets/rose.jpg"),
+    "orange.jpg": loadImage("assets/orange.jpg"),
+    "vert.jpg": loadImage("assets/vert.jpg"),
+    "violet.jpg": loadImage("assets/violet.jpg"),
+    //"default.jpg": loadImage("assets/default.jpg"), // au cas où
+  };
+  /*
   backgroundImages = {
     Pop: loadImage("assets/evolution_background.png"),
     "Hip-Hop": loadImage("assets/yellow_green.png"),
@@ -39,14 +49,42 @@ function preload() {
     Classique: loadImage("assets/rose.png"),
     Hyperpop: loadImage("assets/green.jpg"),
     "Música popular brasileira": loadImage("assets/rose.png"),
-  };
+  };*/
 }
 
 function setup() {
-  createCanvas(windowWidth, windowHeight, P2D); // jamais plus grand que l'écran
+  createCanvas(windowWidth, windowHeight, P2D);
   isMobile = /Mobi|Android/i.test(navigator.userAgent) || windowWidth < 768;
   console.log("📱 isMobile =", isMobile);
-  textFont(bananaFont);
+
+  // Créer les feedbacks
+  for (let i = 0; i < 10; i++) {
+    pointFeedbacks.push({
+      points: 0,
+      x: 0,
+      y: 0,
+      alpha: 0,
+      size: 24,
+    });
+  }
+
+  // 📊 CHARGER LE SCORE EN PREMIER
+  loadPlayerScore();
+
+  // Charger la collection
+  try {
+    let storedCollection = localStorage.getItem("btm_collection");
+    if (storedCollection) {
+      playerCollection = JSON.parse(storedCollection);
+      console.log(
+        "📚 Collection chargée:",
+        playerCollection.length,
+        "morceaux"
+      );
+    }
+  } catch (e) {
+    console.warn("Erreur lecture localStorage collection", e);
+  }
 
   colorMode(HSB, 360, 100, 100, 100);
   noStroke();
@@ -90,6 +128,57 @@ function setup() {
     selectedPendingTrack = null;
     selectedTrack = null;
   }
+
+  // 🔄 RESET pour test - COMMENTER CETTE LIGNE MAINTENANT
+  // localStorage.removeItem("btm_firstWin");
+  // firstMiniGameWon = false;
+  // console.log("🆕 Reset du statut firstMiniGameWon");
+
+  // Charger l'état du premier gain depuis localStorage
+  try {
+    let storedFirstWin = localStorage.getItem("btm_firstWin");
+    if (storedFirstWin === "true") {
+      firstMiniGameWon = true;
+      console.log("✅ Premier mini-jeu déjà gagné précédemment");
+    } else {
+      firstMiniGameWon = false;
+      console.log("🆕 Aucun mini-jeu gagné pour l'instant");
+    }
+  } catch (e) {
+    console.warn("Erreur lecture localStorage firstWin", e);
+    firstMiniGameWon = false;
+  }
+
+  // Initialiser le bouton Stream
+  const streamButton = document.getElementById("streamButton");
+  if (streamButton) {
+    streamButton.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation(); // ✅ IMPORTANT : Empêcher p5.js d'intercepter
+
+      const isUnlocked = playerScore >= 5;
+      console.log("🌊 HTML Stream button clicked, score:", playerScore);
+
+      if (isUnlocked) {
+        // Arrêter l'illumination
+        localStorage.setItem("btm_streamIlluminationSeen", "true");
+        localStorage.removeItem("btm_justUnlockedStream");
+
+        // Lancer le mode Stream (exploration)
+        mode = "exploration";
+        //updateActiveNav();
+        redraw();
+
+        console.log("🎉 Mode Stream lancé → Exploration !");
+      } else {
+        console.log("🔒 Stream verrouillé, score:", playerScore);
+      }
+    });
+
+    console.log("✅ Event listener Stream ajouté");
+  } else {
+    console.error("❌ Bouton Stream introuvable");
+  }
 }
 function updatePageTitle() {
   const title = document.getElementById("pageTitle");
@@ -98,21 +187,21 @@ function updatePageTitle() {
 
   if (mode === "collection") {
     title.innerText = "Ma Collection";
-    subtitle.innerText = "Tu peux rejouer les sons ou en débloquer !";
+    subtitle.innerText = "Ta collection de son !";
     title.style.display = "block";
     subtitle.style.display = "block";
   } else if (mode === "avatar") {
-    title.innerText = "The Digging Map";
+    title.innerText = "The Genre Map";
     subtitle.innerText = "Navigate styles. Discover gems.";
     title.style.display = "block";
     subtitle.style.display = "none";
   } else if (mode === "minigame") {
-    title.innerText = "Mini-jeu";
+    //title.innerText = "Mini-jeu";
     subtitle.innerText = "Ecoute la musique et répond à la question !";
     title.style.display = "block";
     subtitle.style.display = "none";
   } else if (mode === "gameSelector") {
-    title.innerText = "Mini-jeu";
+    title.innerText = "";
     subtitle.innerText = "Choisis ton jeu !";
     title.style.display = "block";
     subtitle.style.display = "none";
@@ -127,34 +216,56 @@ function updatePageTitle() {
   }
 }
 
-function draw() {
-  background(0, 0, 11);
-  const morphVideo = document.getElementById("morphVideo");
-  if (morphVideo) morphVideo.style.display = "none";
+function updateActiveNav() {
+  // Retirer toutes les classes active
+  document.querySelectorAll(".nav-btn").forEach((btn) => {
+    btn.classList.remove("active");
+  });
 
-  let mapCarousel = document.getElementById("mapCarousel");
-  if (mapCarousel) {
-    mapCarousel.style.display = mode === "exploration" ? "block" : "none";
+  // Ajouter la classe active selon le mode actuel
+  let activeButton = null;
+
+  switch (mode) {
+    case "collection":
+      activeButton = document.querySelector('.nav-btn[data-mode="collection"]');
+      break;
+    case "avatar":
+      activeButton = document.querySelector('.nav-btn[data-mode="avatar"]');
+      break;
+    case "exploration":
+      activeButton = document.querySelector(
+        '.nav-btn[data-mode="exploration"]'
+      );
+      break;
+    case "gameSelector":
+      activeButton = document.querySelector(
+        '.nav-btn[data-mode="gameSelector"]'
+      );
+      break;
   }
 
-  if (mode === "exploration") {
-    drawExplorationView();
-  } else if (mode === "collection") {
-    drawCollectionView();
-  } else if (mode === "minigame") {
-    drawMiniGameView();
+  if (activeButton) {
+    activeButton.classList.add("active");
+  }
+}
+
+function draw() {
+  background(10, 8, 11);
+
+  if (mode === "onboarding") {
+    drawOnboardingView();
   } else if (mode === "avatar") {
     drawAvatarView();
-  } else if (mode === "evolution") {
-    drawEvolutionView();
-  } else if (mode === "onboarding") {
-    drawOnboardingView();
-  } else if (mode === "gameSelector") {
-    drawGameSelectorView();
+  } else if (mode === "collection") {
+    drawCollectionView();
+  } else if (mode === "exploration") {
+    drawExplorationView();
+  } else if (mode === "minigame") {
+    drawMiniGameView();
   } else if (mode === "postMiniGameWin") {
     drawPostMiniGameWinView();
-  } else if (mode === "challengeIntro") {
-    drawChallengeIntroView(); // ou le nom de ta vue de challenge
+  } else if (mode === "gameSelector") {
+    drawGameSelectorView();
   }
 
   updateAvatarGif(); // avatar évolue dynamiquement
@@ -259,10 +370,68 @@ function draw() {
   }
   if (mode !== previousMode) {
     previousMode = mode;
+    updateActiveNav(); // ✅ Décommenter cette ligne
+  }
+
+  // ✅ Gestion de la visibilité du bouton Stream
+  const streamButton = document.getElementById("streamButton");
+  if (streamButton) {
+    if (mode === "gameSelector") {
+      streamButton.style.display = "block";
+      // ✅ AJOUTER : Gestion du cadenas dynamique
+      updateStreamButtonLock(streamButton);
+    } else {
+      streamButton.style.display = "none";
+    }
+  }
+
+  // ✅ Gestion de la visibilité des boutons de navigation
+  const topNav = document.getElementById("topNav");
+  if (topNav) {
+    if (mode === "minigame" || mode === "postMiniGameWin") {
+      topNav.style.display = "none";
+    } else {
+      topNav.style.display = "flex";
+    }
+  }
+
+  // ✅ AJOUTER : Gestion de la visibilité du carousel de maps
+  const mapCarousel = document.getElementById("mapCarousel");
+  if (mapCarousel) {
+    if (mode === "exploration") {
+      mapCarousel.style.display = "flex";
+    } else {
+      mapCarousel.style.display = "none";
+    }
   }
 
   updatePageTitle();
 }
+
+// ✅ AJOUTER : Fonction pour gérer le cadenas du bouton Stream
+function updateStreamButtonLock(streamButton) {
+  const isUnlocked = playerScore >= 5;
+  const lockIcon = streamButton.querySelector(".lock-icon");
+
+  if (isUnlocked) {
+    // Enlever le cadenas
+    if (lockIcon) {
+      lockIcon.style.display = "none";
+    }
+    streamButton.classList.add("unlocked");
+    streamButton.classList.remove("locked");
+    streamButton.textContent = "Digin' the Stream"; // Sans cadenas
+  } else {
+    // Afficher le cadenas
+    if (lockIcon) {
+      lockIcon.style.display = "inline";
+    }
+    streamButton.classList.add("locked");
+    streamButton.classList.remove("unlocked");
+    // Le HTML contient déjà le cadenas, pas besoin de le remettre
+  }
+}
+
 function renderMapCarousel() {
   const mapCarousel = document.getElementById("mapCarousel");
   mapCarousel.innerHTML = "";
@@ -298,8 +467,8 @@ window.addEventListener("DOMContentLoaded", () => {
     burgerMenu.style.display =
       burgerMenu.style.display === "flex" ? "none" : "flex";
   }
-  burgerToggle.addEventListener("click", toggleBurgerMenu);
-  burgerToggle.addEventListener("touchstart", toggleBurgerMenu);
+  //burgerToggle.addEventListener("click", toggleBurgerMenu);
+  //burgerToggle.addEventListener("touchstart", toggleBurgerMenu);
 
   // === Navigation via boutons de menu ===
   document.querySelectorAll(".menu-btn").forEach((btn) => {
@@ -377,4 +546,68 @@ window.addEventListener("DOMContentLoaded", () => {
     shuffleBtn.addEventListener("touchstart", handleShuffle);
   }
 });
-window.addEventListener("touchstart", () => {}, { passive: true });
+// ✅ Navigation en haut de l'écran (comme le burger menu)
+document.querySelectorAll(".nav-btn").forEach((btn) => {
+  function handleNavClick(e) {
+    e.preventDefault();
+    const targetMode = btn.dataset.mode;
+
+    // ✅ AJOUTER : Marquer l'illumination Genre Map comme vue
+    if (targetMode === "avatar") {
+      localStorage.setItem("btm_genreMapIlluminationSeen", "true");
+      console.log("✨ Genre Map illumination marquée comme vue");
+    }
+
+    // ✅ OPTIONNEL : Garder l'ancienne logique Collection
+    if (targetMode === "collection") {
+      localStorage.setItem("btm_collectionIlluminationSeen", "true");
+    }
+
+    // Changer le mode
+    mode = targetMode;
+    updateActiveNav(); // ✅ AJOUTER : Mise à jour immédiate
+    redraw();
+  }
+
+  btn.addEventListener("click", handleNavClick);
+  btn.addEventListener("touchstart", handleNavClick);
+});
+
+// Assurez-vous que cette section exclut bien le bouton Stream :
+document.querySelectorAll(".nav-btn").forEach((btn) => {
+  function handleNavClick(e) {
+    e.preventDefault();
+    const targetMode = btn.dataset.mode;
+
+    // Changer le mode
+    mode = targetMode;
+    redraw();
+  }
+
+  btn.addEventListener("click", handleNavClick);
+});
+
+// Et que l'event listener du Stream est bien séparé :
+const streamButton = document.getElementById("streamButton");
+if (streamButton) {
+  streamButton.addEventListener("click", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const isUnlocked = playerScore >= 5;
+    console.log("🌊 HTML Stream button clicked, score:", playerScore);
+
+    if (isUnlocked) {
+      localStorage.setItem("btm_streamIlluminationSeen", "true");
+      localStorage.removeItem("btm_justUnlockedStream");
+
+      mode = "exploration";
+      //updateActiveNav();
+      redraw();
+
+      console.log("🎉 Mode Stream lancé → Exploration !");
+    } else {
+      console.log("🔒 Stream verrouillé, score:", playerScore);
+    }
+  });
+}

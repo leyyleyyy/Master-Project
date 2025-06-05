@@ -1,36 +1,180 @@
 function drawButton(label, x, y, w, h, isActive = true) {
-  let radius = isMobile ? 22 : 12; // Increased from 18 to 22
-  let fontSize = isMobile ? 28 : 16; // Increased from 26 to 28
+  let radius = isMobile ? 50 : 12; // Increased from 18 to 22
+  let fontSize = isMobile ? 95 : 16; // Increased from 26 to 28
 
-  fill(isActive ? color(0, 0, 100) : color(0, 0, 40));
+  fill(0, 0, isActive ? 100 : 100, isActive ? 100 : 10);
   rect(x, y, w, h, radius);
+  textFont(bananaFont);
 
   fill(0, 0, isActive ? 0 : 80);
   textSize(fontSize);
   textAlign(CENTER, CENTER);
   text(label, x + w / 2, y + h / 2);
 }
-
-function drawButtonBis(label, x, y, w, h, isActive = true) {
-  let radius = isMobile ? 22 : 12;
-  let fontSize = isMobile ? 28 : 16;
+function drawButtonGame(label, x, y, w, h, isActive = true) {
+  let radius = isMobile ? 40 : 12;
+  let fontSize = isMobile ? 75 : 16;
+  textFont("sans-serif");
 
   // === Fond noir transparent avec effet "verre" ===
   drawingContext.shadowBlur = isActive ? 12 : 0;
-  drawingContext.shadowColor = color(255, 255, 255, 40); // lueur douce
+  drawingContext.shadowColor = color(255, 255, 255, 40);
 
-  fill(0, 0, 100, isActive ? 10 : 5); // noir quasi transparent (en HSB, 10% opacité)
-  stroke(255, 255, 255, isActive ? 30 : 10); // bordure douce si tu veux
+  fill(0, 0, 100, isActive ? 10 : 5);
+  stroke(255, 255, 255, isActive ? 30 : 10);
   strokeWeight(1);
   rect(x, y, w, h, radius);
 
-  // === Texte blanc ou grisé ===
+  fill(0, 0, 100);
+
   noStroke();
-  fill(0, 0, isActive ? 100 : 60); // blanc ou gris clair
   textSize(fontSize);
   textAlign(CENTER, CENTER);
   textStyle(BOLD);
   text(label, x + w / 2, y + h / 2);
+  textStyle(NORMAL);
+}
+function drawButtonBis(
+  label,
+  x,
+  y,
+  w,
+  h,
+  isActive = true,
+  isStreamUnlocked = false
+) {
+  let radius = isMobile ? 50 : 12;
+  let fontSize = isMobile ? 80 : 16;
+
+  // === Gestion spéciale pour le Stream débloqué ===
+  if (isStreamUnlocked && !label.includes("🔒")) {
+    // ✨ BOUTON BLANC POUR STREAM DÉBLOQUÉ
+    drawingContext.shadowBlur = 15;
+    drawingContext.shadowColor = color(0, 0, 100, 60); // Ombre blanche
+
+    fill(0, 0, 100); // Fond blanc pur
+    noStroke();
+    rect(x, y, w, h, radius);
+
+    // Texte noir
+    fill(0, 0, 0); // Noir pur
+    textSize(fontSize);
+    textAlign(CENTER, CENTER);
+    textStyle(BOLD);
+    textFont(bananaFont);
+    text(label, x + w / 2, y + h / 2);
+    textStyle(NORMAL);
+
+    drawingContext.shadowBlur = 0;
+    return; // Sortir de la fonction
+  }
+
+  // === Fond noir transparent avec effet "verre" (boutons normaux) ===
+  drawingContext.shadowBlur = isActive ? 12 : 0;
+  drawingContext.shadowColor = color(255, 255, 255, 40);
+
+  fill(0, 0, 100, isActive ? 10 : 5);
+  stroke(255, 255, 255, isActive ? 30 : 10);
+  strokeWeight(1);
+  rect(x, y, w, h, radius);
+
+  // === Texte (double police si 🔒 présent)
+  noStroke();
+  textSize(fontSize);
+  textAlign(CENTER, CENTER);
+  textStyle(BOLD);
+  fill(0, 0, 100);
+
+  if (label.includes("🔒")) {
+    let parts = label.split("🔒");
+    let icon = "🔒";
+    let textOnly = parts[1].trim();
+
+    textSize(fontSize);
+
+    // Mesurer les largeurs
+    textFont("sans-serif");
+    let iconWidth = textWidth(icon);
+
+    textFont(bananaFont);
+    let textWidthOnly = textWidth(textOnly);
+
+    let spacing = 20;
+    let totalWidth = iconWidth + spacing + textWidthOnly;
+
+    // Point de départ pour centrer tout
+    let startX = x + w / 2 - totalWidth / 2;
+
+    // Dessin
+    textFont("sans-serif");
+    fill(0, 0, 100);
+    text(icon, startX + iconWidth / 2, y + h / 2);
+
+    textFont(bananaFont);
+    fill(0, 0, 60);
+    text(textOnly, startX + iconWidth + spacing + textWidthOnly / 2, y + h / 2);
+  } else {
+    // === Texte normal
+    textFont(bananaFont);
+    text(label, x + w / 2, y + h / 2);
+  }
+
+  textStyle(NORMAL);
+}
+
+function drawButtonSelector(label, x, y, w, h, isActive = true) {
+  let radius = isMobile ? 50 : 12;
+  let fontSize = isMobile ? 80 : 16;
+
+  // === Fond noir transparent avec effet "verre" ===
+  drawingContext.shadowBlur = isActive ? 12 : 0;
+  drawingContext.shadowColor = color(255, 255, 255, 40);
+
+  fill(0, 0, 100, isActive ? 10 : 5);
+  //stroke(255, 255, 255, isActive ? 30 : 10);
+  //strokeWeight(1);
+  //rect(x, y, w, h, radius);
+
+  // === Texte (double police si 🔒 présent)
+  noStroke();
+  textSize(fontSize);
+  textAlign(CENTER, CENTER);
+  textStyle(BOLD);
+  fill(0, 0, 100);
+  if (label.includes("🔒")) {
+    let parts = label.split("🔒");
+    let icon = "🔒";
+    let textOnly = parts[1].trim();
+
+    textSize(fontSize); // assure la bonne taille pour le calcul
+
+    // Mesurer les largeurs
+    textFont("sans-serif");
+    let iconWidth = textWidth(icon);
+
+    textFont(bananaFont);
+    let textWidthOnly = textWidth(textOnly);
+
+    let spacing = 20; // ← espace entre le cadenas et le texte
+    let totalWidth = iconWidth + spacing + textWidthOnly;
+
+    // Point de départ pour centrer tout
+    let startX = x + w / 2 - totalWidth / 2;
+
+    // Dessin
+    textFont("sans-serif");
+    fill(0, 0, 100);
+    text(icon, startX + iconWidth / 2, y + h / 2);
+
+    textFont(bananaFont);
+    fill(0, 0, 60);
+    text(textOnly, startX + iconWidth + spacing + textWidthOnly / 2, y + h / 2);
+  } else {
+    // === Texte normal
+    textFont(bananaFont);
+    text(label, x + w / 2, y + h / 2);
+  }
+
   textStyle(NORMAL);
 }
 
@@ -70,7 +214,7 @@ function handleMiniGameValidation() {
       challengeStep++;
       if (challengeStep <= 3) {
         currentMiniGameTrack = pickRandomTrackFromDatabase();
-        currentMiniGameType = random(["tempo", "genre"]);
+        currentMiniGameType = random(["tempo", "genre", "visual_match"]);
         generateMiniGame(currentMiniGameTrack);
         mode = "minigame";
       } else {
@@ -97,10 +241,12 @@ function drawExplorationView() {
   let totalW = maps.length * (btnW + spacing) - spacing;
   let startX = width / 2 - totalW / 2;
 
+  // ✅ MODIFIER : Utiliser la même position que gameSelector
   fill(0, 0, 100);
   textAlign(CENTER);
-  textSize(28);
-  text(`Score : ${playerScore}`, width / 2, 320);
+  textSize(isMobile ? 28 : 20);
+  textFont(manropeFont);
+  //text(`Score : ${playerScore}`, width / 2, isMobile ? 320 : 100);
 
   let unlockedMaps = getUnlockedMaps();
   if (unlockedMaps.length === 0) {
@@ -224,8 +370,8 @@ function drawExplorationView() {
 
   pop();
 
-  let valBtnW = isMobile ? 320 : 250;
-  let valBtnH = isMobile ? 85 : 55;
+  let valBtnW = isMobile ? 820 : 250;
+  let valBtnH = isMobile ? 185 : 55;
   let valBtnX = width / 2 - valBtnW / 2;
   let valBtnY = height - valBtnH - (isMobile ? 80 : 20);
   drawButton(
@@ -237,7 +383,6 @@ function drawExplorationView() {
     !!selectedPendingTrack
   );
 }
-
 function drawOnboardingView() {
   background(260, 40, 10);
   fill(0, 0, 100);
@@ -267,45 +412,65 @@ function drawOnboardingView() {
 }
 
 function drawMiniGameView() {
-  // Affiche l'image de fond du mini-jeu si elle est chargée, sinon fond uni
-
   imageMode(CORNER);
   image(minigameBackground, 0, 0, width, height);
 
-  textAlign(CENTER);
-  fill(0, 0, 100);
+  // === ÉCRAN DE DÉMARRAGE ===
+  if (!window.miniGameStarted) {
+    fill(0, 0, 0, 150); // Overlay sombre
+    rect(0, 0, width, height);
+
+    fill(0, 0, 100);
+    textAlign(CENTER, CENTER);
+    textSize(isMobile ? 48 : 32);
+    text(" Appuie pour commencer", width / 2, height / 2);
+
+    textSize(isMobile ? 24 : 18);
+    text("(La musique va se lancer)", width / 2, height / 2 + 60);
+    drawCloseButton();
+
+    return; // Stoppe l'affichage du jeu
+  }
+  drawCloseButton();
 
   // ❤️ Affichage des vies
+  textFont("sans-serif");
+
   let heartIcon = "❤️";
   let heartText = heartIcon.repeat(currentLives);
   textAlign(RIGHT, TOP);
-  textSize(isMobile ? 30 : 22);
-  text(heartText, width - 30, 30);
+  textSize(isMobile ? 60 : 22);
+  text(heartText, width / 2 + 150, 100);
 
-  let valBtnW = isMobile ? 320 : 250;
-  let valBtnH = isMobile ? 75 : 55;
+  let valBtnW = isMobile ? 820 : 250;
+  let valBtnH = isMobile ? 170 : 55;
   let valX = width / 2 - valBtnW / 2;
   let valY = height - valBtnH - (isMobile ? 80 : 20);
 
   // === Consigne du jeu
   fill(0, 0, 80);
-  textSize(isMobile ? 42 : 26);
+  textSize(isMobile ? 52 : 26);
   textAlign(CENTER, CENTER);
+  textWrap(WORD);
 
   let instruction = "";
   if (currentMiniGameType === "tempo")
-    instruction = "Quel est le tempo de cette musique ?";
+    instruction = "Écoute bien… c’est rapide ou lent ? Trouve le BPM";
   else if (currentMiniGameType === "genre")
-    instruction = "Quel est le genre de cette musique ?";
+    instruction = "Tu reconnais le style ? Trouve le genre de cette musique";
   else if (currentMiniGameType === "visual_match")
-    instruction = "Quelle musique est la plus mainstream ?";
+    instruction = "Deux sons. Lequel est le plus streamé ?";
 
-  text(instruction, width / 2, isMobile ? 300 : 160);
+  //text(instruction, width / 2, isMobile ? 300 : 160);
+  let maxTextWidth = width * 0.85; // 👈 largeur max
+  let textY = isMobile ? 300 : 160;
+  let textX = width / 2 - maxTextWidth / 2;
 
+  text(instruction, textX, textY, maxTextWidth);
   // === Jeu VISUAL_MATCH ===
   if (currentMiniGameType === "visual_match" && miniGameOptions.length === 2) {
     let blobSize = isMobile ? 240 : 160;
-    let spacing = isMobile ? 340 : 260;
+    let spacing = isMobile ? 200 : 260;
     let baseY = height / 2 - spacing / 2;
 
     for (let i = 0; i < 2; i++) {
@@ -348,9 +513,10 @@ function drawMiniGameView() {
     pop();
   }
 
-  let btnW = isMobile ? width * 0.85 : min(450, width * 0.6);
-  let btnH = isMobile ? 75 : 60;
-  let spacing = isMobile ? 30 : 25;
+  let btnW = isMobile ? width * 0.9 : min(500, width * 0.65);
+  let btnH = isMobile ? 150 : 75; // ← plus haut
+  let spacing = isMobile ? 50 : 35; // ← plus espacé
+
   let startY = blobCenterY + (isMobile ? 140 : 100);
 
   for (let i = 0; i < miniGameOptions.length; i++) {
@@ -358,7 +524,7 @@ function drawMiniGameView() {
     let x = width / 2 - btnW / 2;
     let y = startY + i * (btnH + spacing);
 
-    drawButtonBis(
+    drawButtonGame(
       option + (miniGameUnit || ""),
       x,
       y,
@@ -367,15 +533,16 @@ function drawMiniGameView() {
       selectedOption === i
     );
   }
+  //drawCloseButton();
 
-  drawButton("Valider", valX, valY, valBtnW, valBtnH, selectedOption !== null);
+  drawButton("Valider", valX, valY, valBtnW, valBtnH, selectedOption !== null); // ✅ valBtnH existe bien
 }
 
 function playMorphVideo(stage) {
   const video = document.getElementById("morphVideo");
   if (!video) return;
 
-  video.src = `totems/${stage}.mp4`;
+  video.src = `videos/${stage}.mp4`;
   video.style.display = "block";
   video.currentTime = 0;
   video.muted = true;
@@ -395,7 +562,8 @@ function drawEvolutionView() {
     !window.lastMorphPlayed ||
     window.lastMorphPlayed !== evolutionTrack.title
   ) {
-    playMorphVideo("evolution1");
+    const stage = getAvatarStage();
+    playMorphVideo(stage);
     window.lastMorphPlayed = evolutionTrack.title;
   }
 
@@ -408,14 +576,23 @@ function drawEvolutionView() {
     return;
   }
 
-  imageMode(CORNER);
-  image(evolutionBackground, 0, 0, width, height);
-  textAlign(CENTER); // ✅ Important !
-  textWrap(WORD);
-  let maxTextWidth = isMobile ? width * 0.85 : width * 0.6;
-  let x = width / 2 - maxTextWidth / 2; // ✅ Décale vers la gauche
+  // ✅ AJOUTER : Dessiner le fond d'abord
+  background(10, 8, 11); // Fond par défaut si pas d'image
 
-  let y = height / 2 - (isMobile ? -10 : -20);
+  if (backgroundImages[currentBackgroundCluster]) {
+    imageMode(CORNER);
+    image(backgroundImages[currentBackgroundCluster], 0, 0, width, height);
+  }
+
+  // ✅ CORRIGER : Réinitialiser les paramètres de texte
+  colorMode(HSB, 360, 100, 100, 100); // S'assurer qu'on est en HSB
+  textFont(manropeFont || 'Arial'); // Police par défaut si manropeFont n'existe pas
+  textAlign(CENTER, TOP); // ✅ Changer TOP au lieu de CENTER pour éviter les conflits
+  textWrap(WORD);
+  
+  let maxTextWidth = isMobile ? width * 0.85 : width * 0.6;
+  let x = width / 2; // ✅ SIMPLIFIER : centrer directement
+  let y = height / 2 - (isMobile ? 100 : 80); // ✅ Position de départ plus haute
   let spacing = isMobile ? 60 : 40;
 
   // 🎯 Points
@@ -425,9 +602,7 @@ function drawEvolutionView() {
     `${evolutionPoints >= 0 ? "+" : ""}${evolutionPoints} points ${
       evolutionPoints >= 0 ? "🎉" : "😞"
     }`,
-    x,
-    y,
-    maxTextWidth
+    x, y, maxTextWidth
   );
   y += spacing;
 
@@ -464,167 +639,33 @@ function drawEvolutionView() {
 
   drawButton("Continuer", btnX, btnY, btnW, btnH);
 
-  blobHitZones = [
-    {
-      type: "continueExploration",
-      x: btnX,
-      y: btnY,
-      w: btnW,
-      h: btnH,
-    },
-  ];
+  // ✅ CORRIGER : Réinitialiser blobHitZones
+  if (!blobHitZones) blobHitZones = [];
+  blobHitZones.push({
+    type: "continueExploration",
+    x: btnX,
+    y: btnY,
+    w: btnW,
+    h: btnH,
+  });
+
+  // ✅ DEBUG : Vérifier les variables
+  console.log("🔍 DEBUG drawEvolutionView:", {
+    evolutionTrack: evolutionTrack ? evolutionTrack.title : "undefined",
+    evolutionPoints,
+    currentBackgroundCluster,
+    hasBackground: !!backgroundImages[currentBackgroundCluster]
+  });
 }
 
-/*
-function drawCollectionView() {
-  background(0, 0, 11);
-
-  // === AVATAR BIEN CENTRÉ & GROS ===
-  let avatarSize = isMobile ? 220 : 160;
-  let avatarY = 140;
-  let avatarImg = document.getElementById("avatar");
-  if (avatarImg) {
-    avatarImg.classList.add("avatar-collection");
-  }
-  // === SCORE & PHRASE JUSTE EN DESSOUS ===
-  let infoY = avatarY + avatarSize / 2 + 30;
-
-  fill(0, 0, 100);
-  textSize(28);
-  textAlign(CENTER);
-  text(`Score total : ${playerScore}`, width / 2, infoY + 650);
-
-  // === BLOBS & TRACKS EN LISTE VERS LE BAS ===
-  let grouped = groupCollectionByCluster();
-  let clusters = Object.keys(grouped);
-  let y = infoY + 750; // ↘️ On descend le contenu ici
-  let blobSize = isMobile ? 200 : 70;
-  let lineHeight = isMobile ? 140 : 120;
-
-  textAlign(CENTER);
-
-  for (let cluster of clusters) {
-    let tracks = grouped[cluster];
-
-    // CLUSTER LABEL
-    fill(220, 80, 100);
-    textSize(30);
-    text(cluster, width / 2, y);
-    y += 45;
-
-    for (let track of tracks) {
-      // BLOB centré
-      let blobX = width / 2;
-      let blobY = y + blobSize / 2;
-
-      push();
-      translate(blobX, blobY);
-      drawTrackBlob(track, 0, 0, blobSize, 0);
-      pop();
-
-      // ZONE CLIQUABLE
-      blobHitZones.push({
-        x: blobX,
-        y: blobY,
-        r: blobSize / 2,
-        track: track,
-        type: "blob",
-      });
-
-      // TITRE / ARTISTE en dessous
-      fill(0, 0, 100);
-      textSize(27);
-      text(track.title || "Sans titre", blobX, blobY + blobSize / 2 + 35);
-
-      fill(0, 0, 60);
-      textSize(24);
-      text(track.artist || "Artiste inconnu", blobX, blobY + blobSize / 2 + 65);
-
-      y += lineHeight + 40;
-    }
-
-    y += 40;
-  }
-}
-*/
-
-/*
-function drawCollectionView() {
-  background(0, 0, 11);
-
-  // === Avatar en grand ===
-  let avatarSize = isMobile ? 220 : 160;
-  let avatarY = 140;
-  let avatarImg = document.getElementById("avatar");
-  if (avatarImg) {
-    avatarImg.classList.add("avatar-collection");
-  }
-
-  // === Titre + score ===
-  let infoY = avatarY + avatarSize / 2 + 30;
-  fill(0, 0, 100);
-  textSize(28);
-  textAlign(CENTER);
-  text(`Score total : ${playerScore}`, width / 2, infoY);
-
-  // === Blobs + morceaux ===
-  let grouped = groupCollectionByCluster();
-  let clusters = Object.keys(grouped);
-  let y = infoY + 700;
-
-  let blobSize = isMobile ? 70 : 50;
-  let lineHeight = blobSize + 40;
-  let textOffsetX = blobSize + 40;
-
-  for (let cluster of clusters) {
-    let tracks = grouped[cluster];
-
-    // Nom du cluster
-    fill(220, 80, 100);
-    textSize(20);
-    textAlign(LEFT);
-    text(cluster, 40, y);
-    y += 30;
-
-    for (let track of tracks) {
-      let blobX = 40 + blobSize / 2;
-      let blobY = y + blobSize / 2;
-
-      // 🎨 Dessin du blob
-      push();
-      translate(blobX, blobY);
-      drawTrackBlob(track, 0, 0, blobSize, 0);
-      pop();
-
-      // 🎯 Zone clic
-      blobHitZones.push({
-        x: blobX,
-        y: blobY,
-        r: blobSize / 2,
-        track: track,
-        type: "blob",
-      });
-
-      // 🎵 Texte à droite
-      fill(0, 0, 100);
-      textAlign(LEFT);
-      textSize(16);
-      text(track.title || "Sans titre", blobX + textOffsetX, y + 20);
-
-      fill(0, 0, 60);
-      textSize(14);
-      text(track.artist || "Artiste inconnu", blobX + textOffsetX, y + 40);
-
-      y += lineHeight;
-    }
-
-    y += 30; // espace entre clusters
-  }
-}
-*/
 function drawCollectionView() {
   blobHitZones = [];
-  background(0, 0, 11);
+  background(10, 0, 0);
+  textFont(manropeFont);
+
+  // === Applique le scroll à TOUT le contenu ===
+  push();
+  translate(0, window.collectionScrollY || 0);
 
   // === Avatar en grand ===
   let avatarSize = isMobile ? 220 : 160;
@@ -635,7 +676,7 @@ function drawCollectionView() {
   }
 
   // === Titre + score ===
-  let infoY = avatarY + avatarSize / 2 + 30;
+  let infoY = height / 2 - 30;
   fill(0, 0, 100);
   textSize(28);
   textAlign(CENTER);
@@ -646,7 +687,7 @@ function drawCollectionView() {
     ...new Set(playerCollection.map((t) => t.mapName || "Inconnue")),
   ];
 
-  // Initialise activePlaylist s’il n’existe pas
+  // Initialise activePlaylist s'il n'existe pas
   if (typeof window.activePlaylist === "undefined") {
     window.activePlaylist = allPlaylists[0];
   }
@@ -674,30 +715,32 @@ function drawCollectionView() {
     });
   }
 
-  // === Blobs + morceaux ===
+  // === Zone des blobs + morceaux ===
   let filteredTracks = playerCollection.filter(
     (t) => (t.mapName || "Inconnue") === window.activePlaylist
   );
   let grouped = groupByCluster(filteredTracks);
   let clusters = Object.keys(grouped);
-  let y = btnY + btnH + 40;
+  let y = btnY + btnH + 60; // Position de départ
 
-  let blobSize = isMobile ? 70 : 50;
-  let lineHeight = blobSize + 40;
-  let textOffsetX = blobSize + 40;
+  // 🎨 Tailles améliorées - PLUS GROS
+  let blobSize = isMobile ? 200 : 120;
+  let lineHeight = blobSize + 100;
+  let textOffsetX = blobSize + 100;
+  let leftMargin = isMobile ? 100 : 80;
 
   for (let cluster of clusters) {
     let tracks = grouped[cluster];
 
     // Nom du cluster
     fill(220, 80, 100);
-    textSize(20);
+    textSize(isMobile ? 36 : 28);
     textAlign(LEFT);
-    text(cluster, 40, y);
-    y += 30;
+    text(cluster, leftMargin, y);
+    y += 80;
 
     for (let track of tracks) {
-      let blobX = 40 + blobSize / 2;
+      let blobX = leftMargin + blobSize / 2;
       let blobY = y + blobSize / 2;
 
       // 🎨 Dessin du blob
@@ -718,19 +761,32 @@ function drawCollectionView() {
       // 🎵 Texte à droite
       fill(0, 0, 100);
       textAlign(LEFT);
-      textSize(16);
-      text(track.title || "Sans titre", blobX + textOffsetX, y + 20);
+      textSize(isMobile ? 28 : 20);
+      text(track.title || "Sans titre", blobX + textOffsetX, y + 35);
 
       fill(0, 0, 60);
-      textSize(14);
-      text(track.artist || "Artiste inconnu", blobX + textOffsetX, y + 40);
+      textSize(isMobile ? 24 : 18);
+      text(track.artist || "Artiste inconnu", blobX + textOffsetX, y + 70);
 
       y += lineHeight;
     }
 
-    y += 30; // espace entre clusters
+    y += 80;
   }
+
+  // 🔧 Calcul de la hauteur totale du contenu
+  window.collectionContentHeight = y + 100; // +100 pour une marge en bas
+
+  pop(); // Fin du translate global
+
+  // 📏 DEBUG
+  console.log("📏 Hauteur totale:", {
+    contentHeight: window.collectionContentHeight,
+    screenHeight: height,
+    maxScroll: max(0, window.collectionContentHeight - height + 100),
+  });
 }
+
 function groupByCluster(tracks) {
   let grouped = {};
   for (let t of tracks) {
@@ -740,6 +796,7 @@ function groupByCluster(tracks) {
   }
   return grouped;
 }
+
 function handlePlaylistSelection(mx, my) {
   for (let zone of blobHitZones) {
     if (
@@ -757,129 +814,8 @@ function handlePlaylistSelection(mx, my) {
   return false;
 }
 
-/*
 function drawAvatarView() {
-  // background(260, 40, 10);
-  // interpolation douce
-  if (backgroundImages[currentBackgroundCluster]) {
-    imageMode(CORNER);
-    image(backgroundImages[currentBackgroundCluster], 0, 0, width, height);
-  }
-
-  let genreAvgs = getGenreAverages();
-  let genreStats = getGenreStats();
-  let genreUnlocked = genreStats.map((g) => g.name);
-  let genreNames = Object.keys(genreAvgs);
-
-  const hasUnlockedGenres = genreUnlocked.length > 0;
-  canScrollAvatar = hasUnlockedGenres;
-
-  // Construire un tableau de blobs de genre SI NON DÉJÀ FAIT
-  if (!window.genreBlobs || window.genreBlobs.length !== genreNames.length) {
-    // ➕ Regrouper genres par cluster
-    const clusterGenreMap = {};
-    for (let genre of genreNames) {
-      const cluster = getClusterNameForGenre(genre);
-      if (!clusterGenreMap[cluster]) clusterGenreMap[cluster] = [];
-      clusterGenreMap[cluster].push(genre);
-    }
-
-    window.genreBlobs = genreNames.map((genre, i) => {
-      const cluster = getClusterNameForGenre(genre);
-      const clusterGenres = clusterGenreMap[cluster];
-      const localIndex = clusterGenres.indexOf(genre);
-      const pos = getPositionForGenre(genre, localIndex, clusterGenres.length);
-
-      const isUnlocked =
-        genreUnlocked.includes(genre) ||
-        genreUnlocked.includes(genre.toLowerCase());
-
-      return {
-        title: genre,
-        genre: genre,
-        ...genreAvgs[genre],
-        pos,
-        isUnlocked,
-        index: i,
-      };
-    });
-    let focusGenre = scrollToGenre || genreUnlocked[0];
-
-    if (!focusGenre) {
-      // Si aucun genre débloqué (ex: premier affichage)
-      let centerX = 0;
-      let centerY = 0;
-      for (let blob of window.genreBlobs) {
-        centerX += blob.pos.x;
-        centerY += blob.pos.y;
-      }
-      centerX /= window.genreBlobs.length;
-      centerY /= window.genreBlobs.length;
-      scrollXOffset = width / 2 - centerX;
-      scrollYOffset = height / 2 - centerY;
-      console.log("📍 Centrage par défaut (aucun genre débloqué)");
-    } else {
-      const focusBlob = window.genreBlobs.find((b) => b.title === focusGenre);
-      if (focusBlob) {
-        const verticalOffset = height * 0.35; // ← Décalage vers le haut pour que le blob soit plus bas à l’écran
-        scrollXOffset = width / 2 - focusBlob.pos.x;
-        scrollYOffset = height / 2 - focusBlob.pos.y - verticalOffset;
-        console.log("📍 Centrage sur :", focusGenre);
-      } else {
-        console.warn("❌ Genre non trouvé pour recentrage :", focusGenre);
-      }
-    }
-
-    scrollToGenre = null; // reset après recentrage
-  }
-
-  // 🎨 DESSIN
-  push();
-  translate(scrollXOffset, scrollYOffset);
-
-  let screenMin = min(windowWidth, windowHeight);
-  let blobSize = isMobile ? min(screenMin * 0.45, 240) : 80;
-
-  for (let blob of window.genreBlobs) {
-    const isUnlocked =
-      genreUnlocked.includes(blob.genre) ||
-      genreUnlocked.includes(blob.genre.toLowerCase());
-    let { pos, index } = blob;
-
-    drawTrackBlob(blob, pos.x, pos.y, blobSize, index, false, isUnlocked);
-
-    if (isUnlocked) {
-      fill(0, 0, 100);
-      textAlign(CENTER);
-      textSize(isMobile ? 32 : 14);
-      text(blob.genre, pos.x, pos.y + blobSize / 2 + 24);
-    }
-  }
-  // === BOUTON "Ma collection" ===
-  let btnW = isMobile ? 240 : 160;
-  let btnH = isMobile ? 65 : 50;
-  let btnX = width / 2 - btnW / 2;
-  let btnY = height - btnH - (isMobile ? 40 : 20);
-
-  drawButtonBis("🎵 Ma collection", btnX, btnY, btnW, btnH, true);
-
-  // Enregistre la zone cliquable dans blobHitZones
-  blobHitZones.push({
-    type: "goToCollection",
-    x: btnX,
-    y: btnY,
-    w: btnW,
-    h: btnH,
-  });
-
-  pop();
-}
-*/
-function drawAvatarView() {
-  if (backgroundImages[currentBackgroundCluster]) {
-    imageMode(CORNER);
-    image(backgroundImages[currentBackgroundCluster], 0, 0, width, height);
-  }
+  background(10, 0, 0);
 
   let genreAvgs = getGenreAverages();
   let genreStats = getGenreStats();
@@ -960,54 +896,37 @@ function drawAvatarView() {
       genreUnlocked.includes(blob.genre.toLowerCase());
     let { pos, index } = blob;
 
-    drawTrackBlob(
-      blob,
-      pos.x,
-      pos.y,
-      blobSize,
-      index,
-      false,
-      !isUnlocked,
-      isUnlocked
-    );
+    drawTrackBlob(blob, pos.x, pos.y, blobSize, index, false, isUnlocked);
 
-    /* if (isUnlocked) {
-    fill(0, 0, 100);
-    textAlign(CENTER);
-    textSize(isMobile ? 32 : 14);
-    text(blob.genre, pos.x, pos.y + blobSize / 2 + 24);
-    }*/
+    if (isUnlocked) {
+      fill(0, 0, 100);
+      textAlign(CENTER);
+      textFont(manropeFont); // ✅ CHANGER : utiliser Manrope au lieu de la police par défaut
+      textSize(isMobile ? 42 : 18); // ✅ AGRANDIR : de 32→42 (mobile) et 14→18 (desktop)
+      textStyle(BOLD); // ✅ AJOUTER : mettre en gras pour plus de visibilité
+      text(blob.genre, pos.x, pos.y + blobSize / 2 + 20);
+      textStyle(NORMAL); // ✅ REMETTRE : style normal après
+    }
   }
 
-  pop(); // 🔁 important : drawButtonBis doit être en dehors du translate()
-
-  // Position du bouton Shuffle (à adapter à ton code réel)
-  let shuffleBtnY = isMobile ? 40 : 30;
-  let shuffleBtnH = isMobile ? 65 : 50;
-  if (hasUnlockedGenres) {
-    // === BOUTON "Ma collection" ===
-    let btnW = isMobile ? 240 : 160;
-    let btnH = isMobile ? 65 : 50;
-    let btnX = width / 2 - btnW / 2;
-    let btnY = height / 2 + (isMobile ? 150 : 20); // placé plus bas, proche du bas de l'écran
-
-    drawButtonCol("Ma collection", btnX, btnY, btnW, btnH, true);
-
-    blobHitZones.push({
-      type: "goToCollection",
-      x: btnX,
-      y: btnY,
-      w: btnW,
-      h: btnH,
-    });
-  }
+  pop(); // 🔁 important : drawButtonBis doit être en dehors du translate()/*
 }
 
 function drawGameSelectorView() {
   imageMode(CORNER);
   image(minigameBackground, 0, 0, width, height);
+
+  // ✅ Affichage du score en haut
+  fill(0, 0, 100);
+  textFont(manropeFont);
+  textSize(isMobile ? 42 : 20);
+  textAlign(CENTER, CENTER);
+  text(`Score : ${playerScore} points`, width / 2, isMobile ? 280 : 50);
+
+  // Reste du code existant...
   textAlign(CENTER, CENTER);
   fill(0, 0, 100);
+  textFont(bananaFont);
 
   let options = [
     { label: "Feel the Beat", type: "tempo" },
@@ -1016,14 +935,14 @@ function drawGameSelectorView() {
   ];
 
   let btnW = isMobile ? width * 0.85 : 300;
-  let btnH = isMobile ? 80 : 60;
-  let spacing = 30;
-  let startY = height / 2 - ((btnH + spacing) * options.length) / 2;
+  let btnH = isMobile ? 160 : 70;
+  let spacing = isMobile ? 80 : 40;
+  let startY = height / 2 - ((btnH + spacing) * options.length - spacing) / 2;
 
   for (let i = 0; i < options.length; i++) {
     let x = width / 2 - btnW / 2;
     let y = startY + i * (btnH + spacing);
-    drawButtonBis(options[i].label, x, y, btnW, btnH);
+    drawButtonSelector(options[i].label, x, y, btnW, btnH);
     blobHitZones.push({
       type: "gameChoice",
       x,
@@ -1033,108 +952,155 @@ function drawGameSelectorView() {
       miniGameType: options[i].type,
     });
   }
-}
 
-/*
-function drawPostMiniGameWinView() {
-  background(0, 0, 11);
-  textAlign(CENTER, CENTER);
-  fill(0, 0, 100);
+  let lockBtnW = btnW;
+  let lockBtnH = btnH;
+  let lockBtnX = width / 2 - lockBtnW / 2;
+  let lockBtnY = height - lockBtnH - (isMobile ? 60 : 40);
 
-  textSize(isMobile ? 34 : 28);
-  text("🎉 Bravo !", width / 2, height / 2 - 100);
+  // 🔓 Vérifier si le joueur a assez de points pour débloquer
+  const isUnlocked = playerScore >= 5;
+  //const buttonLabel = isUnlocked ? "Digin' the Stream" : "🔒 Digin' the Stream";
 
-  textSize(isMobile ? 22 : 18);
-  text("Tu as réussi ce mini-jeu !", width / 2, height / 2 - 40);
+  // ✅ SIMPLIFIER : Pulse si vient d'être débloqué ET pas encore vu
+  //let shouldHighlightStream = justUnlockedStream && !hasSeenStreamIllumination;
 
-  textSize(isMobile ? 20 : 16);
-  fill(0, 0, 80);
-  text(
-    "💡 Astuce : cherche une musique suisse pour marquer plus de points !",
-    width / 2,
-    height / 2 + 20
+  // ✅ DEBUG : Afficher les valeurs dans la console
+  /*console.log("🔍 DEBUG Illumination Stream:", {
+    isUnlocked,
+    justUnlockedStream,
+    hasSeenStreamIllumination,
+    shouldHighlightStream,
+    playerScore
+  });*/
+  /*
+  if (shouldHighlightStream) {
+    push();
+
+    // ✨ Effet de glow pulsant DORÉ
+    let glowIntensity = 1 + 0.4 * sin(frameCount * 0.1);
+    drawingContext.shadowBlur = 40 * glowIntensity;
+    drawingContext.shadowColor = "rgba(255, 215, 0, 0.8)"; // Or pur
+
+    // Cercle d'illumination derrière le bouton
+    fill(60, 100, 100, 30 * glowIntensity); // Doré semi-transparent
+    ellipse(
+      lockBtnX + lockBtnW / 2,
+      lockBtnY + lockBtnH / 2,
+      lockBtnW + 60,
+      lockBtnH + 60
+    );
+
+    // Particules scintillantes autour du bouton
+    for (let i = 0; i < 8; i++) {
+      let angle = frameCount * 0.02 + (i * TWO_PI) / 8;
+      let radius = 180 + 20 * sin(frameCount * 0.05 + i);
+      let px = lockBtnX + lockBtnW / 2 + cos(angle) * radius;
+      let py = lockBtnY + lockBtnH / 2 + sin(angle) * radius * 0.6;
+
+      fill(60, 100, 100, 60 + 40 * sin(frameCount * 0.08 + i)); // Doré scintillant
+      ellipse(px, py, 8, 8);
+    }
+
+    drawingContext.shadowBlur = 0;
+    pop();
+
+    console.log("✨ Illumination Digin' the Stream ACTIVE !");
+  }
+*/
+  /*
+  // Dessiner le bouton (blanc si débloqué, transparent sinon)
+  drawButtonBis(
+    buttonLabel,
+    lockBtnX,
+    lockBtnY,
+    lockBtnW,
+    lockBtnH,
+    isUnlocked,
+    isUnlocked
   );
 
-  let btnW = isMobile ? 300 : 240;
-  let btnH = isMobile ? 75 : 55;
-  let btnX = width / 2 - btnW / 2;
-  let btnY = height / 2 + 100;
-
-  drawButton("Continuer", btnX, btnY, btnW, btnH, true);
-
-  // Zone cliquable
-  blobHitZones.push({
-    type: "continueExploration",
-    x: btnX,
-    y: btnY,
-    w: btnW,
-    h: btnH,
-  });
+  // Zone cliquable seulement si débloqué
+  if (isUnlocked) {
+    blobHitZones.push({
+      type: "streamMode",
+      x: lockBtnX,
+      y: lockBtnY,
+      w: lockBtnW,
+      h: lockBtnH,
+    });
+  }*/
 }
-*/
+
 function drawPostMiniGameWinView() {
-  imageMode(CORNER);
-  image(winBackground, 0, 0, width, height);
-  textAlign(CENTER, CENTER);
+  //imageMode(CORNER);
+  //image(winBackground, 0, 0, width, height);
+  background(0, 0, 10); // Fond uni pour simplifier
+  textAlign(LEFT, CENTER); // ← important : LEFT + largeur fixée
+  textWrap(WORD);
   fill(0, 0, 100);
+  textFont("sans-serif");
+  let baseY = height / 2 - 140;
+  let spacing = isMobile ? 94 : 30;
+  let maxTextWidth = width * 0.85;
+  let textX = width / 2 - maxTextWidth / 2; // ← centre visuel
 
   // 🎉 Titre
-  textSize(isMobile ? 34 : 28);
-  text("🎉 Bravo !", width / 2, height / 2 - 140);
+  textAlign(CENTER, CENTER);
+  textSize(isMobile ? 64 : 28);
+  text("🎉 Bravo !", width / 2, baseY);
 
-  // ✅ Confirmation de réussite
-  textSize(isMobile ? 22 : 18);
-  text("Tu as réussi ce mini-jeu !", width / 2, height / 2 - 100);
+  // ✅ Confirmation
+  textSize(isMobile ? 50 : 18);
+  text("Tu as gagné la musique : ", width / 2, baseY + spacing);
 
-  // 🎵 Info sur la musique jouée
+  // 🎵 Musique
   if (lastMiniGameTrack) {
     let title = lastMiniGameTrack.title || "Titre inconnu";
     let artist = lastMiniGameTrack.artist || "Artiste inconnu";
     fill(0, 0, 95);
-    textSize(isMobile ? 20 : 16);
-    text(`🎵 ${title} – ${artist}`, width / 2, height / 2 - 60);
+    textSize(isMobile ? 60 : 16);
+    textAlign(CENTER, CENTER);
+
+    text(`${title} – ${artist}`, width / 2, baseY + spacing * 2); // 👈 pas de largeur
   }
 
-  // 🧠 Anecdote en fonction du type de mini-jeu
+  // 🧠 Anecdote
   let anecdote = getMiniGameAnecdote(currentMiniGameType, lastMiniGameTrack);
   fill(0, 0, 85);
-  textSize(isMobile ? 18 : 14);
-  text(anecdote, width / 2, height / 2 - 20);
+  textSize(isMobile ? 38 : 14);
+  text(anecdote, textX, baseY + spacing * 3, maxTextWidth);
 
-  // 💡 Astuce générique
-  fill(0, 0, 80);
-  textSize(isMobile ? 18 : 14);
+  // 💡 Astuce
+  /*fill(0, 0, 80);
+  textSize(isMobile ? 28 : 14);
   text(
     "💡 Astuce : cherche une musique suisse pour marquer plus de points !",
-    width / 2,
-    height / 2 + 20
-  );
+    textX,
+    baseY + spacing * 4,
+    maxTextWidth
+  );*/
+
+  // 💠 Blob musique
 
   if (lastMiniGameTrack) {
-    // 👁️ Petit effet de pulsation
     let scalePulse = 1 + 0.05 * sin(frameCount * 0.1);
     push();
-    translate(width / 2, height / 2 + 160);
+    translate(width / 2, baseY + spacing * 6 - 800);
     scale(scalePulse);
-
-    drawTrackBlob(
-      lastMiniGameTrack,
-      0, // position x après translate
-      0, // position y après translate
-      120, // taille max blob
-      0, // index
-      false, // fixedWhiteMode
-      true // isUnlocked
-    );
-
+    drawTrackBlob(lastMiniGameTrack, 0, 0, 120, 0, false, true);
     pop();
   }
 
   // 🟦 Bouton continuer
-  let btnW = isMobile ? 300 : 240;
-  let btnH = isMobile ? 75 : 55;
+  let btnW = isMobile ? 820 : 240;
+  let btnH = isMobile ? 130 : 55;
   let btnX = width / 2 - btnW / 2;
-  let btnY = height / 2 + 90;
+  let btnY = baseY + spacing * 7 + 30;
+
+  // ✨ Changer le texte du bouton si on vient de débloquer
+  //let justUnlocked = localStorage.getItem("btm_justUnlockedStream") === "true";
+  //let buttonText = justUnlocked ? "Découvrir la surprise !" : "Continuer";
 
   drawButton("Continuer", btnX, btnY, btnW, btnH, true);
 
@@ -1145,6 +1111,7 @@ function drawPostMiniGameWinView() {
     w: btnW,
     h: btnH,
   });
+  drawCloseButton();
 }
 
 function getMiniGameAnecdote(type, track) {
@@ -1153,51 +1120,124 @@ function getMiniGameAnecdote(type, track) {
   let genre = track.genre || "inconnu";
   let tempo = track.tempo ? Math.round(track.tempo) : "un tempo inconnu";
 
+  // Messages motivants basés sur les points
+  let motivationalMessage = "";
+  let pointsToNextGoal = 0;
+
+  if (playerScore < 5) {
+    pointsToNextGoal = 5 - playerScore;
+    motivationalMessage = `💪 Plus que ${pointsToNextGoal} point${
+      pointsToNextGoal > 1 ? "s" : ""
+    } avant de pouvoir digger ! Continue comme ça !`;
+  } else if (playerScore < 10) {
+    pointsToNextGoal = 10 - playerScore;
+    motivationalMessage = `🔥 Tu peux maintenant digger ! Plus que ${pointsToNextGoal} point${
+      pointsToNextGoal > 1 ? "s" : ""
+    } pour débloquer quelque chose d'encore plus cool...`;
+  } else if (playerScore < 25) {
+    pointsToNextGoal = 25 - playerScore;
+    motivationalMessage = `🚀 Tu es sur la bonne voie ! Plus que ${pointsToNextGoal} point${
+      pointsToNextGoal > 1 ? "s" : ""
+    } pour devenir un vrai expert musical !`;
+  } else if (playerScore < 50) {
+    pointsToNextGoal = 50 - playerScore;
+    motivationalMessage = `⭐ Impressionnant ! Plus que ${pointsToNextGoal} point${
+      pointsToNextGoal > 1 ? "s" : ""
+    } pour atteindre le niveau maître !`;
+  } else {
+    motivationalMessage = `👑 Tu es devenu un maître de la musique ! Continue d'explorer pour enrichir ta collection !`;
+  }
+
+  let baseMessage = "";
   switch (type) {
     case "tempo":
-      return `⚡ Ce morceau a un tempo de ${tempo} BPM — parfait pour te booster !`;
+      baseMessage = `⚡ Ce morceau a un tempo de ${tempo} BPM — parfait pour te booster !`;
+      break;
     case "visual_match":
-      return `👁️ Tu as bien matché la vibe visuelle de ce son.`;
+      baseMessage = `Tu as bien matché la vibe visuelle de ce son.`;
+      break;
     case "genre":
-      return `🎧 Tu as identifié le genre "${genre}" avec justesse !`;
+      baseMessage = `Tu as identifié le genre "${genre}" avec justesse !`;
+      break;
     default:
-      return `🎶 Une belle découverte musicale !`;
+      baseMessage = `Une belle découverte musicale !`;
   }
+
+  return `${baseMessage}\n\n${motivationalMessage}`;
 }
-function drawChallengeIntroView() {
-  background(260, 40, 10);
-  textAlign(CENTER);
-  fill(0, 0, 100);
-  textSize(isMobile ? 36 : 28);
-  text("🌟 Défi spécial débloqué !", width / 2, 100);
-  textSize(isMobile ? 22 : 18);
-  text(
-    "Tu dois réussir 3 mini-jeux à la suite pour débloquer une nouvelle musique !",
-    width / 2,
-    180
+
+function drawCloseButton() {
+  // Position en haut à droite
+  let closeSize = isMobile ? 60 : 40;
+  let margin = isMobile ? 30 : 20;
+  let closeX = width - closeSize - margin - 40;
+  let closeY = margin + 40; // ✅ AJOUTER +50 pour descendre le bouton
+
+  // Fond semi-transparent
+  push();
+  drawingContext.shadowBlur = 10;
+  drawingContext.shadowColor = "rgba(0, 0, 0, 0.4)";
+
+  /*fill(0, 0, 0, 150);
+  stroke(0, 0, 100);
+  strokeWeight(2);
+  ellipse(closeX + closeSize / 2, closeY + closeSize / 2, closeSize, closeSize);
+
+  drawingContext.shadowBlur = 0;*/
+  pop();
+
+  // Croix blanche
+  stroke(0, 0, 100);
+  strokeWeight(isMobile ? 6 : 3);
+  strokeCap(ROUND);
+
+  let crossSize = closeSize * 0.4;
+  let centerX = closeX + closeSize / 2;
+  let centerY = closeY + closeSize / 2;
+
+  // Lignes de la croix
+  line(
+    centerX - crossSize / 2,
+    centerY - crossSize / 2,
+    centerX + crossSize / 2,
+    centerY + crossSize / 2
+  );
+  line(
+    centerX + crossSize / 2,
+    centerY - crossSize / 2,
+    centerX - crossSize / 2,
+    centerY + crossSize / 2
   );
 
-  let btnW = isMobile ? 300 : 240;
-  let btnH = isMobile ? 70 : 50;
-  let btnX = width / 2 - btnW / 2;
-  let btnY = height - 120;
+  noStroke();
 
-  drawButton(
-    "Commencer le challenge",
-    width / 2 - 100,
-    height - 80,
-    200,
-    50,
-    startChallenge
-  );
+  // Zone cliquable
+  blobHitZones.push({
+    type: "closeButton",
+    x: closeX,
+    y: closeY,
+    w: closeSize,
+    h: closeSize,
+  });
+}
 
-  blobHitZones = [
-    {
-      type: "startChallenge",
-      x: btnX,
-      y: btnY,
-      w: btnW,
-      h: btnH,
-    },
-  ];
+// Variables globales pour le scroll de la collection
+if (typeof window.collectionScrollY === "undefined") {
+  window.collectionScrollY = 0;
+}
+if (typeof window.collectionContentHeight === "undefined") {
+  window.collectionContentHeight = 0;
+}
+
+function handleCollectionScroll(deltaY) {
+  if (mode !== "collection") return false;
+
+  let maxScroll = max(0, window.collectionContentHeight - height + 100);
+  let scrollSpeed = isMobile ? 15 : 8;
+
+  window.collectionScrollY -= deltaY * scrollSpeed;
+  window.collectionScrollY = constrain(window.collectionScrollY, -maxScroll, 0);
+
+  redraw();
+  return true;
 }
