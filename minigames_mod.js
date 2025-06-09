@@ -1,3 +1,33 @@
+
+function gainDisc() {
+  if (discsEarned < 3) {
+    discsEarned++;
+    const disc = document.getElementById(`disc${discsEarned}`);
+    if (disc) {
+      disc.classList.add("earned");
+    }
+    console.log(`💿 Disc ${discsEarned} gagné !`);
+    localStorage.setItem("btm_discs", discsEarned);
+  }
+}
+
+/*let discsEarned = 0;
+
+function gainDisc() {
+  discsEarned++;
+  const disc = document.getElementById(`disc${discsEarned}`);
+  if (disc) {
+    disc.classList.add("earned");
+    console.log(`💿 Disc ${discsEarned} gagné`);
+  }
+  redraw();
+}
+
+if (justWonMiniGame) {
+  gainDisc();
+  gainDisc();
+}
+*/
 function pickRandomTrackFromDatabase() {
   return random(tracksData);
 }

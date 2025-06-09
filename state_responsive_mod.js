@@ -14,9 +14,27 @@ let scrollRangeX = 2000;
 let scrollRangeY = 1500;
 let scrollSpeed = 5;
 let allBlobs = [];
-let playerScore = 0; // ← Cette ligne existe déjà
+// ✅ GARDER ces variables
+let playerScore = 0; // ← GARDER pour compatibilité
+let gamePoints = 0; // Points de jeu (mini-jeux) → débloquent les disques/stream
+let collectionPoints = 0; // Points de collection (musiques choisies) → font évoluer le totem
 
-// Ajouter cette fonction pour charger le score
+// ✅ MODIFIER : playerScore = somme des deux
+function updatePlayerScore() {
+  playerScore = totemPoints;
+}
+// ...existing code...
+
+// ✅ NOUVEAU SYSTÈME : Séparer les deux progressions
+let discsEarned = 0; // Disques gagnés via mini-jeux → débloquent le Stream
+let totemPoints = 0; // Points totem via collection → évolution du totem
+let hasUsedStream = false; // Flag pour savoir si le stream a été utilisé
+
+// ✅ Garder playerScore pour compatibilité mais le calculer différemment
+function updatePlayerScore() {
+  playerScore = totemPoints;
+}
+
 function loadPlayerScore() {
   try {
     let storedScore = localStorage.getItem("btm_score");
@@ -30,13 +48,34 @@ function loadPlayerScore() {
     console.warn("Erreur lecture localStorage score", e);
     playerScore = 0;
   }
+  const storedTotem = localStorage.getItem("btm_totemPoints");
+  if (storedTotem !== null) {
+    totemPoints = parseInt(storedTotem) || 0;
+    console.log("🔁 TotemPoints chargés :", totemPoints);
+  } else {
+    console.log("📦 Aucun totemPoints sauvegardé");
+  }
+}
+function getAvatarStage() {
+  /*
+  if (totemPoints >= 60) return "4";
+  if (totemPoints >= 30) return "3";
+  if (totemPoints >= 10) return "2";
+  if (totemPoints === 0) return "1";
+  return "1";*/
+  let count = playerCollection.length;
+  if (count === 1) return "2"; // ← 0-1 musique
+  if (count === 2) return "3"; // ← 2-3 musiques
+  if (count === 3) return "4"; // ← 4-5 musiques
+  if (count === 0) return "1";
+  return "1";
 }
 
 let playerCollection = [];
 let pointFeedbacks = [];
 let miniGameAudioPlayed = false;
 
-let mode = "gameSelector"; // "exploration", "collection", "minigame", "avatar", "onboarding", "gameSelector", postMiniGameWin, "challengeIntro"
+let mode = "totem"; // "exploration", "collection", "minigame", "avatar", "onboarding", "gameSelector", postMiniGameWin,, postMiniGameLose,
 let currentMiniGameTrack = null;
 let miniGameOptions = [];
 let miniGameAnswer = null;
@@ -55,7 +94,7 @@ let showPostMiniGameMessage = false;
 let postWinDiv = null;
 window.showPostMiniGameMessage = showPostMiniGameMessage; // pour l’exposer au script
 
-let maxLives = 3;
+let maxLives = 1;
 let currentLives = maxLives;
 
 let evolutionTrack = null;
@@ -157,6 +196,35 @@ function getGenreCluster(genre) {
   return "Inconnu";
 }
 
+function updateDiscsFromScore(mode) {
+  const container = document.getElementById("discsContainer");
+  if (!container) return;
+
+  // === Toujours afficher le container, puis ajuster son style ===
+  container.style.display = "flex";
+  container.classList.remove("discs-totem", "discs-minigame");
+
+  if (mode === "totem") {
+    container.classList.add("discs-totem");
+  } else if (mode === "gameSelector" || mode === "postMiniGameWin") {
+    container.classList.add("discs-minigame");
+  } else {
+    container.classList.add("discs-minigame"); // fallback safe
+  }
+
+  // === Mettre à jour les disques visibles selon le score ===
+  for (let i = 1; i <= 3; i++) {
+    const disc = document.getElementById(`disc${i}`);
+    if (!disc) continue;
+
+    if (i <= discsEarned) {
+      disc.classList.add("earned");
+    } else {
+      disc.classList.remove("earned");
+    }
+  }
+}
+
 const CLUSTER_POSITIONS = {
   "Hip-Hop": { x: -300, y: 50 },
   Pop: { x: 100, y: 60 },
@@ -224,44 +292,47 @@ function getMostCommonCluster(collection) {
   const sorted = Object.entries(clusterCounts).sort((a, b) => b[1] - a[1]);
   return sorted.length > 0 ? sorted[0][0] : null;
 }
+
 /*
 function getGenreClusterPoints(track) {
-  let cluster = getGenreCluster(track.genre);
-  let genreStats = playerCollection.map((t) => getGenreCluster(t.genre));
-  let clusterCount = genreStats.filter((c) => c === cluster).length;
+  const trackCluster = getMostCommonCluster([track]);
+  const clusterCounts = {};
 
-  if (clusterCount === 0) return 10;
-  if (clusterCount === 1) return 6;
-  if (clusterCount === 2) return 3;
-  if (clusterCount === 3) return 1;
+  for (let t of playerCollection) {
+    const c = getMostCommonCluster([t]);
+    clusterCounts[c] = (clusterCounts[c] || 0) + 1;
+  }
+
+  const sameClusterCount = clusterCounts[trackCluster] || 0;
+
+  if (sameClusterCount === 0) return 10;
+  if (sameClusterCount === 1) return 6;
+  if (sameClusterCount === 2) return 3;
+  if (sameClusterCount === 3) return 1;
   return -2;
 }
 */
 function getGenreClusterPoints(track) {
-  let cluster = getGenreCluster(track.genre);
-  let genreStats = playerCollection.map((t) => getGenreCluster(t.genre));
-  let clusterCount = genreStats.filter((c) => c === cluster).length;
-  let totalTracks = playerCollection.length;
+  const cluster = getMostCommonCluster([track]);
+  const dominantCluster = getMostCommonCluster(playerCollection);
+  const mixRatio = getMixRatio(playerCollection);
 
-  // Étape 1 : stricte en tout début de partie (1-2 morceaux max)
-  if (totalTracks < 2) {
-    return clusterCount === 0 ? 10 : -5;
+  // Cas : nouveau cluster → fort bonus
+  if (cluster !== dominantCluster) {
+    if (mixRatio < 0.3) return 10;
+    if (mixRatio < 0.6) return 6;
+    return 3; // même avec bonne diversité, ça reste positif
   }
 
-  // Étape 2 : en transition (2-5 morceaux)
-  if (totalTracks < 6) {
-    if (clusterCount === 0) return 10;
-    if (clusterCount === 1) return 2;
-    return -2;
-  }
+  // Cas : cluster identique
+  if (mixRatio >= 0.7) return 3;
+  if (mixRatio >= 0.4) return 1;
 
-  // Étape 3 : progression normale
-  if (clusterCount === 0) return 10;
-  if (clusterCount === 1) return 6;
-  if (clusterCount === 2) return 3;
-  if (clusterCount === 3) return 1;
+  // Trop de répétition, sanction légère
   return -2;
 }
+
+// ✅ MODIFIER : Simplifier les points de collection pour être constants
 
 function getGenreAverages() {
   const genreGroups = {};
@@ -335,13 +406,6 @@ function goToNextMap() {
     currentMapIndex++;
   }
 }
-function getAvatarStage() {
-  let count = playerCollection.length;
-  if (count <= 1) return "2";
-  if (count <= 2) return "4";
-  if (count <= 3) return "6";
-  return "1";
-}
 
 function getMorphingStage() {
   let count = playerCollection.length;
@@ -407,16 +471,12 @@ function updateAvatarGif() {
   }
 }
 */
+/*
 function updateAvatarGif() {
   const morphVideo = document.getElementById("morphVideo");
   if (!morphVideo) return;
 
-  if (mode === "onboarding") {
-    morphVideo.style.display = "none";
-    return;
-  }
-
-  morphVideo.style.display = ["collection", "evolution"].includes(mode)
+  morphVideo.style.display = ["collection", "totemEvolution"].includes(mode)
     ? "block"
     : "none";
 
@@ -424,8 +484,128 @@ function updateAvatarGif() {
 
   if (!morphVideo.src.includes(stage)) {
     morphVideo.src = `videos/${stage}.mp4`;
+
+    // ✅ AJOUTER : Gestion des événements de chargement
+    morphVideo.addEventListener(
+      "loadeddata",
+      () => {
+        morphVideo
+          .play()
+          .catch((e) => console.warn("Erreur play morphVideo:", e));
+      },
+      { once: true }
+    ); // once: true pour éviter les listeners multiples
+
+    morphVideo.addEventListener("error", (e) => {
+      console.error("Erreur chargement morphVideo:", e);
+    });
+
     morphVideo.load();
-    morphVideo.play();
+  } else {
+    // ✅ Si la source est déjà bonne, juste jouer
+    morphVideo.play().catch((e) => console.warn("Erreur play morphVideo:", e));
+  }
+}
+*/
+function updateAvatarGif() {
+  const morphVideo = document.getElementById("morphVideo");
+  if (!morphVideo) return;
+
+  // Afficher uniquement dans les bons modes
+  const shouldShow = ["collection", "totemEvolution"].includes(mode);
+  morphVideo.style.display = shouldShow ? "block" : "none";
+
+  const stage = getAvatarStage(); // basé sur totemPoints
+  const expectedSrc = `videos/${stage}.mp4`;
+
+  // Ne pas recharger si la bonne vidéo est déjà là
+  if (morphVideo.src.includes(expectedSrc)) {
+    if (shouldShow) {
+      // Juste rejouer si visible
+      morphVideo.play().catch((e) => {
+        console.warn("Erreur play morphVideo:", e);
+      });
+    }
+    return;
+  }
+
+  // ✅ Sinon : configurer nouvelle source proprement
+  morphVideo.pause(); // Arrêter toute lecture en cours
+  morphVideo.src = expectedSrc;
+
+  // Supprimer anciens listeners (évite doublons si updateAvatarGif est rappelé plusieurs fois)
+  morphVideo.onloadeddata = null;
+  morphVideo.onerror = null;
+
+  morphVideo.onloadeddata = () => {
+    if (shouldShow) {
+      morphVideo
+        .play()
+        .then(() => console.log("✅ morphVideo play ok"))
+        .catch((e) => console.warn("❌ play morphVideo échoué :", e));
+    }
+  };
+
+  morphVideo.onerror = (e) => {
+    console.error("❌ Erreur chargement morphVideo:", e);
+  };
+
+  morphVideo.load(); // Déclenche le chargement
+}
+
+// ✅ AJOUTER : Fonction pour gérer l'evolutionVideo
+function showEvolutionVideo() {
+  const evolutionVideo = document.getElementById("evolutionVideo");
+  const evolutionWrapper = document.getElementById("evolutionVideoWrapper");
+
+  if (!evolutionVideo || !evolutionWrapper) {
+    console.error("❌ evolutionVideo ou wrapper introuvable");
+    return;
+  }
+
+  // Afficher le wrapper
+  evolutionWrapper.style.display = "block";
+
+  // Définir la source si nécessaire
+  const stage = getAvatarStage();
+  const videoSrc = `videos/evolution_${stage}.mp4`; // ou le nom que vous utilisez
+
+  if (!evolutionVideo.src.includes(videoSrc)) {
+    evolutionVideo.src = videoSrc;
+
+    evolutionVideo.addEventListener(
+      "loadeddata",
+      () => {
+        evolutionVideo
+          .play()
+          .catch((e) => console.warn("Erreur play evolutionVideo:", e));
+      },
+      { once: true }
+    );
+
+    evolutionVideo.addEventListener("error", (e) => {
+      console.error("Erreur chargement evolutionVideo:", e);
+    });
+
+    evolutionVideo.load();
+  } else {
+    evolutionVideo
+      .play()
+      .catch((e) => console.warn("Erreur play evolutionVideo:", e));
+  }
+}
+
+function hideEvolutionVideo() {
+  const evolutionWrapper = document.getElementById("evolutionVideoWrapper");
+  const evolutionVideo = document.getElementById("evolutionVideo");
+
+  if (evolutionWrapper) {
+    evolutionWrapper.style.display = "none";
+  }
+
+  if (evolutionVideo) {
+    evolutionVideo.pause();
+    evolutionVideo.currentTime = 0;
   }
 }
 
@@ -580,23 +760,9 @@ function launchNextChallengeGame() {
 let miniGameAttempts = 0; // Compteur d'essais pour le mini-jeu actuel
 
 // Remplacer ou ajouter cette fonction
+// ✅ MODIFIER : Assurer que tous les mini-jeux donnent exactement 1 point
 function getMiniGamePoints(attempts) {
-  let points = 0;
-
-  // Points basés sur le nombre d'essais
-  switch (attempts) {
-    case 1:
-      points = 3; // Bonne réponse du premier coup
-      break;
-    case 2:
-      points = 1; // Bonne réponse au deuxième essai
-      break;
-    default:
-      points = 0; // 3 essais ou plus = pas de points
-      break;
-  }
-
-  return points;
+  return 1; // ← Toujours 1 point, peu importe le nombre d'essais
 }
 
 // Ajouter cette variable après les autres variables
@@ -636,4 +802,63 @@ function assignScatteredPositions(tracks) {
   console.log(
     `✅ ${tracks.length} positions assignées en grille dispersée avec espacement ${spacing}px`
   );
+}
+
+// ✅ NOUVEAU : Fonction pour gagner un disque (mini-jeux)
+
+// ✅ NOUVEAU : Fonction pour gagner des points totem (collection)
+function gainTotemPoints(track) {
+  const points = getGenreClusterPoints(track); // Garde ta logique actuelle
+  totemPoints += points;
+  playerScore = totemPoints; // Sync pour compatibilité
+
+  localStorage.setItem("btm_totemPoints", totemPoints.toString());
+  localStorage.setItem("btm_score", playerScore.toString());
+
+  console.log(`⭐ +${points} points totem (total: ${totemPoints})`);
+  return points;
+}
+
+// ✅ MODIFIER : Fonction pour vérifier si le Stream est accessible
+function isStreamUnlocked() {
+  return discsEarned >= 3 && !hasUsedStream;
+}
+
+// ✅ NOUVEAU : Marquer le Stream comme utilisé
+function markStreamAsUsed() {
+  hasUsedStream = true;
+  localStorage.setItem("btm_streamUsed", "true");
+  console.log("🔒 Stream utilisé, plus accessible");
+}
+
+// ✅ MODIFIER : Charger toutes les données
+function loadPlayerData() {
+  try {
+    // Charger les disques
+    const storedDiscs = localStorage.getItem("btm_discs");
+    discsEarned = storedDiscs ? parseInt(storedDiscs) : 0;
+
+    // Charger les points totem
+    const storedTotemPoints = localStorage.getItem("btm_totemPoints");
+    totemPoints = storedTotemPoints ? parseInt(storedTotemPoints) : 0;
+
+    // Charger l'état du Stream
+    const streamUsed = localStorage.getItem("btm_streamUsed");
+    hasUsedStream = streamUsed === "true";
+
+    // Mettre à jour le score pour compatibilité
+    playerScore = totemPoints;
+
+    console.log("📊 Données chargées:", {
+      disques: discsEarned,
+      totemPoints: totemPoints,
+      streamUsed: hasUsedStream,
+    });
+  } catch (e) {
+    console.warn("Erreur lecture localStorage", e);
+    discsEarned = 0;
+    totemPoints = 0;
+    hasUsedStream = false;
+    playerScore = 0;
+  }
 }

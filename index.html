@@ -19,14 +19,13 @@
     </script>
 
     <script src="tracks.js" defer></script>
-    <script src="state_responsive.js" defer></script>
+    <script src="state_responsive_mod.js" defer></script>
     <script src="evolution.js" defer></script>
     <script src="visuals.js" defer></script>
-    <script src="minigames.js" defer></script>
-    <script src="views.js" defer></script>
-    <script src="interaction_scroll_final.js" defer></script>
-    <script src="onboarding.js" defer></script>
-    <script src="sketch_updated.js" defer></script>
+    <script src="minigames_mod.js" defer></script>
+    <script src="views_button.js" defer></script>
+    <script src="interaction_scroll_final_mod.js" defer></script>
+    <script src="sketch_updated_mod.js" defer></script>
     <link rel="stylesheet" href="style.css" />
 
 </head>
@@ -40,31 +39,31 @@
         <p id="progressText">0 / 0 genres débloqués</p>
     </div>
 
+    <div id="discsContainer">
+        <span class="disc" id="disc1">💿</span>
+        <span class="disc" id="disc2">💿</span>
+        <span class="disc" id="disc3">💿</span>
+    </div>
 
+    <button id="streamButton" class=" stream-btn" data-mode="preDig">
+        <span class="lock-icon">🔒 </span>Digin’ the Stream
+    </button>
     <div id="container">
         <div id="topNav">
-            <button class="nav-btn" data-mode="avatar">Genre map</button>
-            <button class="nav-btn" data-mode="gameSelector">Jeux</button>
-            <button class="nav-btn" data-mode="collection">Collection</button>
         </div>
-        <button id="streamButton" class="nav-btn stream-btn" data-mode="exploration">
-            <span class="lock-icon">🔒 </span>Digin’ the Stream
-        </button>
 
-        <!-- SHUFFLE 
-        <div id="shuffleBtn" class="button-icon" style="background-image:
-      linear-gradient(145deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0)),
-      url('assets/shuffle.png');"></div>
-        <div id="shuffleTooltip">Joue pour débloquer des genres de musique</div>
-        <div id="pageTitleContainer">
-            <h1 id="pageTitle">Ma Collection</h1>-->
         <p id="pageSubtitle">Tu peux rejouer les sons ou en débloquer !</p>
+
+
     </div>
 
     </div>
     <div id="mapCarousel"></div>
     <div id="videoWrapper">
-        <video id="morphVideo" autoplay muted playsinline src=""></video>
+        <video id="morphVideo" muted playsinline></video>
+    </div>
+    <div id="evolutionVideoWrapper" style="display: none;">
+        <video id="evolutionVideo" muted loop playsinline></video>
     </div>
 
 </body>

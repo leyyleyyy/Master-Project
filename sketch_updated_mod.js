@@ -13,20 +13,23 @@ let winBackground;
 let evolutionBackground;
 function preload() {
   // Charge les sons uniquement si autorisé (évite crash Safari)
-  tracksData.forEach((track) => {
+  /*tracksData.forEach((track) => {
     try {
       audioPlayers[track.title] = loadSound(track.audio);
     } catch (e) {
       console.warn("Erreur de preload audio :", track.title, e);
     }
-  });
+  });*/
   minigameBackground = loadImage("assets/minigame_background.jpg");
   winBackground = loadImage("assets/winBackground.jpg");
   evolutionBackground = loadImage("assets/evolution_background.png");
+  digBackground = loadImage("assets/dig_background.jpg");
+
   // Image morphing préchargée
   bananaFont = loadFont("fonts/bananasp.ttf");
   manropeFont = loadFont("fonts/manrope-regular.otf");
   manropeMedium = loadFont("fonts/manrope-medium.otf");
+  manropeSemiBold = loadFont("fonts/manrope-SemiBold.otf");
 
   //Background
   backgroundImages = {
@@ -123,12 +126,13 @@ function setup() {
     });
   }
 
+  /*
   if (miniGameFeedback === "correct") {
     mode = "exploration";
     selectedPendingTrack = null;
     selectedTrack = null;
   }
-
+*/
   // 🔄 RESET pour test - COMMENTER CETTE LIGNE MAINTENANT
   // localStorage.removeItem("btm_firstWin");
   // firstMiniGameWon = false;
@@ -149,15 +153,16 @@ function setup() {
     firstMiniGameWon = false;
   }
 
-  // Initialiser le bouton Stream
+  // Initialiser le bouton Dig
   const streamButton = document.getElementById("streamButton");
   if (streamButton) {
     streamButton.addEventListener("click", (e) => {
       e.preventDefault();
       e.stopPropagation(); // ✅ IMPORTANT : Empêcher p5.js d'intercepter
+      const isUnlocked = discsEarned >= 3;
 
-      const isUnlocked = playerScore >= 5;
-      console.log("🌊 HTML Stream button clicked, score:", playerScore);
+      //const isUnlocked = discsEarned >= 3;
+      console.log(" HTML Stream button clicked, score:", playerScore);
 
       if (isUnlocked) {
         // Arrêter l'illumination
@@ -165,11 +170,11 @@ function setup() {
         localStorage.removeItem("btm_justUnlockedStream");
 
         // Lancer le mode Stream (exploration)
-        mode = "exploration";
+        mode = "preDig";
         //updateActiveNav();
         redraw();
 
-        console.log("🎉 Mode Stream lancé → Exploration !");
+        console.log("🎉 Mode Dig lancé → Exploration !");
       } else {
         console.log("🔒 Stream verrouillé, score:", playerScore);
       }
@@ -179,7 +184,28 @@ function setup() {
   } else {
     console.error("❌ Bouton Stream introuvable");
   }
+  window.addEventListener("load", () => {
+    const streamButton = document.getElementById("streamButton");
+    if (!streamButton) return;
+
+    streamButton.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      const isUnlocked = discsEarned >= 3;
+      console.log("💡 Stream button clicked. Score:", playerScore);
+
+      if (isUnlocked) {
+        mode = "preDig";
+        redraw();
+        console.log("🚀 Mode set to preDig");
+      } else {
+        console.log("🔒 Accès non autorisé à preDig");
+      }
+    });
+  });
 }
+
 function updatePageTitle() {
   const title = document.getElementById("pageTitle");
   const subtitle = document.getElementById("pageSubtitle");
@@ -218,7 +244,7 @@ function updatePageTitle() {
 
 function updateActiveNav() {
   // Retirer toutes les classes active
-  document.querySelectorAll(".nav-btn").forEach((btn) => {
+  document.querySelectorAll(".stream-btn").forEach((btn) => {
     btn.classList.remove("active");
   });
 
@@ -227,20 +253,25 @@ function updateActiveNav() {
 
   switch (mode) {
     case "collection":
-      activeButton = document.querySelector('.nav-btn[data-mode="collection"]');
+      activeButton = document.querySelector(
+        '.stream-btn[data-mode="collection"]'
+      );
       break;
     case "avatar":
-      activeButton = document.querySelector('.nav-btn[data-mode="avatar"]');
+      activeButton = document.querySelector('.stream-btn[data-mode="avatar"]');
       break;
     case "exploration":
       activeButton = document.querySelector(
-        '.nav-btn[data-mode="exploration"]'
+        '.stream-btn[data-mode="exploration"]'
       );
       break;
     case "gameSelector":
       activeButton = document.querySelector(
-        '.nav-btn[data-mode="gameSelector"]'
+        '.stream-btn[data-mode="gameSelector"]'
       );
+      break;
+    case "preDig":
+      activeButton = document.querySelector('.stream-btn[data-mode="preDig"]');
       break;
   }
 
@@ -251,23 +282,90 @@ function updateActiveNav() {
 
 function draw() {
   background(10, 8, 11);
+  t += 0.01;
 
-  if (mode === "onboarding") {
-    drawOnboardingView();
-  } else if (mode === "avatar") {
+  // ✅ Gestion des vidéos selon le mode
+  const morphVideo = document.getElementById("morphVideo");
+  const morphWrapper = document.getElementById("videoWrapper");
+  const evolutionWrapper = document.getElementById("evolutionVideoWrapper");
+
+  // ✅ MASQUER le totem par défaut sur TOUTES les vues
+  if (morphVideo) morphVideo.style.display = "none";
+  if (morphWrapper) morphWrapper.style.display = "none";
+
+  // Masquer evolutionWrapper par défaut
+  if (evolutionWrapper) evolutionWrapper.style.display = "none";
+
+  // ✅ Afficher le bouton close avec votre fonction existante (sauf en mode totem)
+  if (mode !== "totem") {
+    drawCloseButton();
+  }
+
+  // ✅ AJOUTER TOUS LES MODES de votre ancien sketch
+  if (mode === "avatar") {
     drawAvatarView();
+    updateDiscVisibilityAndPosition(mode);
   } else if (mode === "collection") {
     drawCollectionView();
+    updateDiscVisibilityAndPosition(mode);
+  } else if (mode === "totem") {
+    drawTotemView();
+    // ✅ Afficher morphVideo UNIQUEMENT en mode totem
+    if (morphVideo && morphWrapper) {
+      morphVideo.style.display = "block";
+      morphWrapper.style.display = "block";
+      morphVideo.classList.add("totem-mode");
+      morphVideo.classList.remove("totem-evolution-mode");
+      updateAvatarGif();
+    }
+    updateDiscVisibilityAndPosition(mode);
+    updateDiscsFromScore(mode);
   } else if (mode === "exploration") {
     drawExplorationView();
+    updateDiscVisibilityAndPosition(mode);
+  } else if (mode === "totemEvolution") {
+    drawEvolutionTotemView();
+    showEvolutionVideo();
   } else if (mode === "evolution") {
+    // ✅ AJOUTER : Mode evolution manquant
     drawEvolutionView();
+    updateDiscVisibilityAndPosition(mode);
   } else if (mode === "minigame") {
     drawMiniGameView();
+    updateDiscVisibilityAndPosition(mode);
   } else if (mode === "postMiniGameWin") {
     drawPostMiniGameWinView();
+    updateDiscVisibilityAndPosition(mode);
+  } else if (mode === "postMiniGameLose") {
+    // ✅ AJOUTER : Mode postMiniGameLose manquant
+    drawPostMiniGameLoseView();
   } else if (mode === "gameSelector") {
     drawGameSelectorView();
+    updateDiscVisibilityAndPosition(mode);
+    updateDiscsFromScore(mode);
+  } else if (mode === "preDig") {
+    drawPreDigExplanationView();
+  } else if (mode === "challengeIntro") {
+    // ✅ AJOUTER : Mode challengeIntro manquant (référencé dans votre ancien code)
+    drawChallengeIntroView();
+  }
+
+  // ✅ Masquer evolutionVideo si pas en mode totemEvolution
+  if (mode !== "totemEvolution") {
+    hideEvolutionVideo();
+  }
+
+  // ✅ Gestion de la vidéo morphVideo selon le mode (logique de votre ancien code)
+  if (morphVideo) {
+    if (mode === "totem") {
+      // Déjà géré ci-dessus
+    } else if (mode === "totemEvolution") {
+      // La classe sera ajoutée dans drawEvolutionTotemView()
+    } else {
+      // Retirer toutes les classes et cacher la vidéo dans les autres modes
+      morphVideo.classList.remove("totem-mode", "totem-evolution-mode");
+      morphVideo.style.display = "none";
+    }
   }
 
   updateAvatarGif(); // avatar évolue dynamiquement
@@ -282,22 +380,6 @@ function draw() {
   }
 
   let shuffleEl = document.getElementById("shuffleBtn");
-  /*if (shuffleEl) {
-    shuffleEl.style.display = mode === "avatar" ? "block" : "none";
-    if (mode === "avatar") {
-      shuffleEl.style.left = width / 2 - 100 + "px";
-      shuffleEl.style.top = height / 2 - 280 + "px";
-    }
-  }
-
-  let avatarTitleGroup = document.getElementById("avatarTitleGroup");
-  if (avatarTitleGroup) {
-    if (mode === "collection") {
-      avatarTitleGroup.style.display = "block";
-    } else {
-      avatarTitleGroup.style.display = "none";
-    }
-  }*/
   if (shuffleEl) {
     shuffleEl.style.display = mode === "avatar" ? "block" : "none";
 
@@ -316,72 +398,27 @@ function draw() {
 
       // FORCER ONCLICK ICI
       shuffleEl.onclick = () => {
-        justClickedShuffle = true; // ✅ protège contre double-clic / mousePressed
-
+        justClickedShuffle = true;
         if (unlockedGenres >= 10) {
           console.log("🎯 Passage en mode challengeIntro");
           mode = "challengeIntro";
         } else {
-          console.log("🎮 Passage en mode minigame");
+          console.log("🎮 Passage en mode gameSelector");
           currentMiniGameTrack = pickRandomTrackFromCollection();
           currentMiniGameType = random(["tempo", "genre"]);
           generateMiniGame(currentMiniGameTrack);
-          mode = "minigame";
+          mode = "gameSelector";
         }
       };
     }
   }
 
-  // ✅ Barre de progression
-
-  let progressGroup = document.getElementById("genreProgress");
-  if (progressGroup) {
-    if (mode === "avatar") {
-      progressGroup.style.display = "block";
-
-      let genreStats =
-        typeof getGenreStats === "function" ? getGenreStats() : [];
-      let genreAverages =
-        typeof getGenreAverages === "function" ? getGenreAverages() : {};
-
-      let unlockedGenres = genreStats.length;
-      let totalGenres = Object.keys(genreAverages).length;
-
-      let percent = (unlockedGenres / totalGenres) * 100;
-
-      document.getElementById("progressBar").style.width = percent + "%";
-      document.getElementById(
-        "progressText"
-      ).textContent = `${unlockedGenres} / ${totalGenres} genres débloqués`;
-    } else {
-      progressGroup.style.display = "none";
-    }
-  }
-
-  let shuffleTooltip = document.getElementById("shuffleTooltip");
-  if (shuffleTooltip) {
-    if (mode === "avatar") {
-      shuffleTooltip.style.display = "block";
-      shuffleTooltip.style.left = width / 2 + "px";
-      shuffleTooltip.style.top = height / 2 + "px";
-      shuffleTooltip.style.opacity = "1";
-    } else {
-      shuffleTooltip.style.display = "none";
-      shuffleTooltip.style.opacity = "0";
-    }
-  }
-  if (mode !== previousMode) {
-    previousMode = mode;
-    updateActiveNav(); // ✅ Décommenter cette ligne
-  }
-
-  // ✅ Gestion de la visibilité du bouton Stream
+  // ✅ Gestion du bouton Stream - UNIQUEMENT en mode totem
   const streamButton = document.getElementById("streamButton");
   if (streamButton) {
-    if (mode === "gameSelector") {
+    if (mode === "totem") {
       streamButton.style.display = "block";
-      // ✅ AJOUTER : Gestion du cadenas dynamique
-      updateStreamButtonLock(streamButton);
+      updateStreamButtonLock(streamButton, isStreamUnlocked());
     } else {
       streamButton.style.display = "none";
     }
@@ -397,7 +434,7 @@ function draw() {
     }
   }
 
-  // ✅ AJOUTER : Gestion de la visibilité du carousel de maps
+  // ✅ Gestion de la visibilité du carousel de maps
   const mapCarousel = document.getElementById("mapCarousel");
   if (mapCarousel) {
     if (mode === "exploration") {
@@ -412,7 +449,7 @@ function draw() {
 
 // ✅ AJOUTER : Fonction pour gérer le cadenas du bouton Stream
 function updateStreamButtonLock(streamButton) {
-  const isUnlocked = playerScore >= 5;
+  const isUnlocked = discsEarned >= 3;
   const lockIcon = streamButton.querySelector(".lock-icon");
 
   if (isUnlocked) {
@@ -457,6 +494,7 @@ function renderMapCarousel() {
   }
 }
 
+/*
 window.addEventListener("DOMContentLoaded", () => {
   //const avatarEl = document.getElementById("avatar");
   const shuffleBtn = document.getElementById("shuffleBtn");
@@ -490,31 +528,6 @@ window.addEventListener("DOMContentLoaded", () => {
     btn.addEventListener("touchstart", handleMenuClick);
   });
 
-  // === Avatar cliquable
-  /*if (avatarEl) {
-    function goToAvatar(e) {
-      e.preventDefault();
-      if (mode !== "onboarding") mode = "avatar";
-    }
-    avatarEl.addEventListener("click", goToAvatar);
-    avatarEl.addEventListener("touchstart", goToAvatar);
-  }*/
-
-  /* function handleShuffle(e) {
-    e.preventDefault();
-    launchMiniGameFromCollection();
-
-    shuffleBtn.style.boxShadow = "0 0 20px rgba(255,255,255,0.8)";
-    shuffleBtn.style.transform = "scale(1.15)";
-    setTimeout(() => {
-      shuffleBtn.style.boxShadow = "";
-      shuffleBtn.style.transform = "scale(1)";
-    }, 200);
-  }
-  if (shuffleBtn) {
-    shuffleBtn.addEventListener("click", handleShuffle);
-    shuffleBtn.addEventListener("touchstart", handleShuffle);
-  }*/
   function handleShuffle(e) {
     e.preventDefault();
     justClickedShuffle = true;
@@ -548,8 +561,34 @@ window.addEventListener("DOMContentLoaded", () => {
     shuffleBtn.addEventListener("touchstart", handleShuffle);
   }
 });
+*/
+window.addEventListener("DOMContentLoaded", () => {
+  const streamButton = document.getElementById("streamButton");
+  if (streamButton) {
+    streamButton.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      if (isStreamUnlocked()) {
+        markStreamAsUsed(); // ✅ Marquer comme utilisé
+        mode = "preDig";
+        redraw();
+        console.log("🌊 Stream utilisé ! Mode preDig activé");
+      } else {
+        console.log("🔒 Stream verrouillé");
+      }
+    });
+    console.log("✅ Event listener StreamButton bien attaché après DOM ready");
+  } else {
+    console.error(
+      "❌ Bouton Stream introuvable (DOM non prêt au moment du binding)"
+    );
+  }
+});
+
 // ✅ Navigation en haut de l'écran (comme le burger menu)
-document.querySelectorAll(".nav-btn").forEach((btn) => {
+
+document.querySelectorAll(".stream-btn").forEach((btn) => {
   function handleNavClick(e) {
     e.preventDefault();
     const targetMode = btn.dataset.mode;
@@ -574,45 +613,6 @@ document.querySelectorAll(".nav-btn").forEach((btn) => {
   btn.addEventListener("click", handleNavClick);
   btn.addEventListener("touchstart", handleNavClick);
 });
-
-// Assurez-vous que cette section exclut bien le bouton Stream :
-document.querySelectorAll(".nav-btn").forEach((btn) => {
-  function handleNavClick(e) {
-    e.preventDefault();
-    const targetMode = btn.dataset.mode;
-
-    // Changer le mode
-    mode = targetMode;
-    redraw();
-  }
-
-  btn.addEventListener("click", handleNavClick);
-});
-
-// Et que l'event listener du Stream est bien séparé :
-const streamButton = document.getElementById("streamButton");
-if (streamButton) {
-  streamButton.addEventListener("click", (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-
-    const isUnlocked = playerScore >= 5;
-    console.log("🌊 HTML Stream button clicked, score:", playerScore);
-
-    if (isUnlocked) {
-      localStorage.setItem("btm_streamIlluminationSeen", "true");
-      localStorage.removeItem("btm_justUnlockedStream");
-
-      mode = "exploration";
-      //updateActiveNav();
-      redraw();
-
-      console.log("🎉 Mode Stream lancé → Exploration !");
-    } else {
-      console.log("🔒 Stream verrouillé, score:", playerScore);
-    }
-  });
-}
 
 // ✅ CORRIGER : Mettre cette logique dans une fonction ou dans un event listener
 function handleCollectionTrackClick(clickedTrack) {
@@ -644,4 +644,28 @@ function handleCollectionTrackClick(clickedTrack) {
   }
 
   redraw(); // Redessiner pour afficher l'illumination
+}
+
+function handleTotemClick(mx, my) {
+  for (let zone of blobHitZones) {
+    if (
+      mx >= zone.x &&
+      mx <= zone.x + zone.w &&
+      my >= zone.y &&
+      my <= zone.y + zone.h
+    ) {
+      if (zone.type === "jouerButton") {
+        // ✅ Emmener vers gameSelector
+        mode = "gameSelector";
+        console.log("🎮 Transition vers Game Selector depuis Totem !");
+        return;
+      }
+
+      /*if (zone.type === "streamMode") {
+        mode = "preDig";
+        console.log("🎉 Dig lancé depuis la vue Totem !");
+        return;
+      }*/
+    }
+  }
 }

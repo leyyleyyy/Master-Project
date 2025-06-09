@@ -1,3 +1,25 @@
+function forceDiscDisplayUpdate() {
+  const container = document.getElementById("discsContainer");
+  if (container) {
+    container.style.display = "flex";
+    container.classList.remove("discs-totem", "discs-minigame");
+    container.classList.add("discs-minigame");
+  }
+  updateDiscsFromScore("gameSelector");
+}
+
+function getCollectionPointsBonus(track) {
+  const cluster = getMostCommonCluster(playerCollection);
+  const sameClusterCount = playerCollection.filter(
+    (t) => getMostCommonCluster([t]) === cluster
+  ).length;
+  if (sameClusterCount === 0) return 10;
+  if (sameClusterCount === 1) return 6;
+  if (sameClusterCount === 2) return 3;
+  if (sameClusterCount === 3) return 1;
+  return -2;
+}
+
 let justClickedShuffle = false;
 
 function isInsideClickableZone(zone, mx, my) {
@@ -39,6 +61,34 @@ function isInsideClickableZone(zone, mx, my) {
 }
 
 function mousePressed() {
+  /*if (mode === "exploration" && trackSelectedForValidation) {
+    const bonus = getGenreClusterPoints(trackSelectedForValidation);
+    totemPoints += bonus;
+    evolutionPoints = bonus;
+    updatePlayerScore();
+    localStorage.setItem("btm_totemPoints", totemPoints);
+
+    // Réinitialise les disques
+    discsEarned = 0;
+    for (let i = 1; i <= 3; i++) {
+      const disc = document.getElementById(`disc${i}`);
+      if (disc) disc.classList.remove("earned");
+    }
+
+    // Ajouter à la collection
+    playerCollection.push(cleanTrack(trackSelectedForValidation));
+    localStorage.setItem("btm_collection", JSON.stringify(playerCollection));
+
+    trackSelectedForValidation = null;
+    mode = "evolution";
+    redraw();
+    return;
+  }*/
+  if (mode === "evolution") {
+    totemPoints += evolutionPoints;
+    localStorage.setItem("btm_totemPoints", totemPoints);
+  }
+
   // === GESTION GLOBALE DE LA CROIX DE FERMETURE ===
   for (let zone of blobHitZones) {
     if (
@@ -47,17 +97,73 @@ function mousePressed() {
     ) {
       console.log("❌ Fermeture via croix");
 
+      // ✅ AJOUTER : Nettoyer la vidéo d'évolution
+      if (typeof hideEvolutionVideo === "function") {
+        hideEvolutionVideo();
+      }
+
       // Arrêter l'audio si en cours
       if (currentAudio && currentAudio.isPlaying()) {
         currentAudio.stop();
       }
 
-      // Retour au sélecteur de jeux
-      mode = "gameSelector";
+      // ✅ Logique conditionnelle selon le mode
+      if (mode === "minigame") {
+        // En mode minigame, retourner au gameSelector
+        mode = "gameSelector";
+        console.log("🎮 Retour au Game Selector depuis Mini-jeu");
+
+        // Reset des variables du mini-jeu
+        currentMiniGameTrack = null;
+        miniGameOptions = [];
+        miniGameAnswer = null;
+        selectedOption = null;
+        miniGameFeedback = "";
+        window.miniGameStarted = false;
+        window.miniGameMusicStarted = false;
+        miniGameAttempts = 0;
+      } else {
+        // Pour tous les autres modes, retourner au totem
+        mode = "totem";
+        console.log("🏠 Retour au Totem depuis", mode);
+      }
+
       return;
     }
   }
+  // Dans votre fonction mousePressed(), ajoutez cette section :
 
+  // === TOTEM EVOLUTION ===
+  if (mode === "totemEvolution") {
+    for (let zone of blobHitZones) {
+      if (isInsideClickableZone(zone, mouseX, mouseY)) {
+        if (zone.type === "continueFromEvolution") {
+          // ✅ NOUVEAU : Réinitialiser les disques après l'évolution du totem
+          discsEarned = 0;
+
+          // Mettre à jour visuellement les disques
+          for (let i = 1; i <= 3; i++) {
+            const disc = document.getElementById(`disc${i}`);
+            if (disc) disc.classList.remove("earned");
+          }
+
+          // Sauvegarder l'état des disques
+          localStorage.setItem("btm_discsEarned", discsEarned.toString());
+
+          console.log("🔄 Disques réinitialisés après évolution du totem");
+
+          mode = "totem"; // ✅ Retourner vers le totem principal
+          redraw();
+          return;
+        }
+      }
+    }
+    return;
+  }
+  if (mode === "totem") {
+    handleTotemClick(mouseX, mouseY);
+    return;
+  }
   // === GAME SELECTOR ===
   if (mode === "gameSelector") {
     for (let zone of blobHitZones) {
@@ -81,74 +187,95 @@ function mousePressed() {
           miniGameAttempts = 0;
           return;
         }
-
-        // 🌊 Mode Stream (Exploration)
-        /*if (zone.type === "streamMode") {
-          // ✨ Marquer l'illumination comme vue
-          localStorage.setItem("btm_streamIlluminationSeen", "true");
-          localStorage.removeItem("btm_justUnlockedStream"); // Nettoyer aussi ce flag
-
-          console.log("🌊 Accès au mode Stream");
-          console.log("✨ Illumination Stream marquée comme vue");
-          mode = "exploration";
-          return;
-        }*/
       }
     }
     return;
   }
 
-  // === CHALLENGE INTRO ===
-  if (mode === "challengeIntro") {
+  // === POST MINI GAME LOSE ===
+  if (mode === "postMiniGameLose") {
     for (let zone of blobHitZones) {
-      if (
-        zone.type === "startChallenge" &&
-        isInsideClickableZone(zone, mouseX, mouseY)
-      ) {
-        challengeProgress = 0;
-        launchNextChallengeGame();
+      if (zone.type === "retryMiniGame") {
+        // Relancer un nouveau mini-jeu
+        currentMiniGameTrack = pickRandomTrackFromDatabase();
+        currentMiniGameType = random(["tempo", "genre", "visual_match"]);
+        generateMiniGame(currentMiniGameTrack);
+        mode = "gameSelector";
+        redraw();
+        return;
+      }
+      if (zone.type === "backToCollection") {
+        mode = "totem";
+        redraw();
         return;
       }
     }
-    return;
+  }
+
+  // === HOW TO DIG ===
+
+  if (mode === "preDig") {
+    for (let zone of blobHitZones) {
+      if (zone.type === "startDigging") {
+        mode = "preDig";
+        redraw();
+        return;
+      }
+      if (zone.type === "backToTotem") {
+        mode = "totem";
+        redraw();
+        return;
+      }
+    }
+  }
+  /*if (mode === "preDig" && !preDigBlockedTemporarily) {
+    for (let zone of blobHitZones) {
+      if (zone.type === "goDigging") {
+        mode = "exploration";
+        redraw();
+        return;
+      }
+    }
+  }
+*/
+  if (mode === "preDig") {
+    for (let zone of blobHitZones) {
+      if (zone.type === "goDigging") {
+        console.log("🛑 Click goDigging ignoré (venait du bouton)");
+        return;
+      }
+      mode = "exploration";
+      redraw();
+      return;
+    }
   }
 
   // === POST MINI GAME WIN ===
-  if (mode === "postMiniGameWin") {
-    for (let zone of blobHitZones) {
-      if (isInsideClickableZone(zone, mouseX, mouseY)) {
-        if (zone.type === "continueExploration") {
-          // ✨ Vérifier s'il faut montrer la page de déblocage
-          let justUnlocked =
-            localStorage.getItem("btm_justUnlockedStream") === "true";
-
-          if (justUnlocked) {
-            // 🎉 Aller à la page de déblocage
-            localStorage.removeItem("btm_justUnlockedStream"); // Nettoyer le flag
-            localStorage.setItem("btm_firstStreamUnlock", "true"); // Marquer comme vu
-            mode = "gameSelector";
-            console.log("On explore !");
-          } else {
-            // 📱 Retour normal au sélecteur de jeux
-            mode = "gameSelector";
-          }
-          return;
-        }
-      }
-    }
-    return;
-  }
   if (mode === "postMiniGameWin") {
     for (let zone of blobHitZones) {
       if (
         zone.type === "continueExploration" &&
         isInsideClickableZone(zone, mouseX, mouseY)
       ) {
-        mode = "gameSelector";
-        justWonMiniGame = false;
+        console.log("✅ Clic sur Continuer - Retour au Totem");
+
+        // ✅ MODIFIER : Aller vers totem au lieu d'exploration
+        mode = "totem";
+
+        // Réinitialiser les variables du mini-jeu
+        lastMiniGameTrack = null;
+        currentMiniGameTrack = null;
+        miniGameOptions = [];
+        miniGameAnswer = null;
+        selectedOption = null;
+        miniGameFeedback = "";
+        window.miniGameStarted = false;
+        window.miniGameMusicStarted = false;
+
         return;
       }
     }
+    return;
   }
 
   // === EVOLUTION ===
@@ -164,7 +291,7 @@ function mousePressed() {
       mouseY > btnY &&
       mouseY < btnY + btnH
     ) {
-      mode = "avatar";
+      mode = "totemEvolution";
       evolutionTrack = null;
       evolutionPoints = 0;
       return;
@@ -267,8 +394,8 @@ function mousePressed() {
 
         if (isCorrect) {
           lastMiniGameTrack = currentMiniGameTrack;
-
-          // 🎵 AJOUTER LE MORCEAU À LA COLLECTION
+          /*
+          // 🎵 Ajouter à la collection comme avant
           if (currentMiniGameTrack) {
             let cleaned = cleanTrack(currentMiniGameTrack);
             let withMap = { ...cleaned, mapName: "Mini-jeu" };
@@ -283,25 +410,34 @@ function mousePressed() {
                 "btm_collection",
                 JSON.stringify(playerCollection)
               );
-
               updateAvatarGif();
               updateBackgroundClusterFromGenre(cleaned.genre);
-
-              console.log(
-                "🎵 Nouveau morceau ajouté à la collection :",
-                cleaned.title
-              );
             }
           }
+*/
+          // ✅ NOUVEAU : Gagner un disque au lieu de points
+          gainDisc();
+          forceDiscDisplayUpdate();
+          // ✅ Message différent selon le nombre de disques
+          let motivationMessage = "";
+          if (discsEarned === 1) {
+            motivationMessage = "Premier disque gagné ! 💿";
+          } else if (discsEarned === 2) {
+            motivationMessage = "Deuxième disque ! Plus qu'un ! 💿💿";
+          } else if (discsEarned >= 3) {
+            motivationMessage =
+              "Tous les disques gagnés ! Stream débloqué ! 💿💿💿🌊";
+          }
+
+          console.log(motivationMessage);
 
           // 🏆 Calculer les points basés sur les essais
-          // ✅ Compter l'essai actuel (miniGameAttempts + 1)
-          let actualAttempts = miniGameAttempts + 1;
-          let points = getMiniGamePoints(actualAttempts);
+          // ✅ MODIFIER : Toujours 1 point pour tous les mini-jeux
+          let points = 1; // ← Directement 1 au lieu de getMiniGamePoints(actualAttempts)
 
           let previousScore = playerScore;
           playerScore += points;
-
+          updateDiscsFromScore;
           // ✨ MARQUER SI ON VIENT DE DÉBLOQUER LE STREAM
           if (previousScore < 5 && playerScore >= 5) {
             // 🎉 Première fois qu'on atteint 5 points !
@@ -326,13 +462,8 @@ function mousePressed() {
           miniGameAttempts = 0;
         } else {
           // ❌ Mauvaise réponse - incrémenter les essais
-          miniGameAttempts++;
-          currentLives--;
-          console.log(
-            `💔 Mauvaise réponse (essai ${
-              miniGameAttempts + 1
-            }), vies restantes : ${currentLives}`
-          );
+          console.log("💔 Mauvaise réponse → échec immédiat (visual_match)");
+          mode = "postMiniGameLose";
         }
 
         // Reset du flag musique
@@ -380,7 +511,7 @@ function mousePressed() {
 
       if (isCorrect) {
         lastMiniGameTrack = currentMiniGameTrack;
-
+        /*
         // 🎵 AJOUTER LE MORCEAU À LA COLLECTION
         if (currentMiniGameTrack) {
           let cleaned = cleanTrack(currentMiniGameTrack);
@@ -406,19 +537,14 @@ function mousePressed() {
             );
           }
         }
-
+*/
         // 🏆 Calculer les points basés sur les essais
-        let actualAttempts = miniGameAttempts + 1;
-        let points = getMiniGamePoints(actualAttempts);
-
-        console.log("🔍 DEBUG SCORE CLASSIQUE:", {
-          scoreActuel: playerScore,
-          pointsGagnés: points,
-          miniGameAttempts: miniGameAttempts,
-          actualAttempts: actualAttempts,
-        });
+        // ✅ MODIFIER : Toujours 1 point pour tous les mini-jeux classiques aussi
+        let points = 1; // ← Directement 1 au lieu de getMiniGamePoints(actualAttempts)
 
         playerScore += points;
+        gainDisc(); // ajoute un disque
+        updateDiscsFromScore("minigame"); // force le changement visuel tout de suite
 
         // ✅ SAUVEGARDER LE SCORE
         localStorage.setItem("btm_score", playerScore.toString());
@@ -430,13 +556,6 @@ function mousePressed() {
           alpha: 255,
           size: 36,
         });
-
-        console.log(
-          `🎯 ${points} points gagnés (${actualAttempts} essai${
-            actualAttempts > 1 ? "s" : ""
-          })`
-        );
-        console.log(`📊 Score total: ${playerScore}`);
 
         mode = "postMiniGameWin";
         justWonMiniGame = true;
@@ -451,13 +570,8 @@ function mousePressed() {
         miniGameAttempts = 0;
       } else {
         // ❌ Mauvaise réponse - incrémenter les essais
-        miniGameAttempts++;
-        currentLives--;
-        console.log(
-          `💔 Mauvaise réponse (essai ${
-            miniGameAttempts + 1
-          }), vies restantes : ${currentLives}`
-        );
+        console.log("💔 Mauvaise réponse");
+        mode = "postMiniGameLose";
       }
 
       // Reset du flag musique
@@ -559,10 +673,11 @@ function mousePressed() {
       mouseY > valBtnY &&
       mouseY < valBtnY + valBtnH
     ) {
-      let points = getGenreClusterPoints(selectedPendingTrack);
+      let points = getGenreClusterPoints(selectedPendingTrack); // ← GARDER : Système de points variable pour l'exploration
       playerScore += points;
-
-      pointFeedbacks.push({ points, x: 100, y: 30, alpha: 255, size: 36 });
+      updateDiscsFromScore(); // ✅ CORRIGER : Ajouter les parenthèses manquantes
+      collectionPoints += points;
+      updatePlayerScore();
 
       let cleaned = cleanTrack(selectedPendingTrack);
       let withMap = { ...cleaned, mapName: "Mini-jeu" };
@@ -610,12 +725,6 @@ function mousePressed() {
     return;
   }
 
-  // === ONBOARDING ===
-  if (mode === "onboarding") {
-    handleOnboardingClick();
-    return;
-  }
-
   // === AVATAR ===
   if (mode === "avatar") {
     // Clic sur l'avatar central
@@ -649,43 +758,10 @@ function mousePressed() {
   // Reset du flag shuffle à la fin
   justClickedShuffle = false;
 }
-/*
-// Cherchez la fonction qui gère les clics sur la navigation et ajoutez :
-document.querySelectorAll(".nav-btn").forEach((btn) => {
-  btn.addEventListener("click", (e) => {
-    const targetMode = btn.dataset.mode;
-    
-    // ✅ AJOUTER : Marquer l'illumination Genre Map comme vue
-    if (targetMode === "avatar") {
-      localStorage.setItem("btm_genreMapIlluminationSeen", "true");
-    }
-    
-    // ✅ OPTIONNEL : Garder l'ancienne logique Collection
-    if (targetMode === "collection") {
-      localStorage.setItem("btm_collectionIlluminationSeen", "true");
-    }
-    
-    mode = targetMode;
-    // ...rest of click logic...
-  });
-});
-*/
+
 isDragging = false;
 lastTouch = null;
 
-/*
-function touchMoved() {
-  
-  if (isDragging && lastTouch) {
-    let dx = mouseX - lastTouch.x;
-    let dy = mouseY - lastTouch.y;
-    scrollXOffset += dx;
-    scrollYOffset += dy;
-    lastTouch.set(mouseX, mouseY);
-  }
-  return false;
-}
-*/
 function touchMoved() {
   // Collection scroll (existant)
   if (mode === "collection") {

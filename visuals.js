@@ -6,8 +6,13 @@ function drawTrackBlob(
   index,
   fixedWhiteMode = false,
   isUnlocked = true,
-  forceRound = false
+  forceRound = false,
+  registerHitZone = true
 ) {
+  if (registerHitZone) {
+    blobHitZones.push({ x: cx, y: cy, r: maxSize / 2, track, type: "blob" });
+  }
+
   let { tempo, energy, danceability, key, valence } = track;
   let isSelected = selectedTrack && selectedTrack.title === track.title;
 

@@ -20,12 +20,12 @@ function shuffleArray(array) {
     .map(({ v }) => v);
 }
 
-const mixRatio = getMixRatio(playerCollection);
-
 function getEvolutionComment(track, dominantCluster) {
   const genre = track.genre?.toLowerCase() || "inconnu";
   const cluster = getMostCommonCluster([track]);
   const comments = [];
+
+  const mixRatio = getMixRatio(playerCollection);
 
   if (cluster !== dominantCluster) {
     if (cluster === "experimental") {
