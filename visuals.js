@@ -103,3 +103,41 @@ function drawTrackBlob(
 
   blobHitZones.push({ x: cx, y: cy, r: maxSize / 2, track, type: "blob" });
 }
+
+// (ou dans le fichier où vous avez cette fonction)
+function updateDiscVisibilityAndPosition(mode) {
+  const discsContainer = document.getElementById("discsContainer");
+  if (!discsContainer) return;
+
+  // Retirer toutes les classes existantes
+  discsContainer.className = "";
+
+  switch (mode) {
+    case "totem":
+      discsContainer.className = "discs-totem";
+      discsContainer.style.display = "flex";
+      break;
+    
+    case "minigame":
+    case "gameSelector":
+      discsContainer.className = "discs-minigame";
+      discsContainer.style.display = "flex";
+      break;
+    
+    case "preDig":
+      discsContainer.className = "discs-preDig";
+      discsContainer.style.display = "none"; // ← Cacher en mode preDig
+      break;
+    
+    case "collection":
+    case "avatar":
+    case "exploration":
+      discsContainer.style.display = "flex";
+      // Ajoutez des classes spécifiques si nécessaire
+      break;
+    
+    default:
+      discsContainer.style.display = "none";
+      break;
+  }
+}

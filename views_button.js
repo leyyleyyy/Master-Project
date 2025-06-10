@@ -509,7 +509,15 @@ function drawEvolutionView() {
   // 🎵 Titre
   textSize(isMobile ? 66 : 20);
   fill(0, 0, 100);
-  text(`${evolutionTrack.title || "—"}, ${evolutionTrack.artist || "—"}`, x, y);
+  textWrap(WORD);
+  let maxTextWidth = width * 0.85; // 85% de la largeur de l'écran
+  let textStartX = width / 2 - maxTextWidth / 2; // Position de départ pour centrer
+  text(
+    `${evolutionTrack.title || "—"}, ${evolutionTrack.artist || "—"}`,
+    textStartX,
+    y,
+    maxTextWidth
+  );
   y += spacing;
 
   // 🎧 Genre

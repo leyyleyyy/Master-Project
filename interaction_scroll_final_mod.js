@@ -240,14 +240,23 @@ function mousePressed() {
 */
   if (mode === "preDig") {
     for (let zone of blobHitZones) {
-      if (zone.type === "goDigging") {
-        console.log("🛑 Click goDigging ignoré (venait du bouton)");
-        return;
+      if (isInsideClickableZone(zone, mouseX, mouseY)) {
+        if (zone.type === "goDigging") {
+          console.log("🎯 Clic sur goDigging - passage en exploration");
+          mode = "exploration";
+          redraw();
+          return;
+        }
+        if (zone.type === "backToTotem") {
+          console.log("🏠 Retour au totem");
+          mode = "totem";
+          redraw();
+          return;
+        }
       }
-      mode = "exploration";
-      redraw();
-      return;
     }
+    // Ne rien faire si pas de clic dans une zone
+    return;
   }
 
   // === POST MINI GAME WIN ===

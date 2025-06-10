@@ -345,6 +345,7 @@ function draw() {
     updateDiscsFromScore(mode);
   } else if (mode === "preDig") {
     drawPreDigExplanationView();
+    updateDiscVisibilityAndPosition(mode); // ← Ajoutez cette ligne
   } else if (mode === "challengeIntro") {
     // ✅ AJOUTER : Mode challengeIntro manquant (référencé dans votre ancien code)
     drawChallengeIntroView();
