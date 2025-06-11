@@ -465,7 +465,7 @@ function drawEvolutionView() {
   let y = height / 2 - (isMobile ? -10 : 150);
   let spacing = isMobile ? 90 : 50;
 
-  // 🎉 Titre
+  // 🎉 Titbre
   textAlign(CENTER, CENTER);
   textFont(bananaFont);
   textSize(isMobile ? 140 : 28);
@@ -1382,6 +1382,15 @@ function drawTotemView() {
     h: jouerBtnH,
   });
 
+  // ✅ Zone cliquable pour le totem vers la collection
+  blobHitZones.push({
+    type: "totemToCollection",
+    x: totemX - totemSize / 2,
+    y: totemY - totemSize / 2,
+    w: totemSize,
+    h: totemSize,
+  });
+
   // === Repositionner le bouton Stream au milieu en bas ===
   const streamButton = document.getElementById("streamButton");
   if (streamButton) {
@@ -1448,9 +1457,9 @@ function getTotemEvolutionPhrase() {
   if (collectionSize === 0) {
     return "🌟 Ton totem prend vie... Il attend avec impatience tes premières découvertes musicales !";
   } else if (collectionSize === 1) {
-    return "✨ Première transformation ! Ton totem ressent déjà l'influence de ta musique...";
+    return "✨ Première transformation ! Chaque nouvelle musique change son essence...";
   } else if (collectionSize <= 3) {
-    return "🎭 Ton totem se façonne petit à petit... Chaque nouvelle musique change son essence !";
+    return "🎭 Ton totem se façonne petit à petit... CTon totem ressent déjà l'influence de ta musique !";
   } else if (collectionSize <= 5) {
     return "🌈 L'âme de ton totem se colore ! Il commence à refléter ta personnalité musicale...";
   } else if (collectionSize <= 10) {
@@ -1530,7 +1539,7 @@ function drawPreDigExplanationView() {
   fill(0, 0, 90);
 
   let explanationText =
-    "Tu vas pouvoir choisir une musique parmi une sélection personnalisée basée sur tes goûts !";
+    "Tu vas pouvoir choisir une musique parmi une sélection. Plus tu gagnes de points, plus ta sélection s'élargira !";
   text(explanationText, textX, baseY + spacing * 2, maxTextWidth);
 
   textStyle(NORMAL);

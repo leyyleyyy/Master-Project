@@ -13,13 +13,13 @@ let winBackground;
 let evolutionBackground;
 function preload() {
   // Charge les sons uniquement si autorisé (évite crash Safari)
-  /*tracksData.forEach((track) => {
+  tracksData.forEach((track) => {
     try {
       audioPlayers[track.title] = loadSound(track.audio);
     } catch (e) {
       console.warn("Erreur de preload audio :", track.title, e);
     }
-  });*/
+  });
   minigameBackground = loadImage("assets/minigame_background.jpg");
   winBackground = loadImage("assets/winBackground.jpg");
   evolutionBackground = loadImage("assets/evolution_background.png");
@@ -96,7 +96,7 @@ function setup() {
   noiseSeed(83);
 
   // Sécurité localStorage
-  /*try {
+  try {
     let stored = localStorage.getItem("btm_collection");
     if (stored) {
       playerCollection = JSON.parse(stored);
@@ -106,7 +106,7 @@ function setup() {
     }
   } catch (e) {
     playerCollection = [cleanTrack(tracksData[0])];
-  }*/
+  }
 
   // Min/max init
   DATA_KEYS.forEach((key) => {

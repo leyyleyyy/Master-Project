@@ -397,3 +397,14 @@ for (let i = 0; i < tracksData.length; i += chunkSize) {
   scoreThreshold += 20; // chaque map est débloquée tous les 20 points
 }
 */
+try {
+  let stored = localStorage.getItem("btm_collection");
+  if (stored) {
+    playerCollection = JSON.parse(stored);
+  } else {
+    playerCollection = []; // ← Collection vide au démarrage
+    localStorage.setItem("btm_collection", JSON.stringify(playerCollection));
+  }
+} catch (e) {
+  playerCollection = []; // ← Collection vide en cas d'erreur aussi
+}

@@ -135,24 +135,56 @@ function mousePressed() {
 
   // === TOTEM EVOLUTION ===
   if (mode === "totemEvolution") {
+    // ✅ ZONE CLIQUABLE ÉLARGIE pour le bouton Continuer
+    let continueBtnW = isMobile ? 400 : 300; // ← Plus large
+    let continueBtnH = isMobile ? 100 : 70; // ← Plus haut
+    let continueBtnX = width / 2 - continueBtnW / 2;
+    let continueBtnY = height - continueBtnH - (isMobile ? 120 : 80); // ← REMONTÉ (était 60/40)
+
+    // Vérifier d'abord la zone du bouton Continuer
+    if (
+      mouseX > continueBtnX &&
+      mouseX < continueBtnX + continueBtnW &&
+      mouseY > continueBtnY &&
+      mouseY < continueBtnY + continueBtnH
+    ) {
+      console.log("✅ Clic sur bouton Continuer (totemEvolution)");
+
+      // ✅ Réinitialiser les disques après l'évolution du totem
+      discsEarned = 0;
+
+      // Mettre à jour visuellement les disques
+      for (let i = 1; i <= 3; i++) {
+        const disc = document.getElementById(`disc${i}`);
+        if (disc) disc.classList.remove("earned");
+      }
+
+      // Sauvegarder l'état des disques
+      localStorage.setItem("btm_discsEarned", discsEarned.toString());
+
+      console.log("🔄 Disques réinitialisés après évolution du totem");
+
+      mode = "totem";
+      redraw();
+      return;
+    }
+
+    // Ensuite vérifier les autres zones
     for (let zone of blobHitZones) {
       if (isInsideClickableZone(zone, mouseX, mouseY)) {
         if (zone.type === "continueFromEvolution") {
-          // ✅ NOUVEAU : Réinitialiser les disques après l'évolution du totem
+          // Garder l'ancien système en backup
           discsEarned = 0;
-
-          // Mettre à jour visuellement les disques
           for (let i = 1; i <= 3; i++) {
             const disc = document.getElementById(`disc${i}`);
             if (disc) disc.classList.remove("earned");
           }
-
-          // Sauvegarder l'état des disques
           localStorage.setItem("btm_discsEarned", discsEarned.toString());
+          console.log(
+            "🔄 Disques réinitialisés après évolution du totem (backup)"
+          );
 
-          console.log("🔄 Disques réinitialisés après évolution du totem");
-
-          mode = "totem"; // ✅ Retourner vers le totem principal
+          mode = "totem";
           redraw();
           return;
         }
@@ -161,7 +193,26 @@ function mousePressed() {
     return;
   }
   if (mode === "totem") {
-    handleTotemClick(mouseX, mouseY);
+    // ✅ AJOUTER : Gestion directe du clic sur le totem pour aller à la collection
+    for (let zone of blobHitZones) {
+      if (isInsideClickableZone(zone, mouseX, mouseY)) {
+        if (zone.type === "totemToCollection") {
+          console.log("🏛️ Clic sur le totem - redirection vers collection");
+          mode = "collection";
+          redraw();
+          return;
+        }
+        if (zone.type === "jouerButton") {
+          console.log("🎮 Clic sur Jouer - redirection vers gameSelector");
+          mode = "gameSelector";
+          redraw();
+          return;
+        }
+      }
+    }
+
+    // Supprimer ou commenter cette ligne qui cause l'erreur :
+    // handleTotemClick(mouseX, mouseY);
     return;
   }
   // === GAME SELECTOR ===
@@ -289,10 +340,11 @@ function mousePressed() {
 
   // === EVOLUTION ===
   if (mode === "evolution") {
-    let btnW = 200;
-    let btnH = 50;
+    // ✅ ZONE CLIQUABLE ÉLARGIE pour le bouton Continuer
+    let btnW = isMobile ? 400 : 300; // ← Plus large qu'avant (était 200)
+    let btnH = isMobile ? 100 : 70; // ← Plus haut qu'avant (était 50)
     let btnX = width / 2 - btnW / 2;
-    let btnY = height - (isMobile ? 100 : 100);
+    let btnY = height - (isMobile ? 180 : 160); // ← REMONTÉ (était 120)
 
     if (
       mouseX > btnX &&
@@ -300,6 +352,7 @@ function mousePressed() {
       mouseY > btnY &&
       mouseY < btnY + btnH
     ) {
+      console.log("✅ Clic sur bouton Continuer (evolution)");
       mode = "totemEvolution";
       evolutionTrack = null;
       evolutionPoints = 0;
@@ -669,11 +722,11 @@ function mousePressed() {
       }
     }
 
-    // Bouton Valider
-    let valBtnW = isMobile ? 240 : 200;
-    let valBtnH = isMobile ? 55 : 45;
+    // ✅ BOUTON VALIDER ÉLARGI pour l'exploration
+    let valBtnW = isMobile ? 320 : 280; // ← Plus large qu'avant (était 240/200)
+    let valBtnH = isMobile ? 80 : 65; // ← Plus haut qu'avant (était 55/45)
     let valBtnX = width / 2 - valBtnW / 2;
-    let valBtnY = height - valBtnH - (isMobile ? 80 : 20);
+    let valBtnY = height - valBtnH - (isMobile ? 100 : 60); // ← REMONTÉ (était 60/30)
 
     if (
       selectedPendingTrack &&
@@ -682,9 +735,11 @@ function mousePressed() {
       mouseY > valBtnY &&
       mouseY < valBtnY + valBtnH
     ) {
-      let points = getGenreClusterPoints(selectedPendingTrack); // ← GARDER : Système de points variable pour l'exploration
+      console.log("✅ Clic sur bouton Valider (exploration)");
+
+      let points = getGenreClusterPoints(selectedPendingTrack);
       playerScore += points;
-      updateDiscsFromScore(); // ✅ CORRIGER : Ajouter les parenthèses manquantes
+      updateDiscsFromScore();
       collectionPoints += points;
       updatePlayerScore();
 

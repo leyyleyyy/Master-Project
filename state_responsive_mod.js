@@ -64,10 +64,10 @@ function getAvatarStage() {
   if (totemPoints === 0) return "1";
   return "1";*/
   let count = playerCollection.length;
+  if (count === 0) return "1";
   if (count === 1) return "2"; // ← 0-1 musique
   if (count === 2) return "3"; // ← 2-3 musiques
   if (count === 3) return "4"; // ← 4-5 musiques
-  if (count === 0) return "1";
   return "1";
 }
 
