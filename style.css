@@ -506,11 +506,11 @@ canvas {
 
 #streamButton {
   position: absolute;
-  bottom: 700px;
+  bottom: 0px;
   left: 50%; /* ✅ Centrage horizontal */
   transform: translateX(-50%); /* ✅ Centrage parfait */
   width: 90vw; /* ✅ 90% of viewport width for bigger button */
-  min-height: 160px; /* Added minimum height */
+  /*min-height: 160px;  Added minimum height */
   z-index: 990;
   
   /* Styles hérités de .nav-btn mais adaptés */
@@ -575,7 +575,7 @@ box-shadow: inset 0 0 12px rgba(255, 255, 255, 0.15);}
 /* Responsive mobile */
 @media (max-width: 768px) {
   #streamButton {
-    bottom: 20px; /* ✅ Un peu plus haut sur mobile */
+    bottom: 0px; /* ✅ Un peu plus haut sur mobile */
     width: 90vw; /* ✅ Plus large sur mobile */
     padding: 25px 20px;
     font-size: 28px;
@@ -608,6 +608,25 @@ box-shadow: inset 0 0 12px rgba(255, 255, 255, 0.15);}
   .totem-evolution-mode {
     width: 300px;
     height: 300px;
+  }
+}
+
+/* ✅ CORRIGER : Forcer le canvas à prendre toute la taille sur mobile */
+@media (max-width: 768px) {
+  main {
+    width: 100vw !important;
+    height: 100vh !important;
+    height: 100dvh !important; /* Dynamic viewport height pour les mobiles modernes */
+  }
+  
+  canvas {
+    width: 100vw !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    z-index: 1 !important;
   }
 }
 

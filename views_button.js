@@ -286,10 +286,25 @@ function drawMiniGameView() {
   textFont("sans-serif");
 
   text(instruction, textX, textY, maxTextWidth);
+
+  // === Ligne supplémentaire pour visual_match ===
+  if (currentMiniGameType === "visual_match") {
+    fill(0, 0, 70); // Couleur plus douce
+    textSize(isMobile ? 36 : 18);
+    textStyle(ITALIC);
+    textAlign(CENTER, CENTER);
+    text(
+      "Clic sur un blob pour l'écouter",
+      width / 2,
+      textY + (isMobile ? 150 : 40)
+    );
+    textStyle(NORMAL); // Remettre le style normal
+  }
+
   // === Jeu VISUAL_MATCH ===
   if (currentMiniGameType === "visual_match" && miniGameOptions.length === 2) {
     let blobSize = isMobile ? 240 : 160;
-    let spacing = isMobile ? 200 : 260;
+    let spacing = isMobile ? 300 : 260;
     let baseY = height / 2 - spacing / 2;
 
     for (let i = 0; i < 2; i++) {
@@ -1305,12 +1320,22 @@ function handleAvatarDrag(deltaX, deltaY) {
 }
 
 function drawTotemView() {
-  // background(0, 0, 10);
+  // ✅ Forcer la taille du canvas à 1200x2300 pixels
+  let targetWidth = 1200;
+  let targetHeight = 2300;
 
-  // === Totem au milieu (beaucoup plus gros) ===
-  let totemSize = isMobile ? 350 : 500;
+  // ✅ IMPORTANT : Vérifier et forcer le redimensionnement
+  if (width !== targetWidth || height !== targetHeight) {
+    resizeCanvas(targetWidth, targetHeight);
+    console.log(`📱 Canvas redimensionné: ${targetWidth}x${targetHeight}`);
+  }
+
+  background(0, 0, 10);
+
+  // === Totem au milieu (adapté à la taille fixe) ===
+  let totemSize = isMobile ? min(width * 0.3, 400) : 500;
   let totemX = width / 2;
-  let totemY = height / 2 - 440;
+  let totemY = height * 0.25;
 
   // Afficher le totem/avatar avec la classe CSS originale
   let morphVideo = document.getElementById("morphVideo");
@@ -1346,32 +1371,31 @@ function drawTotemView() {
   // === Nombre de points en dessous ===
   fill(0, 0, 100);
   textAlign(CENTER, CENTER);
-  textSize(isMobile ? 48 : 32);
+  textSize(isMobile ? 60 : 32);
   textFont(manropeFont);
-  text(`${totemPoints} points`, totemX, totemY + totemSize / 2 + 50);
+  text(`${totemPoints} points`, totemX, totemY + totemSize / 2 + 80);
 
   // === Phrase évolutive juste sous les points ===
   let evolutionPhrase = getEvolutionPhrase();
   fill(0, 0, 80);
-  textSize(isMobile ? 43 : 18);
+  textSize(isMobile ? 40 : 18);
   textAlign(CENTER, CENTER);
   textWrap(WORD);
 
-  let maxTextWidth = width * 0.85;
+  let maxTextWidth = width * 0.6;
   let textX = width / 2;
-  let textY = totemY + totemSize / 2 + 540;
+  let textY = totemY + totemSize / 2 + 180;
 
   text(evolutionPhrase, textX - maxTextWidth / 2, textY, maxTextWidth);
 
-  // === Bouton "Jouer" avec le même design que drawButtonBis ===
-  let jouerY = totemY + totemSize / 2 + 850;
-  let jouerBtnW = isMobile ? width * 0.6 : 300;
-  let jouerBtnH = isMobile ? 160 : 60;
+  // === Bouton "Jouer" plus gros ===
+  let jouerBtnW = isMobile ? 800 : 400; // Plus large
+  let jouerBtnH = isMobile ? 140 : 80; // Plus haut
   let jouerBtnX = totemX - jouerBtnW / 2;
-  let jouerBtnY = height - jouerBtnH - (isMobile ? 80 : 20);
+  let jouerBtnY = height - jouerBtnH - 200; // Plus d'espace pour le bouton Stream
 
   // ✅ Utiliser le même design que drawButtonBis mais sans contour
-  drawStyledButton("Jouer", jouerBtnX, jouerBtnY, jouerBtnW, jouerBtnH); // false = pas de contour
+  drawStyledButton("Jouer", jouerBtnX, jouerBtnY, jouerBtnW, jouerBtnH);
 
   // ✅ Zone cliquable pour "Jouer"
   blobHitZones.push({
@@ -1391,23 +1415,19 @@ function drawTotemView() {
     h: totemSize,
   });
 
-  // === Repositionner le bouton Stream au milieu en bas ===
+  // === Repositionner le bouton Stream centré en bas ===
   const streamButton = document.getElementById("streamButton");
   if (streamButton) {
     streamButton.style.display = "block";
+    streamButton.style.position = "fixed";
+    streamButton.style.left = "50%";
+    streamButton.style.transform = "translateX(-50%)";
+    streamButton.style.bottom = "1000px";
+    streamButton.style.zIndex = "1000";
+
     let isStreamUnlocked = playerScore >= 5;
     updateStreamButtonLock(streamButton, isStreamUnlocked);
   }
-
-  /* if (isStreamUnlocked) {
-    blobHitZones.push({
-      type: "streamMode",
-      x: 0,
-      y: window.innerHeight - 200, // Zone approximative du bouton
-      w: window.innerWidth,
-      h: 200,
-    });
-  }*/
 
   if (morphVideo) {
     morphVideo.style.display = "block";
@@ -1529,7 +1549,7 @@ function drawPreDigExplanationView() {
   textFont(bananaFont);
   textSize(isMobile ? 170 : 32);
   fill(0, 0, 100);
-  text("Dig", width / 2, baseY);
+  text("Dig’", width / 2, baseY);
 
   // 🎯 Explication principale
   textAlign(LEFT, CENTER);
@@ -1552,9 +1572,9 @@ function drawPreDigExplanationView() {
 
 🎯 Choisis la musique qui te plaît le plus
 💿 Elle sera ajoutée automatiquement à ta collection
-⭐ Ton Totem evolura selon tes choix...`;
+⭐ Ton Totem évoluera selon tes choix...`;
 
-  text(instructionsText, textX, baseY + spacing * 4, maxTextWidth);
+  text(instructionsText, textX, baseY + spacing * 4.1, maxTextWidth);
 
   // 🎨 Texte cliquable "Toucher pour continuer"
   textAlign(CENTER, CENTER);

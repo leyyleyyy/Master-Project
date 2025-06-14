@@ -56,9 +56,26 @@ function preload() {
 }
 
 function setup() {
-  createCanvas(windowWidth, windowHeight, P2D);
+  // ✅ CORRIGER : Ajuster la taille du canvas pour mobile
+  let canvasWidth = windowWidth;
+  let canvasHeight = windowHeight;
+
+  // Sur mobile, prendre en compte la hauteur réelle disponible
+  if (isMobile) {
+    canvasHeight = window.innerHeight; // Plus précis que windowHeight sur mobile
+    canvasWidth = window.innerWidth; // Plus précis que windowWidth sur mobile
+  }
+
+  createCanvas(canvasWidth, canvasHeight, P2D);
   isMobile = /Mobi|Android/i.test(navigator.userAgent) || windowWidth < 768;
-  console.log("📱 isMobile =", isMobile);
+  console.log(
+    "📱 isMobile =",
+    isMobile,
+    "Canvas:",
+    canvasWidth,
+    "x",
+    canvasHeight
+  );
 
   // Créer les feedbacks
   for (let i = 0; i < 10; i++) {
@@ -669,4 +686,18 @@ function handleTotemClick(mx, my) {
       }*/
     }
   }
+}
+
+// ✅ AJOUTER : Fonction pour gérer le redimensionnement
+function windowResized() {
+  let canvasWidth = windowWidth;
+  let canvasHeight = windowHeight;
+
+  if (isMobile) {
+    canvasHeight = window.innerHeight;
+    canvasWidth = window.innerWidth;
+  }
+
+  resizeCanvas(canvasWidth, canvasHeight);
+  console.log("🔄 Canvas redimensionné:", canvasWidth, "x", canvasHeight);
 }
