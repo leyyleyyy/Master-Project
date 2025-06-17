@@ -387,7 +387,7 @@ canvas {
 
 #videoWrapper {
   position: fixed;
-  top: 0;
+  top: 00;
   left: 0;
   width: 100vw;
   height: 50vh; /* Changer de 50vh à 100vh */

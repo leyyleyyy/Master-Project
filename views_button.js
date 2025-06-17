@@ -1334,7 +1334,7 @@ function drawTotemView() {
 
   // === Totem au milieu (adapté à la taille fixe) ===
   let totemSize = isMobile ? min(width * 0.3, 400) : 500;
-  let totemX = width / 2;
+  let totemX = targetWidth / 2 ;
   let totemY = height * 0.25;
 
   // Afficher le totem/avatar avec la classe CSS originale
@@ -1347,8 +1347,12 @@ function drawTotemView() {
     videoWrapper.style.left = "";
     videoWrapper.style.top = "";
     videoWrapper.style.transform = "";
-    videoWrapper.style.width = "";
-    videoWrapper.style.height = "";
+    videoWrapper.style.display = "block";
+
+    videoWrapper.style.position = "absolute";
+    videoWrapper.style.left = "62%";
+
+    videoWrapper.style.transform = "translate(-50%, 0)";
 
     morphVideo.classList.add("totem-mode");
     morphVideo.classList.remove("totem-evolution-mode");
